@@ -192,7 +192,7 @@ function matchVerb(list, text) {
 
 const KINDS = new Set([
   'fish', 'whale', 'shark', 'octopus', 'jellyfish', 'turtle', 'crab', 'school',
-  'dolphin', 'seahorse', 'starfish', 'ray', 'eel', 'squid',
+  'dolphin', 'seahorse', 'starfish', 'ray', 'eel', 'squid', 'narrator', 'voice',
 ]);
 const KIND_ALIASES = {
   fishes: 'fish', minnow: 'fish', goldfish: 'fish', clownfish: 'fish', sardine: 'fish', tuna: 'fish',
@@ -224,11 +224,24 @@ export function parseCastLine(text, line) {
   const m = text.match(/^([\p{L}\p{N}_-]+)\s*(?:\(([^)]+)\))?\s*[:=–-]\s*(.+)$/u);
   if (!m) throw new ParseError('cast entry must look like `- name: kind, color, size 1`', line, text);
   const name = m[1];
-  const actor = { name, kind: 'fish', color: null, size: null, label: m[2] ? m[2].trim() : null, speed: null, count: null, style: null };
-  let rest = m[3];
+  const actor = { name, kind: 'fish', color: null, size: null, label: m[2] ? m[2].trim() : null, speed: null, count: null, style: null, i18n: {} };
+  Object.assign(actor, parseCastAttrs(m[3]));
+  if (/^(narrator|voice|קריין|מספר)$/i.test(name) && actor.kind === 'fish' && !/\bfish\b/i.test(m[3])) actor.kind = 'narrator';
+  return actor;
+}
+
+// Attributes shared by cast lines and their `lang:` continuation lines:
+//   label "Name", voice "engine voice name", pitch N (Hz offset), rate N (% offset), size N, speed N, count N, colour, kind
+export function parseCastAttrs(text) {
+  const actor = {};
+  let rest = text;
+  const lab = rest.match(/\blabel\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (lab) { actor.label = lab[1].trim(); rest = rest.replace(lab[0], ' '); }
+  const voice = rest.match(/\bvoice\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (voice) { actor.voice = voice[1].trim(); rest = rest.replace(voice[0], ' '); }
   const q = takeQuote(rest);
-  if (q.quote != null) { actor.label = q.quote; rest = q.rest; }
-  for (const key of ['size', 'speed', 'count']) {
+  if (q.quote != null && actor.label == null) { actor.label = q.quote; rest = q.rest; }
+  for (const key of ['size', 'speed', 'count', 'pitch', 'rate', 'volume']) {
     const r = takeKeyNumber(rest, [key, key === 'count' ? 'x' : key]);
     if (r.value != null) { actor[key] = r.value; rest = r.rest; }
   }
@@ -255,6 +268,16 @@ export function parseCastLine(text, line) {
     }
   }
   return actor;
+}
+
+// `he: ...` continuation lines attach a translation (or localised cast
+// attributes) to the previous statement.
+const LANG_LINE_RE = /^([a-z]{2,3}(?:-[A-Za-z]{2,4})?)\s*:\s*(.+)$/;
+export function matchLangLine(text) {
+  const m = text.match(LANG_LINE_RE);
+  if (!m) return null;
+  if (/^(?:https?|ftp)$/i.test(m[1])) return null;
+  return { lang: m[1].toLowerCase(), text: m[2].trim() };
 }
 
 // ---------- action parsing -----------------------------------------------------
@@ -508,6 +531,26 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
     const t = line.trim();
     if (!t) continue;
     if (/^(?:---+|\*\*\*+|___+)$/.test(t)) { script.statements.push({ type: 'directive', name: 'sync', line: lineNo, text: t }); continue; }
+
+    // Translation / localisation continuation lines: `he: text`
+    const lang = matchLangLine(t.replace(/^[-*+]\s+/, ''));
+    if (lang && !t.startsWith('>') && !t.startsWith('@') && !t.startsWith('**')) {
+      if (mode === 'cast' && script.cast.length) {
+        const c = script.cast[script.cast.length - 1];
+        c.i18n[lang.lang] = { ...(c.i18n[lang.lang] || {}), ...parseCastAttrs(lang.text) };
+        continue;
+      }
+      const last = script.statements[script.statements.length - 1];
+      if (last && (last.type === 'dialog' || (last.type === 'directive' && (last.name === 'title' || last.name === 'caption')))) {
+        last.i18n = last.i18n || {};
+        const txt = lang.text.replace(/^["“]|["”]$/g, '');
+        const sub = txt.match(/\bsubtitle\s+["“]([^"”]*)["”]/i);
+        last.i18n[lang.lang] = sub ? { text: txt.slice(0, sub.index).replace(/["“”]/g, '').trim(), subtitle: sub[1] } : { text: txt };
+        continue;
+      }
+      script.warnings.push(`line ${lineNo}: translation line has nothing to attach to`);
+      continue;
+    }
 
     // Headings
     let m = t.match(/^(#{1,6})\s+(.*?)\s*#*\s*$/);

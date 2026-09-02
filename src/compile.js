@@ -34,9 +34,14 @@ const vscale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 const vdist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const round = (n) => Math.round(n * 1000) / 1000;
 
+// Rough reading time from the text; Hebrew/Arabic (no vowels written) are
+// denser, so they get more time per character.  `timing: audio` replaces this
+// with the real voice clip lengths.
 function dialogDuration(text) {
   const chars = text.replace(/\s+/g, '').length;
-  return Math.min(8, Math.max(1.6, 0.9 + chars * 0.065));
+  const dense = /[֐-׿؀-ۿ]/.test(text);
+  const pauses = (text.match(/[.,!?…;:]/g) || []).length;
+  return Math.min(10, Math.max(1.6, 0.9 + chars * (dense ? 0.1 : 0.065) + pauses * 0.15));
 }
 
 export function compile(script, options = {}) {
@@ -48,8 +53,26 @@ export function compile(script, options = {}) {
     audio: script.meta.audio ?? null,
     font: script.meta.font ?? null,
     subtitles: script.meta.subtitles ?? true,
-    language: script.meta.language ?? script.meta.lang ?? null,
+    lang: null,
+    sourceLang: String(script.meta.lang ?? script.meta.language ?? 'en').toLowerCase(),
+    burnSubtitles: options.burnSubtitles ?? (script.meta.subtitles === 'burn' || script.meta.burn_subtitles === true),
+    tts: options.tts ?? script.meta.tts ?? 'auto',
+    timing: options.timing ?? script.meta.timing ?? 'text',
+    music: script.meta.music ?? null,
+    musicVolume: Number(script.meta.music_volume ?? 0.25),
     tail: Number(script.meta.tail ?? 1.5),
+  };
+  meta.lang = String(options.lang ?? meta.sourceLang).toLowerCase();
+  const lineDurations = options.lineDurations || {};
+  // Picks the localised variant of a translatable statement/cast entry.
+  const pick = (base, i18n, key = 'text') => {
+    const v = i18n && (i18n[meta.lang] || i18n[meta.lang.split('-')[0]]);
+    return v && v[key] != null ? v[key] : base;
+  };
+  const allTexts = (base, i18n, key = 'text') => {
+    const out = { [meta.sourceLang]: base };
+    for (const [l, v] of Object.entries(i18n || {})) if (v[key] != null) out[l] = v[key];
+    return out;
   };
   const warnings = [...script.warnings];
   const warn = (line, msg) => warnings.push(`line ${line}: ${msg}`);
@@ -61,10 +84,17 @@ export function compile(script, options = {}) {
     const kind = entry.kind || 'fish';
     const def = KIND_DEFAULTS[kind] || KIND_DEFAULTS.fish;
     let size = entry.size ?? def.size * (SIZE_HINTS[entry.sizeHint] ?? 1);
+    const baseLabel = entry.label ?? capitalize(entry.name.replace(/[_-]+/g, ' '));
+    const voices = {};
+    if (entry.voice || entry.pitch != null || entry.rate != null) voices[meta.sourceLang] = { voice: entry.voice ?? null, pitch: entry.pitch ?? 0, rate: entry.rate ?? 0 };
+    for (const [l, v] of Object.entries(entry.i18n || {})) if (v.voice || v.pitch != null || v.rate != null) voices[l] = { voice: v.voice ?? null, pitch: v.pitch ?? 0, rate: v.rate ?? 0 };
     cast[entry.name] = {
       name: entry.name,
       kind,
-      label: entry.label ?? capitalize(entry.name.replace(/[_-]+/g, ' ')),
+      label: pick(baseLabel, entry.i18n, 'label'),
+      labels: allTexts(baseLabel, entry.i18n, 'label'),
+      voices,
+      voice: voices[meta.lang] || voices[meta.lang.split('-')[0]] || null,
       color: entry.color ?? KIND_COLORS[kind] ?? 'silver',
       size,
       speed: entry.speed ?? def.speed * Math.max(0.5, Math.sqrt(size / def.size)),
@@ -82,6 +112,7 @@ export function compile(script, options = {}) {
   const est = {}; // estimated current position per actor (for default durations)
   function actorTracks(name, line) {
     if (name === 'camera') return camera;
+    if (cast[name]?.kind === 'narrator') { warn(line, `"@${name}" is a voice-only narrator and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [] }; }
     if (!cast[name]) {
       warn(line, `actor "@${name}" was not declared in the cast; assuming a fish`);
       addActor({ name, kind: 'fish' });
@@ -180,23 +211,34 @@ export function compile(script, options = {}) {
       }
       case 'dialog': {
         const t0 = cursor;
-        const dur = st.duration ?? dialogDuration(st.text);
+        const dur = lineDurations[st.line] != null ? Math.max(lineDurations[st.line], st.duration ?? 0) : (st.duration ?? dialogDuration(st.text));
         const t1 = advance(t0, dur, st.nonBlocking);
         const speakerName = st.speaker;
         let kind = 'dialog';
         let label = speakerName;
         let actorName = null;
-        if (st.narration || !speakerName || /^(narrator|voice|vo|v\.o\.|מספר|קריין)$/i.test(speakerName)) {
+        const isNarratorName = (n) => /^(narrator|voice|vo|v\.o\.|מספר|קריין)$/i.test(n) || cast[n]?.kind === 'narrator';
+        const findByLabel = (n) => castOrder.find((c) => cast[c].kind !== 'narrator' && Object.values(cast[c].labels).some((l) => l.toLowerCase() === n.toLowerCase()));
+        if (st.narration || !speakerName || isNarratorName(speakerName)) {
           kind = 'narration';
-          label = speakerName && !/^(narrator|voice|vo|v\.o\.)$/i.test(speakerName) ? speakerName : null;
-          if (speakerName && cast[speakerName]) { kind = 'dialog'; label = cast[speakerName].label; actorName = speakerName; }
-        } else if (cast[speakerName]) {
+          label = speakerName && !isNarratorName(speakerName) ? speakerName : null;
+          if (speakerName && cast[speakerName] && cast[speakerName].kind !== 'narrator') { kind = 'dialog'; label = cast[speakerName].label; actorName = speakerName; }
+        } else if (cast[speakerName] && cast[speakerName].kind !== 'narrator') {
           label = cast[speakerName].label; actorName = speakerName;
         } else {
-          const byLabel = castOrder.find((n) => cast[n].label.toLowerCase() === speakerName.toLowerCase());
+          const byLabel = findByLabel(speakerName);
           if (byLabel) { label = cast[byLabel].label; actorName = byLabel; }
         }
-        subtitles.push({ t0, t1, kind, speaker: label, actor: actorName, text: st.text, color: actorName ? cast[actorName].color : null });
+        const narratorCast = castOrder.find((n) => cast[n].kind === 'narrator');
+        const voiceOwner = actorName ?? (kind === 'narration' ? narratorCast : null);
+        subtitles.push({
+          t0, t1, kind, speaker: label, actor: actorName, line: st.line,
+          text: pick(st.text, st.i18n), texts: allTexts(st.text, st.i18n),
+          color: actorName ? cast[actorName].color : null,
+          voice: voiceOwner ? (cast[voiceOwner].voice ?? null) : null,
+          voiceOwner,
+          spoken: true,
+        });
         if (actorName) {
           const tr = ensurePlaced(actorName, t0, st.line);
           tr.effects.push({ t0, t1, type: 'talk' });
@@ -212,8 +254,8 @@ export function compile(script, options = {}) {
           case 'fadeIn': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0 }); advance(t0, d, st.nonBlocking); break; }
           case 'fadeOut': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1 }); advance(t0, d, st.nonBlocking); break; }
           case 'black': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 1 }); advance(t0, d, st.nonBlocking); break; }
-          case 'title': { const d = st.duration ?? 3; overlays.push({ type: 'title', t0, t1: t0 + d, text: st.quote, subtitle: st.subtitle ?? null }); advance(t0, d, st.nonBlocking); break; }
-          case 'caption': { const d = st.duration ?? dialogDuration(st.quote); subtitles.push({ t0, t1: t0 + d, kind: 'caption', speaker: null, text: st.quote }); advance(t0, d, st.nonBlocking); break; }
+          case 'title': { const d = st.duration ?? 3; overlays.push({ type: 'title', t0, t1: t0 + d, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), subtitle: pick(st.subtitle ?? null, st.i18n, 'subtitle') }); advance(t0, d, st.nonBlocking); break; }
+          case 'caption': { const d = lineDurations[st.line] ?? st.duration ?? dialogDuration(st.quote); subtitles.push({ t0, t1: t0 + d, kind: 'caption', speaker: null, line: st.line, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), spoken: false }); advance(t0, d, st.nonBlocking); break; }
           case 'cut': pendingCut = true; break;
           case 'marker': markers.push({ t: t0, label: st.quote || 'marker', kind: 'marker' }); break;
           default: warn(st.line, `directive "${st.name}" is not supported yet; ignored`);
@@ -534,7 +576,7 @@ export function compile(script, options = {}) {
   camera.segments.sort((a, b) => a.t0 - b.t0);
   camera.looks.sort((a, b) => a.t0 - b.t0);
   // Declared but never used actors: keep them out of the scene.
-  for (const name of castOrder) if (!actors[name]) warn(script.cast.find((c) => c.name === name)?.line ?? 0, `actor "@${name}" is declared but never used`);
+  for (const name of castOrder) if (!actors[name] && cast[name].kind !== 'narrator') warn(script.cast.find((c) => c.name === name)?.line ?? 0, `actor "@${name}" is declared but never used`);
 
   const duration = Number(options.duration ?? script.meta.duration ?? (maxEnd + meta.tail));
   meta.duration = Math.max(0.5, duration);

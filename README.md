@@ -31,7 +31,11 @@ You write a script like this:
 
 and get a video with a procedurally animated ocean (waves, caustics, light rays,
 bubbles, seaweed, coral), cartoon sea creatures that swim, turn, emote and talk,
-a scripted camera, and burned-in subtitles.
+a scripted camera, per-character text-to-speech voices and a soft subtitle
+track.  Translations live next to the source lines (`he: ...`), and because
+timing always comes from the source line, every language renders identical
+frames: `--lang he` gives Hebrew title cards, subtitles and voices on the same
+video.
 
 The full language is described in [docs/SCRIPT_FORMAT.md](docs/SCRIPT_FORMAT.md).
 
@@ -55,8 +59,13 @@ node bin/oceanscript.js check examples/caspion.md
 # live preview in a browser (recompiles when you save the script)
 node bin/oceanscript.js preview examples/caspion.md      # http://127.0.0.1:8765/
 
-# render the video
-node bin/oceanscript.js render examples/caspion.md -o out/caspion.mp4
+# render the video (soft subtitles + voice track in the script's language)
+node bin/oceanscript.js render examples/caspion.md --jobs 3 -o out/caspion.mp4
+
+# the same frames with Hebrew title card, subtitles and voices
+node bin/oceanscript.js render examples/caspion.md --jobs 3 --lang he -o out/caspion.he.mp4
+# ...or without re-rendering, reusing the frames of an existing render
+node bin/oceanscript.js mux examples/caspion.md --video out/caspion.mp4 --lang he -o out/caspion.he.mp4
 
 # quick low-res render of one part
 node bin/oceanscript.js render examples/caspion.md --scale 0.5 --start 20 --end 30
@@ -67,8 +76,14 @@ node bin/oceanscript.js parse examples/caspion.md -o out/caspion.json
 
 Render options: `--fps`, `--width/--height`, `--scale`, `--start/--end` (seconds),
 `--jobs N` (parallel browser processes; frames are deterministic so chunks are
-concatenated losslessly), `--frames dir` (keep PNGs), `--no-video`,
-`--audio file.mp3`, `--crf`, `--headed`.
+concatenated losslessly), `--lang code`, `--burn-subtitles`, `--no-voice`,
+`--tts edge|gtts|none`, `--timing audio`, `--music file`, `--audio file`,
+`--frames dir` (keep PNGs), `--no-video`, `--crf`, `--headed`.
+
+Voices need `pip install edge-tts` (Microsoft neural voices, Hebrew included) or
+`pip install gTTS` as a fallback; `--tts none` renders silent video.  Each
+render also writes `<out>.srt`, `<out>.vtt` and `<out>.voice.json` (clip
+timings) next to the video.
 Set `$FFMPEG` to use a specific ffmpeg binary.
 
 ## How the pipeline works
@@ -102,10 +117,15 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
    spout).
 6. **`src/render.js`** – starts a local static server, opens the renderer page in
    headless Chromium, calls `window.__seek(t)` for every frame, screenshots the
-   page (WebGL canvas + HTML subtitles/titles) and pipes PNGs into ffmpeg
-   (`libx264` for `.mp4`, VP9/VP8 for `.webm`), optionally muxing audio.
-   A failed capture relaunches the browser and retries the same frame, and
-   `--jobs N` renders frame ranges in parallel processes and concatenates them.
+   page (WebGL canvas + HTML title cards) and pipes PNGs into ffmpeg
+   (`libx264` for `.mp4`, VP9/VP8 for `.webm`).  A failed capture relaunches the
+   browser and retries the same frame, and `--jobs N` renders frame ranges in
+   parallel processes and concatenates them.
+7. **`src/tts.js`, `src/subtitles.js`, `src/mux.js`** – synthesise one clip per
+   spoken line (cached by text + voice), mix them at their timeline positions
+   (with optional music), write SRT/VTT, and mux audio plus a soft subtitle
+   track onto the video-only render.  `oceanscript mux` runs just this step on
+   an existing render for another language.
    `src/preview.js` serves the same page with a scrubber and hot reload.
 
 ## Extending
@@ -121,9 +141,9 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
   `KINDS` in `src/parser.js`.
 * **New setting** – add the key to `ENV_KEYS` in `src/parser.js` and resolve it in
   `resolveEnv()` in `renderer/ocean.js`.
-* **Audio / voice-over** – put `audio: track.mp3` in the front matter (or pass
-  `--audio`); subtitles already carry timing, so a TTS step can be driven from the
-  `subtitles` array of the compiled timeline (`oceanscript parse`).
+* **New language** – add `xx: ...` lines under the text lines and cast entries;
+  default voices per language live in `DEFAULT_VOICES` in `src/tts.js`.
+* **New TTS engine** – add a case to `synthesize()` in `src/tts.js`.
 
 ## Tests
 

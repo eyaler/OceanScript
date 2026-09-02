@@ -49,12 +49,66 @@ starts at the same time.
 | key | meaning | default |
 | --- | --- | --- |
 | `title` | shown by `check` | |
+| `lang` | language of the source text (`en`, `he`, ...) | en |
 | `fps` | frames per second | 24 |
 | `width`, `height` | output resolution | 1280×720 |
-| `audio` | audio file (relative to the script) muxed into the video | |
-| `subtitles` | `false` disables the on-screen subtitles | true |
+| `tts` | voice engine: `edge`, `gtts`, `none`, `auto` | auto |
+| `timing` | `text` (dialog length estimated from the text) or `audio` (each spoken line lasts as long as its longest voice clip across all languages, plus padding) – both give identical frames in every language | text |
+| `subtitles` | `burn` draws subtitles into the frames; otherwise they are a soft track | soft |
+| `music` | background music file (relative to the script), looped under the voices | |
+| `music_volume` | music gain under the voices | 0.25 |
+| `audio` | a finished audio file to mux instead of generating voices | |
 | `tail` | seconds of padding after the last action | 1.5 |
 | `duration` | force a total duration | |
+
+## Languages, subtitles and voices
+
+Every line of text can carry translations on the lines right after it, as
+`<lang>: text`:
+
+```markdown
+**Caspion:** Why are you crying, little whale?
+  he: למה אתה בוכה, לווייתן קטן?
+> Narrator: Far from home, Caspion heard someone crying.
+  he: הרחק מהבית, שמע כספיון מישהו בוכה.
+- title "Caspion the Little Fish" for 4s
+  he: כספיון הדג הקטן
+```
+
+The **timing always comes from the source line** (its text length or explicit
+duration), so `--lang he` renders exactly the same frames as the source
+language; only the title cards, the subtitle track and the voices change.
+Untranslated lines fall back to the source text.  Right-to-left text is
+handled automatically.
+
+Subtitles are written as `<out>.srt` and `<out>.vtt` and muxed into the
+video as a **soft subtitle track** (selectable in the player, off by default).
+Pass `--burn-subtitles` (or `subtitles: burn`) to draw them into the frames.
+Dialog cues are prefixed with the speaker's (localised) label; narration and
+captions are not.
+
+Voices are generated per line with a text-to-speech engine and placed at the
+line's start.  With `timing: audio` (recommended when voices are on) the line's
+duration is the longest clip among all languages plus 0.45 s, so nothing is
+squeezed and the frames are still identical per language; the resolved
+durations are saved as `<out>.timing.json` and reused by `oceanscript mux`.
+With `timing: text` a clip longer than its slot is sped up a little (at most
+1.45×) and a warning names the line if it still overflows.  Voices are chosen
+per character and per language in the cast:
+
+```markdown
+# Cast
+- narrator: voice "en-US-GuyNeural"
+  he: voice "he-IL-AvriNeural"
+- caspion: fish, silver, label "Caspion", voice "en-US-AnaNeural" pitch 10 rate 5
+  he: label "כספיון", voice "he-IL-HilaNeural" pitch 30 rate 8
+```
+
+`voice` names an engine voice (`edge-tts --list-voices`), `pitch` is a Hz
+offset and `rate` a percentage.  Characters without a voice get a default one
+for the language (child-like for small creatures, a narrator voice for
+narration).  A cast entry named `narrator` (or of kind `narrator`) is
+voice-only and never appears in the scene.  Captions are shown but not spoken.
 
 ## Cast
 
@@ -73,6 +127,8 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
 * **size**: body length in metres.  **speed**: metres per second for default move
   durations.
 * **label**: the name shown in subtitles (defaults to the capitalised name).
+* **voice**, **pitch**, **rate**: text-to-speech voice (see *Languages, subtitles and voices*).
+* A following `he: label "...", voice "..."` line localises the label and voice.
 
 Actors used without a declaration become silver fish (with a warning).
 Actor names may contain any letters, digits, `_` and `-` (Hebrew works).

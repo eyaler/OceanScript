@@ -176,7 +176,7 @@ function seek(t) {
 
   // overlays
   const subs = ev.subtitles(t);
-  if (timeline.meta.subtitles !== false && subs.length) {
+  if (timeline.meta.burnSubtitles && subs.length) {
     $subs.innerHTML = subs.map((s) => {
       const a = Math.min(1, s.age / 0.25, s.remaining / 0.25);
       const dir = isRtl(s.text) ? 'rtl' : 'ltr';
@@ -251,6 +251,7 @@ async function main() {
   setupRenderer();
   if (HEADLESS) {
     window.__load = (tl) => { loadTimeline(tl); return true; };
+    // subtitles are muxed as a soft track unless burn-in was requested
     window.__seek = (t) => { seek(t); return true; };
     window.__debug = (hide) => {
       const names = String(hide).split(',').filter(Boolean);
@@ -266,6 +267,7 @@ async function main() {
     return;
   }
   const { json, etag } = await fetchTimeline();
+  json.meta.burnSubtitles = true; // the preview always shows subtitles
   loadTimeline(json);
   let lastEtag = etag;
   window.addEventListener('resize', fitStage);
@@ -281,7 +283,7 @@ async function main() {
     try {
       const res = await fetch('/timeline.version', { cache: 'no-store' });
       const v = await res.text();
-      if (v !== lastEtag) { lastEtag = v; const { json } = await fetchTimeline(); loadTimeline(json); }
+      if (v !== lastEtag) { lastEtag = v; const { json } = await fetchTimeline(); json.meta.burnSubtitles = true; loadTimeline(json); }
     } catch { /* ignore */ }
   }, 1000);
   playing = true;

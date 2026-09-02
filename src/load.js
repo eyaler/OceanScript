@@ -8,6 +8,7 @@ export function loadTimeline(file, opts = {}) {
   const src = readFileSync(file, 'utf8');
   const script = parseScript(src, { filename: file });
   const timeline = compile(script, opts);
+  timeline.meta.scriptFile = path.resolve(file);
   timeline.meta.scriptDir = path.dirname(path.resolve(file));
   timeline.meta.scriptName = path.basename(file, path.extname(file));
   return timeline;

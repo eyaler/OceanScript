@@ -10,6 +10,9 @@ usage:
   oceanscript render  <script.md> [options]              render to a video
   oceanscript preview <script.md> [--port N]             live preview in a browser
   oceanscript check   <script.md>                        validate and list warnings
+  oceanscript mux     <script.md> --video <file> [--lang he] [-o out]
+                                                         add voice + subtitles in another language to an
+                                                         existing render (frames are identical, so no re-render)
 
 render options:
   -o, --out <file>        output video (default: out/<name>.mp4)
@@ -21,6 +24,12 @@ render options:
   --no-video              only write frames
   --audio <file>          mux an audio file (or set audio: in front matter)
   --crf <n>               x264 quality (default 18)
+  --lang <code>           language for subtitles, title cards and voice (default: script's lang)
+  --burn-subtitles        draw subtitles into the frames instead of a soft subtitle track
+  --no-voice              skip the text-to-speech voice track
+  --tts <engine>          edge (default when installed), gtts, none
+  --timing audio          let voice clip lengths set the dialog durations (changes the video!)
+  --music <file>          background music mixed under the voices
   --jobs <n>              render in n parallel browser processes and concatenate
   --headed                show the browser while rendering
 `;
@@ -50,12 +59,16 @@ async function main() {
   if (args.fps) opts.fps = Number(args.fps);
   if (args.width) opts.width = Number(args.width);
   if (args.height) opts.height = Number(args.height);
+  if (args.lang) opts.lang = String(args.lang);
+  if (args.burnSubtitles) opts.burnSubtitles = true;
+  if (args.tts) opts.tts = String(args.tts);
+  if (args.timing) opts.timing = String(args.timing);
 
   if (cmd === 'parse' || cmd === 'check') {
     const timeline = loadTimeline(file, opts);
     for (const w of timeline.warnings) console.error('warning:', w);
     if (cmd === 'check') {
-      console.log(`ok: ${timeline.meta.duration.toFixed(2)}s, ${timeline.meta.frames} frames @ ${timeline.meta.fps}fps, ${Object.keys(timeline.actors).length} actors, ${timeline.subtitles.length} subtitles, ${timeline.markers.filter((m) => m.kind === 'scene').length} scenes`);
+      console.log(`ok: ${timeline.meta.duration.toFixed(2)}s, ${timeline.meta.frames} frames @ ${timeline.meta.fps}fps, ${Object.keys(timeline.actors).length} actors, ${timeline.subtitles.length} subtitles, ${timeline.markers.filter((m) => m.kind === 'scene').length} scenes, lang ${timeline.meta.lang} (available: ${[...new Set(timeline.subtitles.flatMap((s) => Object.keys(s.texts || {})))].join(', ')})`);
       for (const m of timeline.markers) if (m.kind === 'scene') console.log(`  ${m.t.toFixed(2).padStart(8)}s  ${m.label}`);
       return;
     }
@@ -67,6 +80,11 @@ async function main() {
   if (cmd === 'render') {
     const { render } = await import('../src/render.js');
     await render(file, { ...opts, ...args });
+    return;
+  }
+  if (cmd === 'mux') {
+    const { muxCommand } = await import('../src/mux.js');
+    await muxCommand(file, { ...opts, ...args });
     return;
   }
   if (cmd === 'preview') {

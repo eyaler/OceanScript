@@ -6,9 +6,10 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync, statSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTimeline } from './load.js';
+import { prepareTimeline } from './timing.js';
 import { startServer } from './server.js';
 import { findFfmpeg } from './ffmpeg.js';
+import { finalize } from './mux.js';
 
 export const CHROMIUM_ARGS = [
   '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist',
@@ -91,7 +92,11 @@ function runFfmpeg(ff, ffargs, { stdin = 'ignore' } = {}) {
 export async function render(file, args = {}) {
   const t0 = Date.now();
   const scale = args.scale ? Number(args.scale) : 1;
-  const timeline = loadTimeline(file, { fps: args.fps, width: args.width, height: args.height });
+  let out = args.out;
+  const ff = args.video === false ? null : findFfmpeg();
+  if (args.video !== false && !ff) throw new Error('ffmpeg not found. Install ffmpeg, set $FFMPEG, or `pip install imageio-ffmpeg`.');
+  const timingFile = args.timingFile ?? (out ? out.replace(/\.[^.]+$/, '.timing.json') : null);
+  const timeline = await prepareTimeline(file, { fps: args.fps, width: args.width, height: args.height, lang: args.lang, burnSubtitles: args.burnSubtitles, tts: args.tts, timing: args.timing, ttsCache: args.ttsCache, timingFile }, args.quiet ? () => {} : console.error);
   if (scale !== 1) {
     timeline.meta.width = Math.round(timeline.meta.width * scale / 2) * 2;
     timeline.meta.height = Math.round(timeline.meta.height * scale / 2) * 2;
@@ -104,15 +109,16 @@ export async function render(file, args = {}) {
   const endFrame = args.endFrame != null ? Number(args.endFrame) : Math.max(startFrame + 1, Math.ceil(endT * fps));
   const total = endFrame - startFrame;
 
-  const ff = args.video === false ? null : findFfmpeg();
-  if (args.video !== false && !ff) throw new Error('ffmpeg not found. Install ffmpeg, set $FFMPEG, or `pip install imageio-ffmpeg`.');
-  let out = args.out;
   if (!out) out = path.join('out', `${timeline.meta.scriptName}.${ff?.h264 ? 'mp4' : 'webm'}`);
+  if (timeline.meta.lineDurations && !existsSync(out.replace(/\.[^.]+$/, '.timing.json'))) {
+    writeFileSync(out.replace(/\.[^.]+$/, '.timing.json'), JSON.stringify({ lineDurations: timeline.meta.lineDurations }, null, 2));
+  }
   mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   const framesDir = args.frames ? path.resolve(args.frames) : null;
   if (framesDir) mkdirSync(framesDir, { recursive: true });
-  const audio = args.audio ?? (timeline.meta.audio ? path.resolve(timeline.meta.scriptDir, timeline.meta.audio) : null);
-  if (audio && !existsSync(audio)) throw new Error(`audio file not found: ${audio}`);
+  // Frames go to a video-only file; finalize() adds audio and soft subtitles.
+  const raw = args.raw === true;
+  const videoOnly = raw ? out : out.replace(/(\.[^.]+)$/, '.video$1');
 
   // ---- parallel chunks ---------------------------------------------------------
   const jobs = Math.max(1, Math.floor(Number(args.jobs || 1)));
@@ -131,8 +137,10 @@ export async function render(file, args = {}) {
       chunks.push({ i, a, b, file: path.join(chunkDir, `chunk_${String(i).padStart(2, '0')}${ext}`) });
     }
     await Promise.all(chunks.map((c) => new Promise((resolve, reject) => {
-      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--no-audio-mux'];
-      for (const k of ['fps', 'width', 'height', 'scale', 'crf', 'preset']) if (args[k] != null) cargs.push(`--${k}`, String(args[k]));
+      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--raw'];
+      for (const k of ['fps', 'width', 'height', 'scale', 'crf', 'preset', 'lang', 'tts']) if (args[k] != null) cargs.push(`--${k}`, String(args[k]));
+      if (args.burnSubtitles) cargs.push('--burn-subtitles');
+      if (timeline.meta.lineDurations) cargs.push('--timing-file', out.replace(/\.[^.]+$/, '.timing.json'));
       if (framesDir) cargs.push('--frames', framesDir);
       const child = spawn(process.execPath, cargs, { stdio: ['ignore', 'inherit', 'pipe'] });
       let last = Date.now();
@@ -145,13 +153,10 @@ export async function render(file, args = {}) {
     })));
     const list = path.join(chunkDir, 'list.txt');
     writeFileSync(list, chunks.map((c) => `file '${c.file.replace(/'/g, "'\\''")}'`).join('\n') + '\n');
-    const ffargs = ['-f', 'concat', '-safe', '0', '-i', list];
-    if (audio) ffargs.push('-ss', String(startFrame / fps), '-i', audio);
-    ffargs.push('-c:v', 'copy');
-    if (audio) ffargs.push('-c:a', /\.(mp4|m4v|mov)$/i.test(out) ? 'aac' : 'libopus', '-b:a', '160k', '-shortest', '-map', '0:v:0', '-map', '1:a:0');
-    ffargs.push('-movflags', '+faststart', out);
+    const ffargs = ['-f', 'concat', '-safe', '0', '-i', list, '-c:v', 'copy', '-movflags', '+faststart', videoOnly];
     await runFfmpeg(ff, ffargs).done;
     rmSync(chunkDir, { recursive: true, force: true });
+    if (!raw) await finalize(timeline, videoOnly, out, args);
     console.error(`done in ${fmt((Date.now() - t0) / 1000)} -> ${out}`);
     return out;
   }
@@ -168,12 +173,7 @@ export async function render(file, args = {}) {
 
   let ffmpeg = null;
   if (ff) {
-    const ffargs = ['-f', 'image2pipe', '-framerate', String(fps), '-i', '-'];
-    const mux = audio && args.audioMux !== false;
-    if (mux) ffargs.push('-ss', String(startFrame / fps), '-i', audio);
-    ffargs.push(...videoArgs(ff, out, args));
-    if (mux) ffargs.push('-c:a', /\.(mp4|m4v|mov)$/i.test(out) ? 'aac' : 'libopus', '-b:a', '160k', '-shortest', '-map', '0:v:0', '-map', '1:a:0');
-    ffargs.push(out);
+    const ffargs = ['-f', 'image2pipe', '-framerate', String(fps), '-i', '-', ...videoArgs(ff, out, args), videoOnly];
     ffmpeg = runFfmpeg(ff, ffargs, { stdin: 'pipe' });
     ffmpeg.proc.stdin.on('error', () => {});
   }
@@ -200,6 +200,7 @@ export async function render(file, args = {}) {
     server.close();
   }
   if (ffmpeg) await ffmpeg.done;
+  if (ff && !raw) await finalize(timeline, videoOnly, out, args);
   if (!args.quiet) console.error(`done in ${fmt((Date.now() - t0) / 1000)}${ff ? ` -> ${out}` : ''}`);
   return out;
 }
