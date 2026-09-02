@@ -66,7 +66,9 @@ node bin/oceanscript.js parse examples/caspion.md -o out/caspion.json
 ```
 
 Render options: `--fps`, `--width/--height`, `--scale`, `--start/--end` (seconds),
-`--frames dir` (keep PNGs), `--no-video`, `--audio file.mp3`, `--crf`, `--headed`.
+`--jobs N` (parallel browser processes; frames are deterministic so chunks are
+concatenated losslessly), `--frames dir` (keep PNGs), `--no-video`,
+`--audio file.mp3`, `--crf`, `--headed`.
 Set `$FFMPEG` to use a specific ffmpeg binary.
 
 ## How the pipeline works
@@ -102,6 +104,8 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
    headless Chromium, calls `window.__seek(t)` for every frame, screenshots the
    page (WebGL canvas + HTML subtitles/titles) and pipes PNGs into ffmpeg
    (`libx264` for `.mp4`, VP9/VP8 for `.webm`), optionally muxing audio.
+   A failed capture relaunches the browser and retries the same frame, and
+   `--jobs N` renders frame ranges in parallel processes and concatenates them.
    `src/preview.js` serves the same page with a scrubber and hot reload.
 
 ## Extending

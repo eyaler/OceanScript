@@ -21,6 +21,7 @@ render options:
   --no-video              only write frames
   --audio <file>          mux an audio file (or set audio: in front matter)
   --crf <n>               x264 quality (default 18)
+  --jobs <n>              render in n parallel browser processes and concatenate
   --headed                show the browser while rendering
 `;
 
