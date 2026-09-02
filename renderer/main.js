@@ -68,6 +68,46 @@ function fxEmit(x, y, z, s, r, g, b) {
 }
 function fxCommit() { fxPool.geo.attributes.position.needsUpdate = true; fxPool.geo.attributes.psize.needsUpdate = true; fxPool.geo.attributes.pcolor.needsUpdate = true; fxPool.points.material.uniforms.uScale.value = height; }
 
+const assetCache = { textures: {}, gltfs: {}, images: {} };
+function assetUrl(rel) { return (timeline.meta.assetUrls && timeline.meta.assetUrls[rel]) || ('/script/' + rel.split('/').map(encodeURIComponent).join('/')); }
+
+async function preloadAssets(tl) {
+  timeline = tl;
+  const loader = new THREE.TextureLoader();
+  const jobs = [];
+  for (const rel of tl.assets || []) {
+    const url = assetUrl(rel);
+    if (/\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(rel)) {
+      jobs.push(new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const tex = new THREE.Texture(img);
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.needsUpdate = true;
+          assetCache.textures[rel] = tex;
+          assetCache.images[rel] = { width: img.naturalWidth || 1, height: img.naturalHeight || 1 };
+          resolve();
+        };
+        img.onerror = () => { console.warn('asset failed to load: ' + rel); resolve(); };
+        img.src = url;
+      }));
+    } else if (/\.(glb|gltf)$/i.test(rel)) {
+      jobs.push(import('/vendor/three/examples/jsm/loaders/GLTFLoader.js').then(({ GLTFLoader }) => new Promise((resolve) => {
+        new GLTFLoader().load(url, (gltf) => { assetCache.gltfs[rel] = gltf; resolve(); }, undefined, (e) => { console.warn('model failed: ' + rel + ' ' + e); resolve(); });
+      })));
+    } else if (/\.(ttf|otf|woff2?)$/i.test(rel)) {
+      const fam = tl.meta.fontFamily || 'ScriptFont';
+      const face = new FontFace(fam, `url(${url})`);
+      jobs.push(face.load().then((f) => { document.fonts.add(f); document.documentElement.style.setProperty('--script-font', `"${fam}"`); }).catch((e) => console.warn('font failed: ' + rel + ' ' + e)));
+    } else if (/\.(webm|mp4|ogv)$/i.test(rel)) {
+      // video clips are created on demand (see overlays); nothing to preload
+    }
+  }
+  await Promise.all(jobs);
+  if (tl.meta.fontFamily && !tl.meta.font) document.documentElement.style.setProperty('--script-font', `"${tl.meta.fontFamily}"`);
+  for (const rel of Object.keys(assetCache.textures)) ocean.setBackdropTexture(rel, assetCache.textures[rel]);
+}
+
 function loadTimeline(tl) {
   timeline = tl;
   ev = new TimelineEvaluator(tl);
@@ -86,7 +126,20 @@ function loadTimeline(tl) {
   let seed = 1;
   for (const name of Object.keys(tl.actors)) {
     const c = tl.cast[name];
-    const rig = createActorRig(c, (seed++) * 17.3);
+    if (c.kind === 'narrator') continue;
+    const extra = {};
+    if (c.kind === 'sprite') {
+      extra.texture = assetCache.textures[c.image] || null;
+      const im = assetCache.images[c.image];
+      extra.aspect = im ? im.width / im.height : 1;
+      if (!extra.texture) { console.warn(`sprite image missing for @${name}; using a fish`); c.kind = 'fish'; }
+    }
+    if (c.kind === 'model') {
+      extra.gltf = assetCache.gltfs[c.model] || null;
+      extra.three = { AnimationMixer: THREE.AnimationMixer, Box3: THREE.Box3, Vector3: THREE.Vector3 };
+      if (!extra.gltf) { console.warn(`model missing for @${name}; using a fish`); c.kind = 'fish'; }
+    }
+    const rig = createActorRig(c, (seed++) * 17.3, extra);
     rigs[name] = rig;
     scene.add(rig.group);
   }
@@ -144,8 +197,20 @@ function seek(t) {
     let dyaw = Math.atan2(h[0], h[2]) - Math.atan2(hPrev[0], hPrev[2]);
     if (dyaw > Math.PI) dyaw -= 2 * Math.PI; if (dyaw < -Math.PI) dyaw += 2 * Math.PI;
     const roll = rig.yawOnly ? 0 : Math.max(-0.6, Math.min(0.6, -dyaw * 30 * 0.12));
-    rig.group.rotation.set(-pitch, yaw + (rig.sideways ? Math.PI / 2 : 0), roll, 'YXZ');
-    const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), t };
+    if (rig.billboard) {
+      // face the camera around y; mirror when heading points left of the camera's view
+      const toCam = new THREE.Vector3().subVectors(camera.position, rig.group.position);
+      const camYaw = Math.atan2(toCam.x, toCam.z);
+      const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
+      const facingLeft = (h[0] * right.x + h[2] * right.z) < -0.05;
+      rig.group.rotation.set(0, camYaw, 0, 'YXZ');
+      rig.group.scale.set(sc * ((facingLeft !== !!rig.flip) ? -1 : 1), sc, sc);
+    } else {
+      rig.group.rotation.set(-pitch, yaw + (rig.sideways ? Math.PI / 2 : 0), roll, 'YXZ');
+    }
+    rig.altitude = pos[1];
+    const carrying = Object.values(timeline.actors).some((tr) => tr.segments.some((sg) => sg.type === 'follow' && sg.attached && sg.actor === name && sg.t0 <= t && t < sg.t1));
+    const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), t, carrying };
     rig.animate(t, state);
     // particle effects in world space
     for (const fx of state.effects) {
@@ -184,12 +249,44 @@ function seek(t) {
       return `<div class="line ${s.kind}" dir="${dir}" style="opacity:${a.toFixed(3)}">${spk}${esc(s.text)}</div>`;
     }).join('<br>');
   } else $subs.innerHTML = '';
-  let fade = 0, title = null;
+  let fade = 0, fadeColor = 'black', title = null, image = null, credits = null, clip = null;
   for (const o of ev.overlays(t)) {
-    if (o.type === 'fade') fade = Math.max(fade, o.from + (o.to - o.from) * smooth(o.u));
+    if (o.type === 'fade') { const v = o.from + (o.to - o.from) * smooth(o.u); if (v >= fade) { fade = v; fadeColor = o.color || 'black'; } }
     if (o.type === 'title') title = o;
+    if (o.type === 'image') image = o;
+    if (o.type === 'credits') credits = o;
+    if (o.type === 'clip') clip = o;
   }
   $fade.style.opacity = fade.toFixed(3);
+  $fade.style.background = fadeColor;
+  const $img = document.getElementById('imagecard');
+  if (image) {
+    const url = assetUrl(image.src);
+    if ($img.dataset.src !== url) { $img.querySelector('img').src = url; $img.dataset.src = url; }
+    $img.querySelector('img').style.objectFit = image.fit === 'stretch' ? 'fill' : image.fit;
+    $img.querySelector('.cap').textContent = image.caption || '';
+    $img.style.opacity = Math.min(1, image.age / 0.5, image.remaining / 0.5).toFixed(3);
+  } else $img.style.opacity = 0;
+  const $cred = document.getElementById('credits');
+  if (credits) {
+    const key = credits.lines.join('|');
+    if ($cred.dataset.key !== key) { $cred.dataset.key = key; $cred.querySelector('.roll').innerHTML = credits.lines.map((l) => `<div dir="${isRtl(l) ? 'rtl' : 'ltr'}">${esc(l)}</div>`).join(''); }
+    const roll = $cred.querySelector('.roll');
+    const travel = height + roll.offsetHeight;
+    roll.style.transform = `translateY(${(height - credits.u * travel).toFixed(1)}px)`;
+    $cred.style.opacity = 1;
+  } else $cred.style.opacity = 0;
+  const $clip = document.getElementById('clip');
+  const video = $clip.querySelector('video');
+  let clipReady = Promise.resolve();
+  if (clip) {
+    const url = assetUrl(clip.src);
+    if (video.dataset.src !== url) { video.src = url; video.dataset.src = url; video.muted = true; video.preload = 'auto'; }
+    video.style.objectFit = clip.fit === 'stretch' ? 'fill' : clip.fit;
+    const target = (clip.offset || 0) + clip.age;
+    clipReady = seekVideo(video, target);
+    $clip.style.opacity = Math.min(1, clip.age / 0.3, clip.remaining / 0.3).toFixed(3);
+  } else { $clip.style.opacity = 0; }
   if (title) {
     $title.style.opacity = Math.min(1, title.age / 0.8, title.remaining / 0.8).toFixed(3);
     $title.querySelector('.main').textContent = title.text;
@@ -198,6 +295,23 @@ function seek(t) {
   } else $title.style.opacity = 0;
 
   renderer.render(scene, camera);
+  return clipReady;
+}
+// Deterministic video frame selection: seek and wait for the frame to be decoded.
+function seekVideo(video, time) {
+  return new Promise((resolve) => {
+    const done = () => { video.removeEventListener('seeked', done); resolve(); };
+    if (video.readyState === 0) {
+      video.addEventListener('loadedmetadata', () => { video.currentTime = time; }, { once: true });
+      video.addEventListener('seeked', done);
+      setTimeout(resolve, 8000);
+      return;
+    }
+    if (Math.abs(video.currentTime - time) < 0.001) return resolve();
+    video.addEventListener('seeked', done);
+    video.currentTime = time;
+    setTimeout(resolve, 8000);
+  });
 }
 const smooth = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -252,7 +366,7 @@ async function main() {
   if (HEADLESS) {
     window.__load = (tl) => { loadTimeline(tl); return true; };
     // subtitles are muxed as a soft track unless burn-in was requested
-    window.__seek = (t) => { seek(t); return true; };
+    window.__seek = async (t) => { await seek(t); return true; };
     window.__debug = (hide) => {
       const names = String(hide).split(',').filter(Boolean);
       for (const n of names) { if (ocean[n]) ocean[n].visible = false; }
@@ -260,14 +374,15 @@ async function main() {
       const es = ev.envState(0);
       return JSON.stringify(mixEnv(envParams[es.prevIndex], envParams[es.index], es.blend));
     };
-    try { const { json } = await fetchTimeline(); loadTimeline(json); } catch (e) { console.warn('no timeline yet', e); }
+    try { const { json } = await fetchTimeline(); await preloadAssets(json); loadTimeline(json); } catch (e) { console.warn('no timeline yet', e); }
     // warm up shaders
-    if (ev) seek(0);
+    if (ev) await seek(0);
     window.__ready = true;
     return;
   }
   const { json, etag } = await fetchTimeline();
   json.meta.burnSubtitles = true; // the preview always shows subtitles
+  await preloadAssets(json);
   loadTimeline(json);
   let lastEtag = etag;
   window.addEventListener('resize', fitStage);
@@ -283,7 +398,7 @@ async function main() {
     try {
       const res = await fetch('/timeline.version', { cache: 'no-store' });
       const v = await res.text();
-      if (v !== lastEtag) { lastEtag = v; const { json } = await fetchTimeline(); json.meta.burnSubtitles = true; loadTimeline(json); }
+      if (v !== lastEtag) { lastEtag = v; const { json } = await fetchTimeline(); json.meta.burnSubtitles = true; await preloadAssets(json); loadTimeline(json); }
     } catch { /* ignore */ }
   }, 1000);
   playing = true;

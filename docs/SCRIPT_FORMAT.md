@@ -121,8 +121,11 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
 
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
   `turtle`, `crab`, `ray`, `eel`, `seahorse`, `starfish`, `school` (a shoal of
-  small fish; `count N` sets how many).  Words such as `baby`, `small`, `big`,
-  `huge` scale the default size.
+  small fish; `count N` sets how many), `bird`, `pelican`, `bubble`, and two
+  asset-backed kinds: `sprite` (a 2D image cutout: `image "assets/cop.svg"`,
+  billboarded and mirrored to face its heading) and `model` (a glTF/GLB file:
+  `model "assets/boat.glb" animation "Rock"`, normalised to `size` and driven by
+  time).  Words such as `baby`, `small`, `big`, `huge` scale the default size.
 * **colour**: a colour name (`silver`, `gold`, `blue`, `navy`, `pink`, ...) or `#hex`.
 * **size**: body length in metres.  **speed**: metres per second for default move
   durations.
@@ -149,10 +152,15 @@ Environment settings are blockquotes with `key: value` pairs:
 | key | values |
 | --- | --- |
 | `time` | `day`, `noon`, `morning`, `sunset`, `dusk`, `night` |
-| `water` | `blue`, `turquoise`, `green`, `dark`, `night`, `tropical` or `#hex` |
-| `waves` | `flat`, `calm`, `gentle`, `medium`, `choppy`, `rough`, `storm` or a number |
+| `water` | `blue`, `turquoise`, `green`, `dark`, `night`, `tropical`, `black`, `murky`, `pink`, `yellow` or `#hex` |
+| `waves` | `none`, `flat`, `calm`, `gentle`, `medium`, `choppy`, `rough`, `storm` or a number |
 | `depth` | `surface`, `shallow`, `medium`, `deep`, `abyss` or metres (seabed depth) |
-| `floor` | `sand`, `reef`, `rock`, `kelp`, `beach`, `none` |
+| `floor` | `sand`, `reef`, `rock`, `kelp`, `beach`, `land` (green ground above the water for scenes on shore), `none` |
+| `style` | `3d` (default) or `flat` – a picture-book look: no fog, caustics, rays or particles, flat lighting |
+| `backdrop` | an image (PNG/JPEG/SVG, relative to the script) shown as the whole background instead of sky and water; `none` to clear |
+| `sky` | `#hex` solid sky/background colour |
+| `clouds` | `off`, `low`, `on`, `many` – drifting clouds when the camera is above the water |
+| `fog` | a fog density number to override `visibility` |
 | `visibility` | fog distance in metres (default 40) |
 | `caustics`, `rays`, `bubbles`, `plankton`, `seaweed`, `coral`, `rocks` | `off`, `low`, `on`, `many` or a number |
 | `transition` | seconds to cross-fade into these settings (default 2 mid-scene, 0 at a scene start) |
@@ -193,7 +201,9 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | scale | `@puffer grows to size 2 over 1s`, `shrinks` |
 | bubbles / cry / spout / glow | `@caspion blows bubbles for 2s`, `@whale cries for 3s`, `@whale spouts`, `@jelly glows for 3s` |
 | speed | `@shark speed 8` (metres per second for later default durations) |
-| carry / drop | `@jelly carries @caspion` ... `@jelly drops @caspion` |
+| carry / drop | `@jelly carries @caspion` ... `@jelly drops @caspion` (pelicans hold the passenger in the pouch, bubbles inside, whales on the back) |
+| swallow / spit | `@whale swallows @caspion` (attaches and hides), `@whale spits out @caspion` (reappears, tossed towards the camera) |
+| fly / walk | `@pelican flies to (10, 6, 0) over 3s`, `@gull soars left 8`, `@crab walks right 2` – synonyms of *move* for creatures above the water |
 | ease | add `linear`, `smooth`, `snap`, `bouncy` or `elastic` to any move |
 
 Movement sets the facing direction automatically, with smooth turns and banking.
@@ -237,10 +247,43 @@ actor's colour.  Right-to-left text is detected automatically.
 | --- | --- |
 | `- wait 2s` | advance time |
 | `- sync` / `---` | wait for all running actions |
-| `- fade in 2s`, `- fade out 2s`, `- black 1s` | fades |
+| `- fade in 2s`, `- fade out 2s`, `- fade out to white 1s`, `- black 1s` | fades (to black, white or `#hex`) |
 | `- title "text" for 4s` | centred title card (`subtitle "..."` adds a second line) |
 | `- caption "text" for 3s` | subtitle without a speaker |
+| `- image "assets/page.svg" for 4s` | full-frame illustration/photo card (`fit`, `cover` or `stretch`); a `he: ...` line under it is a localised caption |
+| `- clip "assets/footage.mp4" for 5s from 12s` | live footage: the video (transcoded to WebM for the browser) plays full-frame from the given offset, with its own sound (`volume N`) |
+| `- credits "line | line | line" for 8s` | scrolling credits; translatable with a `he:` line |
+| `- music "assets/theme.wav" volume 0.3` ... `- music stop 2s` | scene music: loops from here until the next `music` line or `stop` (with a fade-out); `from 10s` starts inside the file |
+| `- sound "assets/splash.wav" volume 0.8` | a sound effect at this moment (`&` is implied: it never blocks unless given a duration) |
 | `- cut` | the next settings change is instant instead of cross-fading |
 | `- marker "name"` | marker on the preview scrubber |
 
+## Assets
+
+Paths are relative to the script file.  Images (PNG, JPEG, WebP, SVG) work as
+backdrops, sprites and cards; glTF/GLB files as models; WAV/MP3/OGG as music and
+sounds; MP4/MOV/WebM as clips (`mp4` is transcoded to WebM once, into
+`out/.asset-cache`).  `font: assets/title.ttf` in the front matter (with
+`font_family: Name`) loads a custom font for title cards, subtitles (when burnt
+in) and credits – useful for Hebrew display faces.
+
+`examples/great-journey/` demonstrates every asset type: a flat 2D city
+backdrop with a drawn policeman sprite, an illustration card, a hand-built
+animated GLB boat, a pelican, a bubble ride, a whale swallowing the hero, music,
+a splash and a video clip.
+
 Comments: `<!-- ... -->`.  Lines in `_italics_` are stage directions and are ignored.
+
+## What the format covers (and does not)
+
+Reviewing the 2004 *Caspion* film scene by scene, the format now covers its
+scenario types: underwater 3D scenes with reef, sand, rock and open water;
+inside-the-whale darkness (`water: black`, `visibility: 6`, `floor: none`);
+surface and sky shots with clouds, birds and boats; flights over land and a 2D
+picture-book city (`style: flat` + `backdrop`); the whale family, shark attack,
+octopuses, jellyfish, pelican; swallowing, bubble rides and carrying; Hebrew
+title cards and credits; songs (scene music) and effects; illustration cards and
+live "making of" footage as clips.  Not covered: lip-synced facial animation,
+rigged humans and land animals as procedural rigs (use sprites or glTF models),
+2D vector animation of the drawings themselves, and cross-dissolves between
+scenes (fades only).

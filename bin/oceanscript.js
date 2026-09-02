@@ -65,7 +65,8 @@ async function main() {
   if (args.timing) opts.timing = String(args.timing);
 
   if (cmd === 'parse' || cmd === 'check') {
-    const timeline = loadTimeline(file, opts);
+    const { prepareTimeline } = await import('../src/timing.js');
+    const timeline = args.noTiming ? loadTimeline(file, opts) : await prepareTimeline(file, { ...opts, timingFile: args.timingFile }, (m) => console.error(m));
     for (const w of timeline.warnings) console.error('warning:', w);
     if (cmd === 'check') {
       console.log(`ok: ${timeline.meta.duration.toFixed(2)}s, ${timeline.meta.frames} frames @ ${timeline.meta.fps}fps, ${Object.keys(timeline.actors).length} actors, ${timeline.subtitles.length} subtitles, ${timeline.markers.filter((m) => m.kind === 'scene').length} scenes, lang ${timeline.meta.lang} (available: ${[...new Set(timeline.subtitles.flatMap((s) => Object.keys(s.texts || {})))].join(', ')})`);

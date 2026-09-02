@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <rect width="1280" height="720" fill="#f6d84a"/>
+  <path d="M0 520 Q320 440 640 520 T1280 520 L1280 720 L0 720 Z" fill="#e9b93a"/>
+  <g fill="#ff9a3c" stroke="#b0561c" stroke-width="4">
+    <path d="M260 330 Q330 290 400 330 Q330 370 260 330 Z"/><path d="M400 330 L440 305 L440 355 Z"/>
+    <path d="M900 260 Q980 210 1060 260 Q980 310 900 260 Z"/><path d="M1060 260 L1110 230 L1110 290 Z"/>
+  </g>
+  <g fill="#dfe4ea" stroke="#5c6b7a" stroke-width="4">
+    <path d="M560 400 Q640 350 720 400 Q640 450 560 400 Z"/><path d="M720 400 L770 370 L770 430 Z"/>
+    <circle cx="590" cy="392" r="6" fill="#111" stroke="none"/>
+  </g>
+  <g fill="none" stroke="#c0392b" stroke-width="10" stroke-linecap="round">
+    <path d="M120 600 q20 -60 40 0 q20 -60 40 0"/><path d="M1080 610 q20 -60 40 0 q20 -60 40 0"/>
+  </g>
+  <g fill="#7fd1ff" opacity="0.8"><circle cx="500" cy="160" r="26"/><circle cx="560" cy="110" r="16"/><circle cx="480" cy="90" r="10"/></g>
+  <text x="640" y="680" font-size="44" text-anchor="middle" font-family="DejaVu Serif, serif" fill="#5a3a1a">כספיון — ציור מתוך הספר</text>
+</svg>

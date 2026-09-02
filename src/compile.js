@@ -19,12 +19,19 @@ export const KIND_DEFAULTS = {
   ray:       { size: 2,   speed: 3 },
   eel:       { size: 1.5, speed: 2.5 },
   squid:     { size: 1.2, speed: 3 },
+  bird:      { size: 1.2, speed: 7 },
+  pelican:   { size: 1.8, speed: 7 },
+  bubble:    { size: 1.2, speed: 1 },
+  sprite:    { size: 1.5, speed: 3 },
+  model:     { size: 1.5, speed: 3 },
+  narrator:  { size: 1,   speed: 1 },
 };
 const SIZE_HINTS = { tiny: 0.5, small: 0.7, little: 0.7, big: 1.5, large: 1.5, huge: 2.5, giant: 3, baby: 0.5 };
 const KIND_COLORS = {
   fish: 'silver', shark: 'gray', whale: '#3b6fb6', octopus: '#c2452d', jellyfish: '#ff9ad5',
   turtle: '#4f8f3a', crab: '#e2542b', school: '#f5b73b', dolphin: '#7e9fc4', seahorse: '#f2c14e',
   starfish: '#ff7f50', ray: '#556677', eel: '#4c6b3a', squid: '#d88ca6',
+  bird: '#f4f4f4', pelican: '#f6f2ea', bubble: '#dff6ff', sprite: '#ffffff', model: '#ffffff',
 };
 const CAMERA_SPEED = 6;
 const OFFSCREEN = { left: 25, right: 25, up: 14, down: 14, top: 14, bottom: 14, above: 14, below: 14, forward: 30, front: 30, back: 30, backward: 30, away: 30 };
@@ -52,6 +59,7 @@ export function compile(script, options = {}) {
     height: Number(options.height ?? script.meta.height ?? 720),
     audio: script.meta.audio ?? null,
     font: script.meta.font ?? null,
+    fontFamily: script.meta.font_family ?? script.meta.fontFamily ?? null,
     subtitles: script.meta.subtitles ?? true,
     lang: null,
     sourceLang: String(script.meta.lang ?? script.meta.language ?? 'en').toLowerCase(),
@@ -100,6 +108,11 @@ export function compile(script, options = {}) {
       speed: entry.speed ?? def.speed * Math.max(0.5, Math.sqrt(size / def.size)),
       count: entry.count ?? def.count ?? 1,
       style: entry.style ?? null,
+      image: entry.image ?? null,
+      model: entry.model ?? null,
+      animation: entry.animation ?? null,
+      flip: !!entry.flip,
+      billboard: entry.billboard ?? (entry.image ? true : false),
       index: castOrder.length,
       declared: line != null,
     };
@@ -151,6 +164,9 @@ export function compile(script, options = {}) {
   const subtitles = [];
   const overlays = [];
   const markers = [];
+  const music = [];
+  const sounds = [];
+  const assets = new Set();
 
   // ---- time cursor ----------------------------------------------------------
   let cursor = 0;
@@ -204,6 +220,7 @@ export function compile(script, options = {}) {
         let transition = settings.transition != null ? Number(settings.transition) : (env.length === 0 || sceneJustStarted ? 0 : 2);
         if (pendingCut) { transition = 0; pendingCut = false; }
         delete settings.transition;
+        if (settings.backdrop && !/^(none|off|no|false)$/i.test(String(settings.backdrop))) assets.add(String(settings.backdrop));
         const prev = env[env.length - 1];
         if (prev && Math.abs(prev.t - cursor) < 1e-6) Object.assign(prev.settings, settings);
         else env.push({ t: cursor, settings, transition });
@@ -251,9 +268,20 @@ export function compile(script, options = {}) {
         switch (st.name) {
           case 'wait': advance(t0, st.duration ?? 1, false); break;
           case 'sync': cursor = maxEnd; break;
-          case 'fadeIn': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0 }); advance(t0, d, st.nonBlocking); break; }
-          case 'fadeOut': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1 }); advance(t0, d, st.nonBlocking); break; }
-          case 'black': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 1 }); advance(t0, d, st.nonBlocking); break; }
+          case 'fadeIn': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
+          case 'fadeOut': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
+          case 'black': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 1, color: 'black' }); advance(t0, d, st.nonBlocking); break; }
+          case 'image': { const d = st.duration ?? 3; overlays.push({ type: 'image', t0, t1: t0 + d, src: st.file, fit: st.fit ?? 'contain', caption: pick(null, st.i18n) }); assets.add(st.file); advance(t0, d, st.nonBlocking); break; }
+          case 'clip': { const d = st.duration ?? 5; overlays.push({ type: 'clip', t0, t1: t0 + d, src: st.file, offset: st.offset ?? 0, fit: st.fit ?? 'contain', volume: st.volume ?? 1 }); assets.add(st.file); advance(t0, d, st.nonBlocking); break; }
+          case 'credits': { const d = st.duration ?? Math.max(4, st.lines.length * 1.2); const lines = pick(st.lines.join(' | '), st.i18n).split(/\s*\|\s*/); overlays.push({ type: 'credits', t0, t1: t0 + d, lines }); advance(t0, d, st.nonBlocking); break; }
+          case 'music': {
+            const prev = music[music.length - 1];
+            if (prev && prev.t1 == null) prev.t1 = t0;
+            if (st.file) music.push({ t0, t1: null, file: st.file, volume: st.volume ?? meta.musicVolume, offset: st.offset ?? 0, loop: st.loop !== false, fadeOut: 1.5 });
+            else if (prev) prev.fadeOut = st.duration ?? 1.5;
+            break;
+          }
+          case 'sound': { sounds.push({ t: t0, file: st.file, volume: st.volume ?? 1, offset: st.offset ?? 0 }); if (st.duration) advance(t0, st.duration, st.nonBlocking); break; }
           case 'title': { const d = st.duration ?? 3; overlays.push({ type: 'title', t0, t1: t0 + d, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), subtitle: pick(st.subtitle ?? null, st.i18n, 'subtitle') }); advance(t0, d, st.nonBlocking); break; }
           case 'caption': { const d = lineDurations[st.line] ?? st.duration ?? dialogDuration(st.quote); subtitles.push({ t0, t1: t0 + d, kind: 'caption', speaker: null, line: st.line, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), spoken: false }); advance(t0, d, st.nonBlocking); break; }
           case 'cut': pendingCut = true; break;
@@ -436,14 +464,41 @@ export function compile(script, options = {}) {
         cast[name].speed = st.speed;
         break;
       }
-      case 'carry': {
+      case 'carry': case 'swallow': {
         const carrier = name;
         const carried = st.target.actor;
         ensurePlaced(carrier, t0, st.line);
         const tr = ensurePlaced(carried, t0, st.line);
-        const offset = st.target.offset ?? [0, -sizeOf(carrier) * 0.25, 0];
+        const ck = cast[carrier]?.kind;
+        const cs = sizeOf(carrier);
+        const defOff = st.verb === 'swallow' ? [0, 0, cs * 0.1]
+          : ck === 'pelican' ? [0, -cs * 0.02, cs * 0.5]
+          : ck === 'bird' ? [0, -cs * 0.3, cs * 0.1]
+          : ck === 'bubble' ? [0, 0, 0]
+          : ck === 'jellyfish' ? [0, -cs * 0.25, 0]
+          : ck === 'octopus' || ck === 'squid' ? [0, -cs * 0.3, cs * 0.3]
+          : [0, cs * 0.35, 0];
+        const offset = st.target.offset ?? defOff;
         tr.segments.push({ type: 'follow', t0, t1: 1e9, actor: carrier, offset, frame: 'local', attached: true });
         est[carried] = vadd(estPos(carrier), offset);
+        if (st.verb === 'swallow') { tr.visibility.push({ t: t0 + 0.3, visible: false }); visibleInScene.delete(carried); hiddenExplicitly.add(carried); }
+        break;
+      }
+      case 'spit': {
+        const carried = st.target?.actor;
+        if (carried) {
+          hiddenExplicitly.delete(carried);
+          visibleInScene.delete(carried);
+          const tr = ensurePlaced(carried, t0, st.line);
+          const from = estPos(carried);
+          // spat out towards the camera so the moment reads on screen
+          const d = [camEst[0] - from[0], 0, camEst[2] - from[2]];
+          const l = Math.hypot(d[0], d[2]) || 1;
+          const out = vadd(from, [d[0] / l * (sizeOf(name) * 0.6 + 1), 0.5, d[2] / l * (sizeOf(name) * 0.6 + 1)]);
+          tr.segments.push({ type: 'to', t0, t1: t0 + 0.8, target: { pos: out }, ease: 'out', arc: 0.5 });
+          est[carried] = out;
+          advance(t0, 0.8, st.nonBlocking);
+        }
         break;
       }
       case 'drop': {
@@ -581,8 +636,12 @@ export function compile(script, options = {}) {
   const duration = Number(options.duration ?? script.meta.duration ?? (maxEnd + meta.tail));
   meta.duration = Math.max(0.5, duration);
   meta.frames = Math.ceil(meta.duration * meta.fps);
+  for (const m of music) if (m.t1 == null) m.t1 = meta.duration;
+  if (meta.music && music.length === 0) music.push({ t0: 0, t1: meta.duration, file: meta.music, volume: meta.musicVolume, offset: 0, loop: true, fadeOut: 2 });
+  for (const name of castOrder) { if (cast[name].image) assets.add(cast[name].image); if (cast[name].model) assets.add(cast[name].model); }
+  if (meta.font) assets.add(meta.font);
 
-  return { meta, cast, actors, camera, env, subtitles, overlays, markers, warnings };
+  return { meta, cast, actors, camera, env, subtitles, overlays, markers, music, sounds, assets: [...assets], warnings };
 }
 
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }

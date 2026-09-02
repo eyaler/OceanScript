@@ -38,6 +38,11 @@ frames: `--lang he` gives Hebrew title cards, subtitles and voices on the same
 video.
 
 The full language is described in [docs/SCRIPT_FORMAT.md](docs/SCRIPT_FORMAT.md).
+Two examples ship with the repo: `examples/caspion.md` (a five-scene retelling,
+English and Hebrew) and `examples/great-journey/great-journey.md` (every asset
+type: 2D backdrops and sprites, glTF models, illustration cards, video clips,
+music, sound effects, custom fonts, credits, a pelican flight and a whale
+swallowing the hero).
 
 ## Install
 
@@ -135,6 +140,8 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
   `src/compile.js` (`compileActor`/`compileCamera`).  The evaluator in
   `renderer/timeline.js` already understands `place/to/orbit/follow/hold`
   segments and generic effects, so most verbs need no renderer changes.
+* **Your own artwork** – `sprite` actors take any PNG/SVG, `model` actors any
+  glTF/GLB, `backdrop:` any image, `- clip` any video: no code needed.
 * **New creature** – add a `buildX()` rig in `renderer/actors.js` returning
   `{ group, inner, animate(t, state) }`, register it in `createActorRig`, and add
   the kind (with default size/speed) to `KIND_DEFAULTS` in `src/compile.js` and

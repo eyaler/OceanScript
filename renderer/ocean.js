@@ -16,6 +16,10 @@ const WATER = {
   dark:      { fog: '#173f66', deep: '#06182e', shallow: '#3a6a94', tint: '#1f4d78' },
   night:     { fog: '#12294a', deep: '#050e1e', shallow: '#2a4a78', tint: '#1a3a60' },
   tropical:  { fog: '#33b5d6', deep: '#0a5477', shallow: '#9be7f5', tint: '#47c4e0' },
+  black:     { fog: '#05070c', deep: '#010203', shallow: '#0d1420', tint: '#0a1018' },
+  murky:     { fog: '#4a5a3a', deep: '#1c2414', shallow: '#7a8a5a', tint: '#55653f' },
+  pink:      { fog: '#e9a7d8', deep: '#8c4a7c', shallow: '#ffd6f0', tint: '#f0b6e0' },
+  yellow:    { fog: '#f2cf5a', deep: '#9a7a1e', shallow: '#fff0a8', tint: '#f6d86a' },
 };
 const TIME = {
   day:    { sun: '#fff4dc', sunI: 1.0,  amb: 0.55, sky: '#4f9ff5', horizon: '#cfe8ff', sunDir: [0.3, 1, 0.4], surface: '#dff4ff' },
@@ -25,7 +29,7 @@ const TIME = {
   dusk:   { sun: '#e0a0c0', sunI: 0.65, amb: 0.45, sky: '#2b2d6e', horizon: '#b06a8a', sunDir: [0.9, 0.25, 0.3], surface: '#c58fb5' },
   night:  { sun: '#a8c4ff', sunI: 0.4, amb: 0.3,  sky: '#050a1e', horizon: '#142446', sunDir: [-0.3, 1, 0.2], surface: '#6b8fd6' },
 };
-const WAVES = { flat: 0.05, calm: 0.15, gentle: 0.35, medium: 0.6, choppy: 0.9, rough: 1.3, storm: 1.8, stormy: 1.8 };
+const WAVES = { none: 0, off: 0, flat: 0.05, calm: 0.15, gentle: 0.35, medium: 0.6, choppy: 0.9, rough: 1.3, storm: 1.8, stormy: 1.8 };
 const DEPTH = { surface: -5, shallow: -8, medium: -14, deep: -24, abyss: -40 };
 const DENSITY = { off: 0, none: 0, no: 0, false: 0, low: 0.5, few: 0.5, on: 1, yes: 1, true: 1, normal: 1, many: 2, lots: 2, high: 2, dense: 2 };
 
@@ -43,11 +47,21 @@ export function resolveEnv(s = {}) {
   const visibility = typeof s.visibility === 'number' ? s.visibility : 40;
   const waveAmp = typeof s.waves === 'number' ? s.waves : (WAVES[String(s.waves ?? 'gentle').toLowerCase()] ?? 0.35);
   const night = tKey === 'night' || tKey === 'dusk';
+  const style = String(s.style ?? '3d').toLowerCase();
+  const flat = style === 'flat' || style === 'book' || style === '2d';
+  const skyOverride = typeof s.sky === 'string' && s.sky.startsWith('#') ? col(s.sky) : null;
+  const land = floorType === 'land' || floorType === 'grass' || floorType === 'ground';
+  if (land) floorY = 0.6;
   return {
+    flat: flat ? 1 : 0,
+    land: land ? 1 : 0,
+    clouds: density(s.clouds, tKey === 'night' ? 0.3 : 0.8),
+    backdrop: s.backdrop && !/^(none|off|no|false)$/i.test(String(s.backdrop)) ? String(s.backdrop) : null,
+    skyOverride,
     fog: col(w.fog), deep: col(w.deep), shallow: col(w.shallow), tint: col(w.tint),
     sun: col(tm.sun), sunI: tm.sunI, amb: tm.amb, sky: col(tm.sky), horizon: col(tm.horizon), surface: col(tm.surface),
     sunDir: tm.sunDir,
-    fogDensity: 1.6 / Math.max(5, visibility),
+    fogDensity: flat ? 0 : (typeof s.fog === 'number' ? s.fog : 1.6 / Math.max(5, visibility)),
     waveAmp,
     floorY,
     floorType,
@@ -59,7 +73,8 @@ export function resolveEnv(s = {}) {
     seaweed: density(s.seaweed, { reef: 1.6, sand: 0.7, rock: 0.35, none: 0, beach: 0.3, kelp: 2.5 }[floorType] ?? 0.7),
     coral: density(s.coral, { reef: 1.5, sand: 0.25, rock: 0.15, none: 0, beach: 0, kelp: 0.2 }[floorType] ?? 0.25),
     rocks: density(s.rocks, { reef: 0.5, sand: 0.15, rock: 1.6, none: 0, beach: 0.3, kelp: 0.4 }[floorType] ?? 0.15),
-    sandColor: col({ sand: '#d8c68e', reef: '#cdb27c', rock: '#6f6d6a', beach: '#e6d5a0', kelp: '#8c7f55', none: '#4a4a4a' }[floorType] || '#d8c68e'),
+    sandColor: col({ sand: '#d8c68e', reef: '#cdb27c', rock: '#6f6d6a', beach: '#e6d5a0', kelp: '#8c7f55', none: '#4a4a4a', land: '#7cbf5a', grass: '#7cbf5a', ground: '#b48a5a' }[floorType] || '#d8c68e'),
+    floorVisible: floorType === 'none' ? 0 : 1,
   };
 }
 
@@ -100,8 +115,42 @@ export class Ocean {
     this.buildBubbles();
     this.buildPlankton();
     this.buildRays();
+    this.buildClouds();
     this.scene.fog = new THREE.FogExp2(0x1f6fb8, 0.04);
+    this.backdropTextures = {};
   }
+
+  buildClouds() {
+    // soft procedural cloud sprites, deterministic layout, drifting with time
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const r = rng(77);
+    ctx.clearRect(0, 0, size, size);
+    for (let i = 0; i < 9; i++) {
+      const x = 40 + r() * 176, y = 90 + r() * 90, rad = 30 + r() * 45;
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+      grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+      grad.addColorStop(0.6, 'rgba(255,255,255,0.7)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    this.cloudMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false, opacity: 0.95 });
+    this.clouds = new THREE.Group();
+    const r2 = rng(78);
+    for (let i = 0; i < 26; i++) {
+      const sp = new THREE.Sprite(this.cloudMat);
+      sp.userData = { x: (r2() - 0.5) * 400, z: -80 - r2() * 260, y: 18 + r2() * 30, w: 30 + r2() * 60, spd: 0.4 + r2() * 0.8, i };
+      this.clouds.add(sp);
+    }
+    this.group.add(this.clouds);
+  }
+
+  setBackdropTexture(name, tex) { this.backdropTextures[name] = tex; }
 
   buildLights() {
     this.hemi = new THREE.HemisphereLight(0xbfe6ff, 0x1b3a5c, 0.6);
@@ -485,18 +534,35 @@ export class Ocean {
     this.params = p;
     this.t = t;
     const v3 = (u, a) => u.value.set(a[0], a[1], a[2]);
-    const camUnder = camera.position.y < 0;
-    const fogDensity = camUnder ? p.fogDensity : 0.004;
+    const camUnder = camera.position.y < 0 && !p.land;
+    const flat = p.flat >= 0.5;
+    const fogDensity = flat ? 0 : camUnder ? p.fogDensity : 0.004;
     const fogColor = camUnder ? p.fog : p.horizon;
+    // backdrop image (2D plate) replaces the sky/water background
+    const bdTex = p.backdrop ? this.backdropTextures[p.backdrop] : null;
+    if (bdTex) { this.scene.background = bdTex; this.bg.visible = false; }
+    else if (p.skyOverride) { this.scene.background = new THREE.Color(p.skyOverride[0], p.skyOverride[1], p.skyOverride[2]); this.bg.visible = false; }
+    else { this.scene.background = null; this.bg.visible = true; }
+    this.floor.visible = p.floorVisible >= 0.5;
+    this.surface.visible = !(p.land >= 0.5) && p.waveAmp > 0.001;
+    this.clouds.visible = !camUnder && p.clouds > 0 && !bdTex;
+    for (const sp of this.clouds.children) {
+      const d = sp.userData;
+      const drift = ((d.x + t * d.spd + 200) % 400) - 200;
+      sp.position.set(camera.position.x + drift, d.y, camera.position.z + d.z);
+      sp.scale.set(d.w, d.w * 0.55, 1);
+      sp.material.opacity = Math.min(1, p.clouds) * 0.95;
+      sp.visible = d.i < Math.round(26 * Math.min(1, p.clouds / 1.5));
+    }
     this.scene.fog.color.setRGB(fogColor[0], fogColor[1], fogColor[2]);
     this.scene.fog.density = fogDensity;
 
     const depthAtt = camUnder ? 1 - Math.min(0.65, -camera.position.y / 40) : 1;
-    this.hemi.color.setRGB(p.shallow[0], p.shallow[1], p.shallow[2]).lerp(new THREE.Color(1, 1, 1), 0.5);
-    this.hemi.groundColor.setRGB(p.deep[0], p.deep[1], p.deep[2]);
-    this.hemi.intensity = (0.45 + p.amb) * depthAtt * 1.4;
+    this.hemi.color.setRGB(p.shallow[0], p.shallow[1], p.shallow[2]).lerp(new THREE.Color(1, 1, 1), flat ? 0.9 : 0.5);
+    this.hemi.groundColor.setRGB(p.deep[0], p.deep[1], p.deep[2]).lerp(new THREE.Color(1, 1, 1), flat ? 0.7 : 0);
+    this.hemi.intensity = flat ? 2.2 : (0.45 + p.amb) * depthAtt * 1.4;
     this.sun.color.setRGB(p.sun[0], p.sun[1], p.sun[2]);
-    this.sun.intensity = p.sunI * 1.8 * depthAtt;
+    this.sun.intensity = flat ? 0.5 : p.sunI * 1.8 * depthAtt;
     this.sun.position.set(p.sunDir[0], p.sunDir[1], p.sunDir[2]).multiplyScalar(40);
     this.fill.intensity = 0.3 * depthAtt;
 
@@ -513,11 +579,14 @@ export class Ocean {
     fm.uTime.value = t; v3(fm.uColor, p.sandColor); fm.uCaustics.value = p.caustics; v3(fm.uSun, p.sun); fm.uSunDir.value.set(p.sunDir[0], p.sunDir[1], p.sunDir[2]);
     fm.uAmb.value = p.amb; v3(fm.uFogColor, fogColor); fm.uFogDensity.value = fogDensity; fm.uBeach.value = p.beach; fm.uFloorY.value = p.floorY; fm.uSunI.value = p.sunI;
     this.floor.position.y = p.floorY;
+    fm.uCaustics.value = p.land >= 0.5 || flat ? 0 : p.caustics;
 
     // seaweed / rocks / coral placement (depends on floor height & density)
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
-    const weedCount = Math.min(this.weedData.length, Math.round(this.weedData.length * Math.min(1, p.seaweed / 2)));
-    if (this.weedCountApplied !== weedCount || this.floorYApplied !== p.floorY || this.beachApplied !== p.beach) {
+    const decoScale = p.land >= 0.5 ? 0 : 1;
+    const weedCount = Math.min(this.weedData.length, Math.round(this.weedData.length * Math.min(1, p.seaweed / 2) * decoScale));
+    if (this.weedCountApplied !== weedCount || this.floorYApplied !== p.floorY || this.beachApplied !== p.beach || this.landApplied !== p.land) {
+      this.landApplied = p.land;
       for (let i = 0; i < weedCount; i++) {
         const d = this.weedData[i];
         pos.set(d.x, p.floorY + this.floorHeight(d.x, d.z) + (p.beach ? Math.max(0, (d.x - 12) * 0.32) : 0) - 0.1, d.z);
@@ -528,7 +597,7 @@ export class Ocean {
       }
       this.weed.count = weedCount;
       this.weed.instanceMatrix.needsUpdate = true;
-      const rockCount = Math.min(this.rockData.length, Math.round(this.rockData.length * Math.min(1, p.rocks / 2)));
+      const rockCount = Math.min(this.rockData.length, Math.round(this.rockData.length * Math.min(1, p.rocks / 2) * (p.land >= 0.5 ? 0.4 : 1)));
       for (let i = 0; i < rockCount; i++) {
         const d = this.rockData[i];
         pos.set(d.x, p.floorY + this.floorHeight(d.x, d.z) + (p.beach ? Math.max(0, (d.x - 12) * 0.32) : 0) - d.s * 0.3, d.z);
@@ -539,7 +608,7 @@ export class Ocean {
       }
       this.rocks.count = rockCount;
       this.rocks.instanceMatrix.needsUpdate = true;
-      const coralCount = Math.min(this.coralData.length, Math.round(this.coralData.length * Math.min(1, p.coral / 2)));
+      const coralCount = Math.min(this.coralData.length, Math.round(this.coralData.length * Math.min(1, p.coral / 2) * decoScale));
       const per = this.corals.map(() => 0);
       for (let i = 0; i < coralCount; i++) {
         const d = this.coralData[i];
@@ -561,16 +630,16 @@ export class Ocean {
     const bm = this.bubbleMat.uniforms;
     bm.uTime.value = t; bm.uFloorY.value = p.floorY; bm.uCount.value = Math.round(900 * Math.min(1, p.bubbles / 2)); v3(bm.uFogColor, fogColor); bm.uFogDensity.value = fogDensity; bm.uScale.value = viewportHeight;
     this.bubbles.position.set(Math.round(camera.position.x / 40) * 40, 0, Math.round(camera.position.z / 40) * 40);
-    this.bubbles.visible = camUnder && p.bubbles > 0;
+    this.bubbles.visible = camUnder && p.bubbles > 0 && !flat;
 
     const pm = this.plankMat.uniforms;
     pm.uTime.value = t; pm.uCam.value.copy(camera.position); pm.uDensity.value = Math.min(1, p.plankton / 2); v3(pm.uFogColor, fogColor); pm.uFogDensity.value = fogDensity; pm.uScale.value = viewportHeight; pm.uFloorY.value = p.floorY;
-    this.plankton.visible = camUnder && p.plankton > 0;
+    this.plankton.visible = camUnder && p.plankton > 0 && !flat;
 
     this.rayMat.uniforms.uTime.value = t;
     this.rayMat.uniforms.uStrength.value = p.rays * Math.max(0, 1 - (-camera.position.y) / 45);
     this.rayMat.uniforms.uColor.value.set(p.surface[0], p.surface[1], p.surface[2]);
-    this.rays.visible = camUnder && p.rays > 0;
+    this.rays.visible = camUnder && p.rays > 0 && !flat;
     this.rays.position.set(camera.position.x, 0, camera.position.z);
     for (const ray of this.rays.children) {
       const d = ray.userData;

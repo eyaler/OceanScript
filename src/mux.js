@@ -28,16 +28,18 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
   if (extAudio) {
     if (!existsSync(extAudio)) throw new Error(`audio file not found: ${extAudio}`);
     audio = extAudio;
-  } else if (wantVoice || music) {
+  } else {
     let clips = [];
     if (wantVoice) {
       const res = await synthesizeAll(timeline, { engine: args.ttsEngine ?? timeline.meta.tts, cacheDir: args.ttsCache, log });
       clips = res.clips;
       if (clips.length) writeManifest(clips, `${base}.voice.json`);
     }
-    if (clips.length || music) {
+    const resolveAsset = (f) => path.resolve(timeline.meta.scriptDir, f);
+    const hasMusic = music || (timeline.music || []).length || (timeline.sounds || []).length || (timeline.overlays || []).some((o) => o.type === 'clip');
+    if (clips.length || hasMusic) {
       audio = `${base}.audio.wav`;
-      mixTrack(timeline, clips, audio, { music, musicVolume: timeline.meta.musicVolume, log });
+      mixTrack(timeline, clips, audio, { music, musicVolume: timeline.meta.musicVolume, resolveAsset, log });
     }
   }
 

@@ -37,7 +37,19 @@ export function startServer({ dynamic = {}, extraRoots = {}, port = 0, host = '1
       else file = path.join(ROOT, p);
     }
     if (!existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); res.end('not found: ' + p); return; }
-    res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-store' });
+    const size = statSync(file).size;
+    const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+    // Range requests are required for <video> seeking in Chromium.
+    const range = req.headers.range && req.headers.range.match(/^bytes=(\d*)-(\d*)$/);
+    if (range && size > 0) {
+      let start = range[1] ? parseInt(range[1], 10) : Math.max(0, size - parseInt(range[2], 10));
+      let end = range[2] && range[1] ? Math.min(size - 1, parseInt(range[2], 10)) : size - 1;
+      if (Number.isNaN(start) || Number.isNaN(end) || start > end || start >= size) { res.writeHead(416, { 'content-range': `bytes */${size}` }); res.end(); return; }
+      res.writeHead(206, { 'content-type': type, 'cache-control': 'no-store', 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}`, 'content-length': end - start + 1 });
+      createReadStream(file, { start, end }).pipe(res);
+      return;
+    }
+    res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store', 'accept-ranges': 'bytes', 'content-length': size });
     createReadStream(file).pipe(res);
   });
   return new Promise((resolve) => {

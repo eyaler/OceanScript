@@ -10,6 +10,7 @@ import { prepareTimeline } from './timing.js';
 import { startServer } from './server.js';
 import { findFfmpeg } from './ffmpeg.js';
 import { finalize } from './mux.js';
+import { prepareAssets } from './assets.js';
 
 export const CHROMIUM_ARGS = [
   '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist',
@@ -163,9 +164,10 @@ export async function render(file, args = {}) {
 
   // ---- single process --------------------------------------------------------------
   if (!args.quiet) console.error(`rendering ${total} frames (${width}x${height} @ ${fps}fps, ${(total / fps).toFixed(2)}s) -> ${args.video === false ? framesDir : out}`);
+  const { cacheDir } = prepareAssets(timeline, { log: args.quiet ? () => {} : console.error });
   const { server, url } = await startServer({
     dynamic: { '/timeline.json': () => ({ body: JSON.stringify(timeline) }) },
-    extraRoots: { '/script/': timeline.meta.scriptDir },
+    extraRoots: { '/script/': timeline.meta.scriptDir, '/cache/': cacheDir },
   });
   const rp = new RenderPage(url, width, height, !!args.headed);
   const gl = await rp.open();

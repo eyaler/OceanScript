@@ -115,12 +115,13 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
  * A clip longer than its subtitle slot is sped up (atempo, max 1.45x); if it
  * still overflows the slot a warning is logged.
  */
-export function mixTrack(timeline, clips, outFile, { music = null, musicVolume = 0.25, voiceVolume = 1, log = console.error } = {}) {
+export function mixTrack(timeline, clips, outFile, { music = null, musicVolume = 0.25, voiceVolume = 1, resolveAsset = (f) => f, log = console.error } = {}) {
   const ff = findFfmpeg();
   const duration = timeline.meta.duration;
   const inputs = [];
   const filters = [];
   const mixed = [];
+  let nIn = 0;
   clips.forEach((c, i) => {
     const slot = c.sub.t1 - c.sub.t0;
     let tempo = 1;
@@ -133,15 +134,45 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
     const chain = [`aresample=48000`, `aformat=channel_layouts=stereo`];
     if (Math.abs(tempo - 1) > 0.01) chain.push(`atempo=${tempo.toFixed(4)}`);
     chain.push(`volume=${voiceVolume}`, `adelay=${Math.round(c.sub.t0 * 1000)}|${Math.round(c.sub.t0 * 1000)}`);
-    filters.push(`[${i}:a]${chain.join(',')}[v${i}]`);
+    filters.push(`[${nIn}:a]${chain.join(',')}[v${i}]`);
     mixed.push(`[v${i}]`);
+    nIn++;
   });
-  if (music) {
-    const idx = clips.length;
-    inputs.push('-stream_loop', '-1', '-i', music);
-    filters.push(`[${idx}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${musicVolume},atrim=0:${duration.toFixed(3)}[m]`);
-    mixed.push('[m]');
-  }
+  // Scene music: each entry plays (looped) from t0 to t1 with a fade-out; a
+  // script-level `music:` becomes one entry spanning the film.
+  const musicEntries = [...(timeline.music || [])];
+  if (music && musicEntries.length === 0) musicEntries.push({ t0: 0, t1: duration, file: music, volume: musicVolume, offset: 0, loop: true, fadeOut: 2 });
+  musicEntries.forEach((m, i) => {
+    const file = resolveAsset(m.file);
+    if (!existsSync(file)) { log(`warning: music file not found: ${file}`); return; }
+    const len = Math.max(0.1, Math.min(duration, m.t1) - m.t0);
+    inputs.push(...(m.loop ? ['-stream_loop', '-1'] : []), '-ss', String(m.offset || 0), '-i', file);
+    const fade = Math.min(m.fadeOut ?? 1.5, len / 2);
+    const chain = [`aresample=48000`, `aformat=channel_layouts=stereo`, `atrim=0:${len.toFixed(3)}`, `afade=t=in:st=0:d=${Math.min(0.5, len / 4).toFixed(3)}`, `afade=t=out:st=${(len - fade).toFixed(3)}:d=${fade.toFixed(3)}`, `volume=${m.volume ?? musicVolume}`, `adelay=${Math.round(m.t0 * 1000)}|${Math.round(m.t0 * 1000)}`];
+    filters.push(`[${nIn}:a]${chain.join(',')}[m${i}]`);
+    mixed.push(`[m${i}]`);
+    nIn++;
+  });
+  (timeline.sounds || []).forEach((snd, i) => {
+    const file = resolveAsset(snd.file);
+    if (!existsSync(file)) { log(`warning: sound file not found: ${file}`); return; }
+    inputs.push('-ss', String(snd.offset || 0), '-i', file);
+    filters.push(`[${nIn}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${snd.volume ?? 1},adelay=${Math.round(snd.t * 1000)}|${Math.round(snd.t * 1000)}[s${i}]`);
+    mixed.push(`[s${i}]`);
+    nIn++;
+  });
+  // Video clips with sound
+  (timeline.overlays || []).filter((o) => o.type === 'clip' && o.volume > 0).forEach((o, i) => {
+    const file = resolveAsset(o.src);
+    if (!existsSync(file)) return;
+    const probe = spawnSync(ff.path, ['-hide_banner', '-i', file], { encoding: 'utf8' });
+    if (!/Audio:/.test(probe.stderr || '')) return;
+    const len = o.t1 - o.t0;
+    inputs.push('-ss', String(o.offset || 0), '-t', len.toFixed(3), '-i', file);
+    filters.push(`[${nIn}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${o.volume},adelay=${Math.round(o.t0 * 1000)}|${Math.round(o.t0 * 1000)}[c${i}]`);
+    mixed.push(`[c${i}]`);
+    nIn++;
+  });
   if (mixed.length === 0) {
     filters.push(`anullsrc=r=48000:cl=stereo,atrim=0:${duration.toFixed(3)}[out]`);
   } else {

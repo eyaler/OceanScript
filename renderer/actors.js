@@ -653,8 +653,10 @@ function buildSchool(color, count) {
   return rig;
 }
 
-export function createActorRig(cast, seed) {
+export function createActorRig(cast, seed, extra = {}) {
   const color = toHex(cast.color);
+  const special = createSpecialRig(cast, seed, extra);
+  if (special) return special;
   let rig;
   switch (cast.kind) {
     case 'shark': rig = buildShark(color); break;
@@ -677,5 +679,172 @@ export function createActorRig(cast, seed) {
   rig.group.scale.setScalar(cast.size);
   rig.name = cast.name;
   rig.color = color;
+  return rig;
+}
+
+// ---- film-driven additions: birds, pelican, bubble, sprites, glTF models ----
+
+function buildBird(color, { kind = 'bird' } = {}) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const bodyMat = mat(color, { roughness: 0.7 });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 20, 14), bodyMat);
+  body.scale.set(0.3, 0.3, 0.9);
+  inner.add(body);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 0.35, 10), bodyMat);
+  neck.position.set(0, 0.2, 0.35); neck.rotation.x = -0.6;
+  inner.add(neck);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), bodyMat);
+  head.position.set(0, 0.35, 0.48);
+  inner.add(head);
+  const eyeMeshes = eyes(head, color, { z: 0.08, x: 0.08, y: 0.04, r: 0.035 }).eyes;
+  const beakMat = mat(kind === 'pelican' ? '#e0863a' : '#f2b233', { roughness: 0.5 });
+  let pouch = null;
+  if (kind === 'pelican') {
+    // long upper bill + big pouch below it
+    const bill = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.7, 8), beakMat);
+    bill.rotation.x = Math.PI / 2; bill.position.set(0, 0.34, 0.9); bill.scale.set(1.6, 1, 0.6);
+    inner.add(bill);
+    pouch = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12, 0, TAU, Math.PI * 0.45, Math.PI * 0.55), mat('#d97a2e', { roughness: 0.6, side: THREE.DoubleSide }));
+    pouch.position.set(0, 0.32, 0.75); pouch.scale.set(1, 1.3, 2);
+    inner.add(pouch);
+  } else {
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 8), beakMat);
+    beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.33, 0.62);
+    inner.add(beak);
+  }
+  const wingMat = mat(darken(color, 0.12), { side: THREE.DoubleSide, roughness: 0.8 });
+  const wings = [];
+  for (const sx of [-1, 1]) {
+    const wing = new THREE.Mesh(finShape([[0, 0.05], [0.9, 0.12], [1.25, 0.02], [1.1, -0.12], [0.5, -0.18], [0, -0.1]]), wingMat);
+    wing.rotation.y = -Math.PI / 2 * sx;
+    const pivot = new THREE.Group();
+    pivot.position.set(sx * 0.12, 0.08, 0.05);
+    pivot.add(wing);
+    inner.add(pivot);
+    wings.push({ pivot, sx });
+  }
+  const tail = new THREE.Mesh(finShape([[0, 0], [0.18, -0.35], [0, -0.42], [-0.18, -0.35]]).rotateX(Math.PI / 2), wingMat);
+  tail.position.set(0, 0.02, -0.4);
+  inner.add(tail);
+  const legs = [];
+  for (const sx of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.22, 6), beakMat);
+    leg.position.set(sx * 0.08, -0.2, -0.05);
+    const foot = new THREE.Mesh(finShape([[0, 0], [0.08, -0.12], [0, -0.16], [-0.08, -0.12]]).rotateX(-Math.PI / 2), beakMat);
+    foot.position.y = -0.11;
+    leg.add(foot);
+    inner.add(leg);
+    legs.push(leg);
+  }
+  const rig = { group: g, inner, eyeMeshes, kind, carryPoint: new THREE.Vector3(0, 0.25, 0.8) };
+  rig.animate = (t, state) => {
+    animateCommon(rig, t, state);
+    const flying = state.speed > 0.5 || (rig.altitude ?? 1) > 0.5;
+    const f = flying ? 5 + Math.min(4, state.speed * 0.4) : 0.8;
+    const amp = flying ? 0.55 : 0.08;
+    for (const w of wings) w.pivot.rotation.z = w.sx * Math.sin(t * f + rig.seed) * amp;
+    for (const l of legs) l.rotation.x = flying ? 0.9 : 0;
+    inner.position.y += flying ? Math.sin(t * f + rig.seed - 1) * 0.05 : 0;
+    if (pouch) pouch.scale.y = 1.3 + (state.carrying ? 0.5 : 0) + Math.sin(t * 2) * 0.03;
+  };
+  return rig;
+}
+
+function buildBubble(color) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const c = new THREE.Color(color);
+  const m = new THREE.MeshPhysicalMaterial({ color: c, transparent: true, opacity: 0.22, roughness: 0.05, metalness: 0, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false });
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 24), m);
+  inner.add(sphere);
+  const rim = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 24), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, side: THREE.BackSide, depthWrite: false }));
+  inner.add(rim);
+  const hl = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+  hl.position.set(-0.22, 0.28, 0.3);
+  inner.add(hl);
+  const rig = { group: g, inner, kind: 'bubble', yawOnly: true, upright: true };
+  rig.animate = (t) => {
+    const w = Math.sin(t * 2.1 + rig.seed) * 0.06;
+    sphere.scale.set(1 + w, 1 - w * 0.8, 1 + w * 0.5);
+    rim.scale.copy(sphere.scale);
+  };
+  return rig;
+}
+
+// A 2D image (PNG/SVG/JPEG) as a billboard cutout that flips to face its
+// heading.  `texture` is preloaded by main.js; aspect comes from the image.
+function buildSprite(texture, { aspect = 1, flip = false } = {}) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const m = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: true });
+  const h = 1, w = aspect;
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+  plane.position.y = 0;
+  inner.add(plane);
+  const rig = { group: g, inner, kind: 'sprite', billboard: true, flip, plane };
+  rig.animate = (t, state) => {
+    inner.position.y = Math.sin(t * 1.5 + rig.seed) * 0.03;
+    inner.rotation.z = Math.sin(t * 1.1 + rig.seed) * 0.02;
+    const bob = { happy: 0.08, excited: 0.14 }[state.emotion] || 0;
+    inner.position.y += bob * Math.abs(Math.sin(t * 5));
+    for (const fx of state.effects) {
+      if (fx.type === 'wiggle') inner.rotation.z += Math.sin(t * 20) * 0.15;
+      if (fx.type === 'spin') inner.rotation.y = TAU * fx.count * smoother(fx.u);
+      if (fx.type === 'nod') inner.rotation.x = Math.sin(fx.u * TAU * 2) * 0.15;
+    }
+  };
+  return rig;
+}
+
+// A glTF/GLB model normalised to a 1-unit length along its longest axis and
+// facing +z.  Its first animation clip (or the named one) is driven by time.
+function buildModel(gltf, { animation = null, AnimationMixer, Box3, Vector3 } = {}) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const root = gltf.scene || gltf.scenes[0];
+  const box = new Box3().setFromObject(root);
+  const size = new Vector3(); box.getSize(size);
+  const center = new Vector3(); box.getCenter(center);
+  const len = Math.max(size.x, size.y, size.z) || 1;
+  const holder = new THREE.Group();
+  holder.add(root);
+  root.position.sub(center);
+  holder.scale.setScalar(1 / len);
+  inner.add(holder);
+  let mixer = null, action = null;
+  if (gltf.animations && gltf.animations.length && AnimationMixer) {
+    mixer = new AnimationMixer(root);
+    const clip = (animation && gltf.animations.find((a) => a.name === animation)) || gltf.animations[0];
+    action = mixer.clipAction(clip);
+    action.play();
+  }
+  const rig = { group: g, inner, kind: 'model' };
+  rig.animate = (t, state) => {
+    if (mixer) { mixer.setTime(t * (1 + Math.min(1, state.speed * 0.1))); }
+    inner.position.y = Math.sin(t * 1.2 + rig.seed) * 0.03;
+  };
+  return rig;
+}
+
+export function createSpecialRig(cast, seed, extra = {}) {
+  let rig = null;
+  switch (cast.kind) {
+    case 'bird': rig = buildBird(toHex(cast.color), { kind: 'bird' }); break;
+    case 'pelican': rig = buildBird(toHex(cast.color, '#f6f2ea'), { kind: 'pelican' }); break;
+    case 'bubble': rig = buildBubble(toHex(cast.color, '#dff6ff')); break;
+    case 'sprite': rig = buildSprite(extra.texture, { aspect: extra.aspect ?? 1, flip: cast.flip }); break;
+    case 'model': rig = buildModel(extra.gltf, { animation: cast.animation, ...extra.three }); break;
+    default: return null;
+  }
+  rig.seed = seed;
+  rig.size = cast.size;
+  rig.group.scale.setScalar(cast.size);
+  rig.name = cast.name;
+  rig.color = toHex(cast.color);
   return rig;
 }

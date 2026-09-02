@@ -6,6 +6,7 @@
 export const ENV_KEYS = new Set([
   'time', 'water', 'waves', 'depth', 'floor', 'visibility', 'caustics',
   'bubbles', 'rays', 'seaweed', 'coral', 'rocks', 'transition', 'sun', 'plankton',
+  'backdrop', 'style', 'clouds', 'sky', 'fog',
 ]);
 
 export const DIRECTIONS = {
@@ -137,7 +138,9 @@ const ACTOR_VERBS = [
   [/^(?:shows?|reappears?|becomes? visible)\b/, 'show'],
   [/^(?:circles?|orbits?|swims? (?:around|round)|goes? (?:around|round)|spirals?)\b/, 'orbit'],
   [/^(?:follows?|swims? (?:with|behind|after)|stays? (?:with|near|by)|accompan(?:y|ies)|tags? along)\b/, 'follow'],
-  [/^(?:swims?|moves?|goes?|glides?|drifts?|floats?|travels?|heads?|rushes?|darts?|dashes?|flees?|hurries?|sinks?|rises?|dives?|surfaces?|approaches?|chases?)\b/, 'move'],
+  [/^(?:swallows?|eats?|gulps?(?: down)?|devours?|engulfs?)\b/, 'swallow'],
+  [/^(?:spits?(?: out)?|coughs? up|lets? out|frees?|sets? free)\b/, 'spit'],
+  [/^(?:swims?|moves?|goes?|glides?|drifts?|floats?|travels?|heads?|rushes?|darts?|dashes?|flees?|hurries?|sinks?|rises?|dives?|surfaces?|approaches?|chases?|flies|fly|flys?|soars?|walks?|runs?|crawls?|scuttles?|lands?|takes? off)\b/, 'move'],
   [/^(?:stops? following|stops?|halts?|pauses?|freezes?)\b/, 'stop'],
   [/^(?:looks?|faces?|turns? (?:to|toward|towards)|watches?|stares?|glances?)\b/, 'look'],
   [/^(?:waits?|idles?|rests?|hovers?|lingers?|sleeps?|stays?)\b/, 'wait'],
@@ -171,9 +174,14 @@ const DIRECTIVES = [
   [/^(?:wait|pause|hold|beat|rest|delay)\b/, 'wait'],
   [/^(?:sync|wait for all|join|all done|meanwhile ends|then)\b/, 'sync'],
   [/^fade\s*in\b/, 'fadeIn'],
-  [/^fade\s*(?:out|to black)\b/, 'fadeOut'],
+  [/^fade\s*(?:out|to)\b/, 'fadeOut'],
+  [/^(?:image|picture|card|plate|illustration|logo)\b/, 'image'],
+  [/^(?:credits?|roll credits|scroll)\b/, 'credits'],
+  [/^(?:music|song|soundtrack|score)\b/, 'music'],
+  [/^(?:sound|sfx|effect|noise|play)\b/, 'sound'],
+  [/^(?:clip|video|footage|movie)\b/, 'clip'],
   [/^(?:black|blackout|darkness)\b/, 'black'],
-  [/^(?:title|card|title card|chapter|heading)\b/, 'title'],
+  [/^(?:title|title card|chapter|heading)\b/, 'title'],
   [/^(?:caption|text|subtitle|narration|narrate|note)\b/, 'caption'],
   [/^(?:cut|hard cut|smash cut)\b/, 'cut'],
   [/^(?:marker|mark|bookmark)\b/, 'marker'],
@@ -193,6 +201,7 @@ function matchVerb(list, text) {
 const KINDS = new Set([
   'fish', 'whale', 'shark', 'octopus', 'jellyfish', 'turtle', 'crab', 'school',
   'dolphin', 'seahorse', 'starfish', 'ray', 'eel', 'squid', 'narrator', 'voice',
+  'bird', 'pelican', 'bubble', 'sprite', 'model',
 ]);
 const KIND_ALIASES = {
   fishes: 'fish', minnow: 'fish', goldfish: 'fish', clownfish: 'fish', sardine: 'fish', tuna: 'fish',
@@ -208,6 +217,10 @@ const KIND_ALIASES = {
   'sea horse': 'seahorse', seahorses: 'seahorse',
   'sea star': 'starfish', star: 'starfish',
   eels: 'eel', 'moray': 'eel',
+  seagull: 'bird', gull: 'bird', birds: 'bird', albatross: 'bird', pelicans: 'pelican', stork: 'pelican', heron: 'pelican',
+  image: 'sprite', picture: 'sprite', cutout: 'sprite', drawing: 'sprite', illustration: 'sprite',
+  gltf: 'model', glb: 'model', mesh: 'model',
+  bubbles: 'bubble', balloon: 'bubble',
 };
 
 const COLOR_WORDS = new Set([
@@ -225,7 +238,9 @@ export function parseCastLine(text, line) {
   if (!m) throw new ParseError('cast entry must look like `- name: kind, color, size 1`', line, text);
   const name = m[1];
   const actor = { name, kind: 'fish', color: null, size: null, label: m[2] ? m[2].trim() : null, speed: null, count: null, style: null, i18n: {} };
-  Object.assign(actor, parseCastAttrs(m[3]));
+  const attrs = parseCastAttrs(m[3]);
+  Object.assign(actor, attrs);
+  if (attrs.kind) actor.kind = attrs.kind;
   if (/^(narrator|voice|קריין|מספר)$/i.test(name) && actor.kind === 'fish' && !/\bfish\b/i.test(m[3])) actor.kind = 'narrator';
   return actor;
 }
@@ -239,6 +254,14 @@ export function parseCastAttrs(text) {
   if (lab) { actor.label = lab[1].trim(); rest = rest.replace(lab[0], ' '); }
   const voice = rest.match(/\bvoice\s*[:=]?\s*["“]([^"”]*)["”]/i);
   if (voice) { actor.voice = voice[1].trim(); rest = rest.replace(voice[0], ' '); }
+  const img = rest.match(/\b(?:image|picture|sprite)\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (img) { actor.image = img[1].trim(); actor.kind = 'sprite'; rest = rest.replace(img[0], ' '); }
+  const mdl = rest.match(/\b(?:model|file|gltf|glb)\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (mdl) { actor.model = mdl[1].trim(); actor.kind = 'model'; rest = rest.replace(mdl[0], ' '); }
+  const anim = rest.match(/\b(?:animation|clip)\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (anim) { actor.animation = anim[1].trim(); rest = rest.replace(anim[0], ' '); }
+  if (/\bflip(?:ped)?\b/i.test(rest)) { actor.flip = true; rest = rest.replace(/\bflip(?:ped)?\b/i, ' '); }
+  if (/\bbillboard\b/i.test(rest)) { actor.billboard = true; rest = rest.replace(/\bbillboard\b/i, ' '); }
   const q = takeQuote(rest);
   if (q.quote != null && actor.label == null) { actor.label = q.quote; rest = q.rest; }
   for (const key of ['size', 'speed', 'count', 'pitch', 'rate', 'volume']) {
@@ -441,9 +464,9 @@ export function parseActorAction(name, text, line) {
       }
       break;
     }
-    case 'carry': case 'drop': {
+    case 'carry': case 'drop': case 'swallow': case 'spit': {
       const t = parseTarget(tail); tail = t.rest;
-      if (mv.verb === 'carry' && (!t.target || !t.target.actor)) throw new ParseError('carry needs an `@actor` to carry', line, raw);
+      if ((mv.verb === 'carry' || mv.verb === 'swallow') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
       action.target = t.target;
       break;
     }
@@ -465,11 +488,39 @@ export function parseDirective(text, line) {
   if (!mv) throw new ParseError('unknown directive', line, raw);
   const d = { type: 'directive', name: mv.verb, nonBlocking, line, text: raw.trim() };
   let tail = text.slice(text.length - mv.rest.length);
+  if (d.name === 'music' && /^\s*(?:stops?|off|ends?|fades? out)\b/i.test(tail)) { d.file = null; d.stop = true; d.duration = takeDuration(tail).duration; return d; }
+  const offEarly = tail.match(/\b(?:from|offset|starting at)\s+(\d+(?:\.\d+)?)\s*(?:s|sec|seconds?)?\b/i);
+  if (offEarly) { d.offset = parseFloat(offEarly[1]); tail = tail.replace(offEarly[0], ' '); }
   const dur = takeDuration(tail); tail = dur.rest; d.duration = dur.duration;
   const q = takeQuote(tail); if (q.quote != null) { d.quote = q.quote; tail = q.rest; }
+  for (const key of ['volume', 'vol', 'gain']) {
+    const r = takeKeyNumber(tail, [key]);
+    if (r.value != null) { d.volume = r.value; tail = r.rest; break; }
+  }
+  const off = tail.match(/\b(?:from|offset|starting at)\s+(\d+(?:\.\d+)?)\s*s?\b/i);
+  if (off) { d.offset = parseFloat(off[1]); tail = tail.replace(off[0], ' '); }
   if (d.duration == null) {
     const n = takeNumber(tail);
     if (n.value != null) { d.duration = n.value; tail = n.rest; }
+  }
+  if (d.name === 'fadeOut') {
+    const c = tail.match(/\b(?:to\s+)?(white|black|blue|#[0-9a-f]{3,6})\b/i);
+    d.color = c ? c[1].toLowerCase() : 'black';
+  }
+  if (d.name === 'fadeIn') {
+    const c = tail.match(/\b(?:from\s+)?(white|black|blue|#[0-9a-f]{3,6})\b/i);
+    d.color = c ? c[1].toLowerCase() : 'black';
+  }
+  if (['image', 'music', 'sound', 'clip'].includes(d.name)) {
+    if (d.quote == null) throw new ParseError(`${d.name} needs a file path in quotes`, line, raw);
+    d.file = d.quote;
+    if (/^(?:stop|off|none|silence)$/i.test(d.quote) && d.name === 'music') d.file = null;
+    if (/\bloop\b/i.test(tail)) d.loop = true;
+    if (/\b(?:fit|cover|contain|stretch)\b/i.test(tail)) d.fit = tail.match(/\b(fit|cover|contain|stretch)\b/i)[1].toLowerCase();
+  }
+  if (d.name === 'credits') {
+    if (d.quote == null) throw new ParseError('credits needs text in quotes; separate lines with |', line, raw);
+    d.lines = d.quote.split(/\s*\|\s*/).map((l) => l.trim());
   }
   if ((d.name === 'title' || d.name === 'caption') && d.quote == null) {
     const t = tail.replace(/^[\s:]+/, '').trim();
@@ -533,7 +584,7 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
     if (/^(?:---+|\*\*\*+|___+)$/.test(t)) { script.statements.push({ type: 'directive', name: 'sync', line: lineNo, text: t }); continue; }
 
     // Translation / localisation continuation lines: `he: text`
-    const lang = matchLangLine(t.replace(/^[-*+]\s+/, ''));
+    const lang = /^[-*+]\s/.test(t) ? null : matchLangLine(t);
     if (lang && !t.startsWith('>') && !t.startsWith('@') && !t.startsWith('**')) {
       if (mode === 'cast' && script.cast.length) {
         const c = script.cast[script.cast.length - 1];
@@ -541,7 +592,7 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
         continue;
       }
       const last = script.statements[script.statements.length - 1];
-      if (last && (last.type === 'dialog' || (last.type === 'directive' && (last.name === 'title' || last.name === 'caption')))) {
+      if (last && (last.type === 'dialog' || (last.type === 'directive' && ['title', 'caption', 'credits', 'image'].includes(last.name)))) {
         last.i18n = last.i18n || {};
         const txt = lang.text.replace(/^["“]|["”]$/g, '');
         const sub = txt.match(/\bsubtitle\s+["“]([^"”]*)["”]/i);
