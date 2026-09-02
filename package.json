@@ -1,0 +1,23 @@
+{
+  "name": "oceanscript",
+  "version": "0.1.0",
+  "description": "Render 3D underwater animations from a markdown screenplay",
+  "type": "module",
+  "bin": {
+    "oceanscript": "bin/oceanscript.js"
+  },
+  "scripts": {
+    "parse": "node bin/oceanscript.js parse",
+    "render": "node bin/oceanscript.js render",
+    "preview": "node bin/oceanscript.js preview",
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "playwright": "^1.56.1",
+    "three": "^0.185.1"
+  }
+}
