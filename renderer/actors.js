@@ -36,6 +36,7 @@ function eyes(parent, color, { z = 0.32, x = 0.13, y = 0.1, r = 0.07, look = 0 }
   const white = mat('#ffffff', { roughness: 0.3 });
   const black = mat('#101418', { roughness: 0.25 });
   const list = [];
+  const brows = [];
   for (const sx of [-1, 1]) {
     const e = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), white);
     e.position.set(sx * x, y, z);
@@ -44,9 +45,27 @@ function eyes(parent, color, { z = 0.32, x = 0.13, y = 0.1, r = 0.07, look = 0 }
     e.add(p);
     g.add(e);
     list.push(e);
+    // eyebrow: a thin dark bar above the eye, tilted inward when angry
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(r * 1.9, r * 0.28, r * 0.3), black);
+    brow.position.set(sx * x, y + r * 1.25, z + r * 0.3);
+    brow.visible = false;
+    brow.userData.sx = sx;
+    g.add(brow);
+    brows.push(brow);
   }
   parent.add(g);
-  return { group: g, eyes: list };
+  parent.userData.brows = (parent.userData.brows || []).concat(brows);
+  return { group: g, eyes: list, brows };
+}
+function setBrows(rig, face, emo) {
+  const brows = rig.inner?.userData?.brows;
+  if (!brows) return;
+  const angry = emo === 'angry' || (face.smile != null && face.smile < -0.5 && emo !== 'sad' && emo !== 'crying' && emo !== 'lonely');
+  const sad = emo === 'sad' || emo === 'crying' || emo === 'lonely';
+  for (const b of brows) {
+    b.visible = angry || sad;
+    b.rotation.z = angry ? -b.userData.sx * 0.45 : sad ? b.userData.sx * 0.35 : 0;
+  }
 }
 function mouth(parent, { z = 0.48, y = -0.06, w = 0.14 } = {}) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(w * 0.5, 10, 8), mat('#3a1520', { roughness: 0.4 }));
@@ -54,6 +73,48 @@ function mouth(parent, { z = 0.48, y = -0.06, w = 0.14 } = {}) {
   m.scale.set(1, 0.35, 0.5);
   parent.add(m);
   return m;
+}
+
+// ---- articulated mouth ------------------------------------------------------------
+// A mouth that can open (lip-sync), smile or frown, and show teeth.  Built at
+// (0, y, z) facing +z.  `set(face)` applies { mouthOpen, smile, teeth }.
+function makeMouth(parent, { z = 0.48, y = -0.06, w = 0.12, h = 0.06, teethCount = 6, teethSize = 0.018, lipColor = '#3a1520', teethDefault = false } = {}) {
+  const g = new THREE.Group();
+  g.position.set(0, y, z);
+  const cavity = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), mat('#4a1220', { roughness: 0.6 }));
+  cavity.scale.set(w, h * 0.05, w * 0.35);
+  g.add(cavity);
+  const teethMat = mat('#f6f6f0', { roughness: 0.4 });
+  const teeth = new THREE.Group();
+  for (let i = 0; i < teethCount; i++) {
+    const tooth = new THREE.Mesh(new THREE.ConeGeometry(teethSize, teethSize * 2.4, 5), teethMat);
+    const u = teethCount === 1 ? 0 : (i / (teethCount - 1)) * 2 - 1;
+    tooth.position.set(u * w * 0.75, teethSize * 0.3, w * 0.22 * (1 - u * u * 0.6));
+    tooth.rotation.x = Math.PI;
+    teeth.add(tooth);
+  }
+  teeth.visible = teethDefault;
+  g.add(teeth);
+  const arc = Math.PI * 0.75;
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(w * 0.9, Math.max(0.006, w * 0.07), 6, 24, arc), mat(lipColor, { roughness: 0.5 }));
+  smile.position.z = w * 0.3;
+  g.add(smile);
+  parent.add(g);
+  const api = { group: g, cavity, teeth, smile, w, h, teethDefault, talkOpen: 0 };
+  api.set = (face) => {
+    const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
+    cavity.scale.set(w * (1 + open * 0.15), h * (0.05 + open * 0.95), w * 0.35);
+    cavity.position.y = -h * open * 0.5;
+    const sm = face.smile || 0;
+    if (Math.abs(sm) < 0.08) { smile.rotation.z = -Math.PI / 2 - arc / 2; smile.scale.set(1, 0.06, 1); smile.position.y = 0; }
+    else if (sm > 0) { smile.rotation.z = -Math.PI / 2 - arc / 2; smile.scale.set(1, 0.25 + 0.75 * sm, 1); smile.position.y = w * 0.55 * sm; }
+    else { smile.rotation.z = Math.PI / 2 - arc / 2; smile.scale.set(1, 0.25 + 0.75 * -sm, 1); smile.position.y = w * 0.55 * sm; }
+    smile.visible = open < 0.35;
+    teeth.visible = !!face.teeth || teethDefault || open > 0.25;
+    teeth.position.y = open * h * 0.1;
+  };
+  api.set({ mouthOpen: 0, smile: 0.1, teeth: false });
+  return api;
 }
 
 // ---- emotions -------------------------------------------------------------------
@@ -87,8 +148,12 @@ function animateCommon(rig, t, state) {
   inner.rotation.x = -emo.pitch * (sp > 1 ? 0.3 : 1);
   inner.rotation.z = emo.roll + Math.sin(t * 0.9 + seed) * 0.03;
   if (emo.tremble) { inner.position.x += Math.sin(t * 38 + seed) * 0.025 * emo.tremble; inner.rotation.z += Math.sin(t * 41) * 0.05 * emo.tremble; }
-  // eyes
-  if (rig.eyeMeshes) for (const e of rig.eyeMeshes) e.scale.set(emo.eye, emo.eye * emo.eyeY, emo.eye);
+  // eyes (emotion size + blinks / winks)
+  const face = state.face || {};
+  if (rig.eyeMeshes) rig.eyeMeshes.forEach((e, i) => {
+    const closed = i === 0 ? Math.max(face.blink || 0, face.wink || 0) : (face.blink || 0);
+    e.scale.set(emo.eye, Math.max(0.06, emo.eye * emo.eyeY * (1 - closed)), emo.eye);
+  });
   // effects
   let talking = false;
   for (const fx of state.effects) {
@@ -103,22 +168,51 @@ function animateCommon(rig, t, state) {
     }
   }
   if (!state.effects.some((f) => f.type === 'glow') && rig.glowMats) for (const m of rig.glowMats) m.emissiveIntensity = rig.baseGlow ?? 0;
-  if (rig.mouthMesh) {
-    const open = talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 9 + seed)) : 0.35;
+  setBrows(rig, face, state.emotion);
+  if (rig.mouth) {
+    rig.mouth.set({ mouthOpen: face.mouthOpen ?? (talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 9 + seed)) : 0), smile: face.smile ?? 0.15, teeth: face.teeth });
+  } else if (rig.mouthMesh) {
+    const open = face.mouthOpen != null ? 0.3 + 0.7 * face.mouthOpen : (talking ? 0.35 + 0.65 * Math.abs(Math.sin(t * 9 + seed)) : 0.35);
     rig.mouthMesh.scale.y = open;
   }
-  if (talking) inner.rotation.x += Math.sin(t * 9 + seed) * 0.04;
+  if (talking) inner.rotation.x += (face.mouthOpen ?? 0.5) * 0.06 * Math.sin(t * 9 + seed);
   return emo;
 }
 const smoother = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * u * (u * (u * 6 - 15) + 10); };
 
 // ---- rigs -------------------------------------------------------------------------
 
-function buildFish(color, { detail = 'high', shape = 'fish' } = {}) {
+// Body pattern textures (spots / stripes in an accent colour), deterministic.
+function patternTexture(kind, base, accent, seed = 1) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = base; ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = accent;
+  const r = rng(seed * 31 + 5);
+  if (kind === 'spots') {
+    for (let i = 0; i < 26; i++) { const x = r() * 256, y = 20 + r() * 88, rad = 5 + r() * 9; ctx.beginPath(); ctx.ellipse(x, y, rad, rad * 0.8, 0, 0, TAU); ctx.fill(); }
+  } else if (kind === 'stripes') {
+    for (let i = 0; i < 9; i++) { const x = 20 + i * 26 + (r() - 0.5) * 6; ctx.fillRect(x, 10, 9 + r() * 4, 108); }
+  } else if (kind === 'bands') {
+    for (let i = 0; i < 4; i++) { const y = 16 + i * 30; ctx.fillRect(0, y, 256, 12); }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  return tex;
+}
+
+function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, accent = null, seed = 1 } = {}) {
   const g = new THREE.Group();
   const inner = new THREE.Group();
   g.add(inner);
-  const body = new THREE.Mesh(tintVertexBelly(new THREE.SphereGeometry(0.5, detail === 'low' ? 10 : 24, detail === 'low' ? 8 : 16), color, lighten(color, 0.45)), mat(color, { vertexColors: true, roughness: 0.4, metalness: 0.15 }));
+  const bodyGeo = tintVertexBelly(new THREE.SphereGeometry(0.5, detail === 'low' ? 10 : 24, detail === 'low' ? 8 : 16), color, lighten(color, 0.45));
+  const bodyMat = pattern
+    ? new THREE.MeshStandardMaterial({ map: patternTexture(pattern, '#ffffff', accent || '#ffffff', seed), color: new THREE.Color(color), vertexColors: true, roughness: 0.4, metalness: 0.15 })
+    : mat(color, { vertexColors: true, roughness: 0.4, metalness: 0.15 });
+  if (pattern) bodyMat.map = patternTexture(pattern, color, accent || darken(color, 0.4).getStyle(), seed), bodyMat.color.set('#ffffff');
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
   body.scale.set(0.32, 0.5, 1);
   inner.add(body);
   const finMat = mat(darken(color, 0.15), { side: THREE.DoubleSide, roughness: 0.6 });
@@ -145,12 +239,12 @@ function buildFish(color, { detail = 'high', shape = 'fish' } = {}) {
     inner.add(pec);
     pecs.push({ mesh: pec, sx });
   }
-  let eyeMeshes = null, mouthMesh = null;
+  let eyeMeshes = null, mouthMesh = null, mouthRig = null;
   if (detail !== 'low') {
     eyeMeshes = eyes(inner, color, { z: 0.33, x: 0.12, y: 0.1, r: 0.075 }).eyes;
-    mouthMesh = mouth(inner, { z: 0.47, y: -0.08, w: 0.12 });
+    mouthRig = makeMouth(inner, { z: 0.46, y: -0.07, w: 0.09, h: 0.06, teethCount: 4, teethSize: 0.012 });
   }
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, kind: 'fish' };
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, mouth: mouthRig, kind: 'fish' };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (3.5 + Math.min(12, state.speed * 2.2)) * emo.wag;
@@ -189,19 +283,8 @@ function buildShark(color) {
     pecs.push({ mesh: pec, sx });
   }
   const eyeMeshes = eyes(inner, color, { z: 0.36, x: 0.13, y: 0.06, r: 0.045 }).eyes;
-  // mouth with teeth
-  const mouthMesh = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), mat('#5a1622', { roughness: 0.5 }));
-  mouthMesh.position.set(0, -0.14, 0.38);
-  mouthMesh.scale.set(1.3, 0.35, 0.6);
-  inner.add(mouthMesh);
-  const toothMat = mat('#ffffff');
-  for (let i = -2; i <= 2; i++) {
-    const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.05, 5), toothMat);
-    tooth.position.set(i * 0.045, -0.115, 0.42 + (2 - Math.abs(i)) * 0.012);
-    tooth.rotation.x = Math.PI;
-    inner.add(tooth);
-  }
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, kind: 'shark' };
+  const mouthRig = makeMouth(inner, { z: 0.4, y: -0.13, w: 0.15, h: 0.12, teethCount: 7, teethSize: 0.02, lipColor: '#5a1622', teethDefault: true });
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth: mouthRig, kind: 'shark' };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (2.2 + Math.min(6, state.speed * 1.2)) * emo.wag;
@@ -250,7 +333,7 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
     // a striped band over the lower front of the head: the visible baleen
     const headProf = whaleProfile(kind).filter(([z]) => z >= 0.05).map(([z, r]) => new THREE.Vector2(r * 1.015, z));
     headProf.push(new THREE.Vector2(headProf[headProf.length - 1].x, 0.02));
-    const bg = new THREE.LatheGeometry(headProf, 36, Math.PI * 1.15, Math.PI * 0.7);
+    const bg = new THREE.LatheGeometry(headProf, 36, Math.PI * 1.62, Math.PI * 0.76);
     bg.rotateX(Math.PI / 2);
     bg.scale(1, 0.85, 1);
     bg.computeVertexNormals();
@@ -282,16 +365,10 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
   const eyeMeshes = eyes(inner, color, { z: 0.36, x: kind === 'dolphin' ? 0.1 : 0.22, y: 0.05, r: kind === 'dolphin' ? 0.03 : (accentHex ? 0.07 : 0.045) }).eyes;
   if (accentHex) for (const e of eyeMeshes) { const p = e.children[0]; p.material = mat(accentHex, { roughness: 0.3 }); p.scale.setScalar(1.3); }
   // smile: partial torus
-  const smile = new THREE.Mesh(new THREE.TorusGeometry(kind === 'dolphin' ? 0.07 : 0.16, 0.012, 6, 20, Math.PI * 0.8), mat(baleen ? '#f4f4f4' : '#2a1a22'));
-  smile.position.set(0, -0.02, 0.46);
-  smile.rotation.z = Math.PI + Math.PI * 0.1;
-  smile.rotation.x = 0.35;
-  inner.add(smile);
-  const mouthMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), mat('#3a1520'));
-  mouthMesh.position.set(0, -0.09, 0.44);
-  mouthMesh.scale.set(kind === 'dolphin' ? 1 : 2.2, 0.35, 0.5);
-  inner.add(mouthMesh);
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex };
+  const mouthRig = makeMouth(inner, kind === 'dolphin'
+    ? { z: 0.46, y: -0.05, w: 0.08, h: 0.05, teethCount: 6, teethSize: 0.01 }
+    : { z: 0.44, y: -0.12, w: 0.2, h: 0.14, teethCount: baleen ? 0 : 6, teethSize: 0.02, lipColor: baleen ? '#f4f4f4' : '#2a1a22' });
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth: mouthRig, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (1.3 + Math.min(4, state.speed * 0.5)) * emo.wag;
@@ -352,8 +429,8 @@ function buildOctopus(color, { kind = 'octopus' } = {}) {
     inner.add(tnt.root);
     tent.push(tnt);
   }
-  const mouthMesh = mouth(inner, { z: 0.43, y: 0.18, w: 0.14 });
-  const rig = { group: g, inner, eyeMeshes, mouthMesh, kind, yawOnly: true, tentacles: tent };
+  const mouthRig = makeMouth(inner, { z: kind === 'squid' ? 0.3 : 0.42, y: kind === 'squid' ? 0.02 : 0.18, w: 0.13, h: 0.08, teethCount: 5, teethSize: 0.016, lipColor: '#5a2a1a' });
+  const rig = { group: g, inner, eyeMeshes, mouth: mouthRig, kind, yawOnly: true, tentacles: tent };
   rig.animate = (t, state) => {
     animateCommon(rig, t, state);
     const pulse = Math.sin(t * 2.2 + rig.seed);
@@ -702,7 +779,7 @@ export function createActorRig(cast, seed, extra = {}) {
     case 'seahorse': rig = buildEel(color, { kind: 'seahorse' }); break;
     case 'starfish': rig = buildStarfish(color); break;
     case 'school': rig = buildSchool(color, Math.max(3, Math.round(cast.count || 12))); break;
-    default: rig = buildFish(color); break;
+    default: rig = buildFish(color, { pattern: cast.pattern || null, accent: cast.accent ? toHex(cast.accent) : null, seed: Math.round(seed) }); break;
   }
   rig.seed = seed;
   rig.size = cast.size;

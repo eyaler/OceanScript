@@ -111,20 +111,24 @@ for the language (child-like for small creatures, a narrator voice for
 narration).  A cast entry named `narrator` (or of kind `narrator`) is
 voice-only and never appears in the scene.  Captions are shown but not spoken.
 
-**Hebrew pronunciation.** Unpointed Hebrew is ambiguous, so before synthesis
-every Hebrew line is vowel-pointed (nikud) with Dicta's Nakdan service and the
-pointed text is spoken (the subtitle keeps the plain text).  The pointed text
-is written to `<out>.voice.json` for checking.  To fix a word the automatic
-pointing gets wrong, or to respell a name phonetically, add a `he-tts:` line
-under the `he:` line; it is spoken instead of the subtitle text:
+**Hebrew pronunciation.** Unpointed Hebrew is ambiguous, so names and
+homographs are mispronounced.  Rather than pointing everything, list only the
+difficult words in a `# Pronunciation` section; every occurrence is spoken with
+the pointed form, consistently, also when the word carries a prefix letter
+(וכספיון, לשונית):
 
 ```markdown
-**Little Whale:** Mama! You found me!
-  he: אמא! מצאת אותי!
-  he-tts: אִמָּא! מָצָאת אוֹתִי!
+# Pronunciation
+- כספיון: כַּסְפִּיּוֹן
+- כסוף: כָּסוּף
+- מעבר: מֵעֵבֶר
 ```
 
-`nikud: off` in the front matter disables the automatic pointing.
+A `he-tts:` line under a `he:` line replaces the spoken text of that one line
+(phonetic respelling, or a fully pointed sentence).  `nikud: auto` in the
+front matter points every Hebrew line with Dicta's Nakdan service instead
+(off by default: it over-points easy words).  The text actually spoken is
+written to `<out>.voice.json` for checking.
 
 **Engines.** `edge` (free, Microsoft neural voices: he-IL-Avri/Hila, many
 English voices) is the default.  `elevenlabs` is used automatically when
@@ -146,6 +150,8 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
 * **accent** `accent purple` (fins, tongue, tears and iris of a whale in a second
   colour) and **baleen** (black-and-white baleen stripes over the mouth), for the
   film's signature whale: `- whale: whale, black, size 10, accent purple, baleen`.
+* **pattern** for fish: `spots`, `stripes` or `bands` in the accent colour, e.g.
+  `- puffer: fish, magenta, spots, accent yellow`.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
   `turtle`, `crab`, `ray`, `eel`, `seahorse`, `starfish`, `school` (a shoal of
   small fish; `count N` sets how many), `bird`, `pelican`, `bubble`, and two
@@ -188,6 +194,7 @@ Environment settings are blockquotes with `key: value` pairs:
 | `sky` | `#hex` solid sky/background colour |
 | `clouds` | `off`, `low`, `on`, `many` – drifting clouds when the camera is above the water |
 | `fog` | a fog density number to override `visibility` |
+| `interior` | `whale` – inside the whale: a dark cavern with baleen bars around the camera (`none` to leave) |
 | `visibility` | fog distance in metres (default 40) |
 | `caustics`, `rays`, `bubbles`, `plankton`, `seaweed`, `coral`, `rocks` | `off`, `low`, `on`, `many` or a number |
 | `transition` | seconds to cross-fade into these settings (default 2 mid-scene, 0 at a scene start) |
@@ -221,6 +228,7 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | wait | `@whale waits 2s` |
 | say | `@caspion says "Hello!"`, `@caspion: Hello!`, `**Caspion:** Hello!` |
 | emotion | `@whale feels sad` – `happy`, `excited`, `proud`, `sad`, `lonely`, `crying`, `scared`, `surprised`, `sleepy`, `angry`, `calm`, `curious`, `neutral` |
+| face | `@whale smiles big`, `@shark grins` (teeth), `@fish frowns`, `@whale shows teeth` / `hides teeth`, `@whale opens mouth wide for 1s` / `closes mouth`, `@fish blinks twice`, `@octopus winks`, `@whale yawns`, `@caspion gasps` – smile and teeth persist until changed; emotions set sensible defaults (angry shows teeth and lowered brows, sad raises them) |
 | spin | `@caspion spins 3 times over 2s` |
 | wiggle | `@caspion wiggles for 3s` |
 | jump | `@dolphin jumps height 3 over 1.5s` (an arc; breaches if at the surface) |
@@ -234,7 +242,15 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | ease | add `linear`, `smooth`, `snap`, `bouncy` or `elastic` to any move |
 
 Movement sets the facing direction automatically, with smooth turns and banking.
-Emotions change the animation (tail speed, pitch, eyes, trembling).
+Emotions change the animation (tail speed, pitch, eyes, trembling) and the face
+(smile, mouth, brows).  Fish, sharks, whales, dolphins and octopuses have an
+articulated mouth; all creatures blink on their own every few seconds.
+
+**Lip-sync.** While a character speaks, its mouth follows the loudness
+envelope of its voice clip (25 samples per second), so the mouth moves with the
+actual words.  This makes the frames depend on the language's audio; set
+`lipsync: off` in the front matter to keep a generic talking motion and
+identical frames in every language.
 
 ## Camera
 
@@ -275,12 +291,13 @@ actor's colour.  Right-to-left text is detected automatically.
 | `- wait 2s` | advance time |
 | `- sync` / `---` | wait for all running actions |
 | `- fade in 2s`, `- fade out 2s`, `- fade out to white 1s`, `- black 1s` | fades (to black, white or `#hex`) |
+| `- iris out 1s`, `- iris in 1s` | circle-iris transitions, as in the film's endings |
 | `- title "text" for 4s` | centred title card (`subtitle "..."` adds a second line) |
 | `- caption "text" for 3s` | subtitle without a speaker |
 | `- image "assets/page.svg" for 4s` | full-frame illustration/photo card (`fit`, `cover` or `stretch`); a `he: ...` line under it is a localised caption |
 | `- clip "assets/footage.mp4" for 5s from 12s` | live footage: the video (transcoded to WebM for the browser) plays full-frame from the given offset, with its own sound (`volume N`) |
 | `- credits "line | line | line" for 8s` | scrolling credits; translatable with a `he:` line |
-| `- music "assets/theme.wav" volume 0.3` ... `- music stop 2s` | scene music: loops from here until the next `music` line or `stop` (with a fade-out); `from 10s` starts inside the file |
+| `- music "assets/theme.wav" volume 0.3` ... `- music stop 2s` | scene music: loops from here until the next `music` line or `stop` (with a fade-out); `from 10s` starts inside the file.  Music is automatically ducked under the voices.  `examples/music/` ships public-domain recordings (see its CREDITS.md) |
 | `- sound "assets/splash.wav" volume 0.8` | a sound effect at this moment (`&` is implied: it never blocks unless given a duration) |
 | `- cut` | the next settings change is instant instead of cross-fading |
 | `- marker "name"` | marker on the preview scrubber |

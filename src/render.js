@@ -166,6 +166,11 @@ export async function render(file, args = {}) {
   // ---- single process --------------------------------------------------------------
   if (!args.quiet) console.error(`rendering ${total} frames (${width}x${height} @ ${fps}fps, ${(total / fps).toFixed(2)}s) -> ${args.video === false ? framesDir : out}`);
   const { cacheDir } = prepareAssets(timeline, { log: args.quiet ? () => {} : console.error });
+  if (timeline.meta.lipsync !== false && args.voice !== false && timeline.meta.tts !== 'none') {
+    const { attachEnvelopes } = await import('./tts.js');
+    try { await attachEnvelopes(timeline, { engine: args.tts ?? timeline.meta.tts, cacheDir: args.ttsCache, log: args.quiet ? () => {} : console.error }); }
+    catch (err) { console.error('warning: lip-sync envelopes unavailable:', err.message); }
+  }
   const { server, url } = await startServer({
     dynamic: { '/timeline.json': () => ({ body: JSON.stringify(timeline) }) },
     extraRoots: { '/script/': timeline.meta.scriptDir, '/cache/': cacheDir },

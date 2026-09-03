@@ -57,6 +57,7 @@ export function resolveEnv(s = {}) {
     land: land ? 1 : 0,
     clouds: density(s.clouds, tKey === 'night' ? 0.3 : 0.8),
     backdrop: s.backdrop && !/^(none|off|no|false)$/i.test(String(s.backdrop)) ? String(s.backdrop) : null,
+    interior: s.interior && !/^(none|off|no|false)$/i.test(String(s.interior)) ? String(s.interior).toLowerCase() : null,
     skyOverride,
     fog: col(w.fog), deep: col(w.deep), shallow: col(w.shallow), tint: col(w.tint),
     sun: col(tm.sun), sunI: tm.sunI, amb: tm.amb, sky: col(tm.sky), horizon: col(tm.horizon), surface: col(tm.surface),
@@ -116,6 +117,7 @@ export class Ocean {
     this.buildPlankton();
     this.buildRays();
     this.buildClouds();
+    this.buildInterior();
     this.scene.fog = new THREE.FogExp2(0x1f6fb8, 0.04);
     this.backdropTextures = {};
   }
@@ -151,6 +153,29 @@ export class Ocean {
   }
 
   setBackdropTexture(name, tex) { this.backdropTextures[name] = tex; }
+
+  buildInterior() {
+    // inside the whale: a dark cavern with vertical baleen bars along the walls
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#05060a'; ctx.fillRect(0, 0, 512, 64);
+    ctx.fillStyle = '#e8e8ec';
+    for (let x = 6; x < 512; x += 24) ctx.fillRect(x, 0, 9, 64);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(10, 1);
+    const geo = new THREE.CylinderGeometry(28, 28, 26, 64, 1, true);
+    const m = new THREE.MeshStandardMaterial({ map: tex, side: THREE.BackSide, roughness: 0.9, fog: false });
+    this.interior = new THREE.Group();
+    const walls = new THREE.Mesh(geo, m);
+    walls.rotation.z = Math.PI / 2;
+    this.interior.add(walls);
+    const roof = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ color: 0x03040a, side: THREE.BackSide, fog: false }));
+    this.interior.add(roof);
+    this.interior.visible = false;
+    this.group.add(this.interior);
+  }
 
   buildLights() {
     this.hemi = new THREE.HemisphereLight(0xbfe6ff, 0x1b3a5c, 0.6);
@@ -543,8 +568,14 @@ export class Ocean {
     if (bdTex) { this.scene.background = bdTex; this.bg.visible = false; }
     else if (p.skyOverride) { this.scene.background = new THREE.Color(p.skyOverride[0], p.skyOverride[1], p.skyOverride[2]); this.bg.visible = false; }
     else { this.scene.background = null; this.bg.visible = true; }
-    this.floor.visible = p.floorVisible >= 0.5;
-    this.surface.visible = !(p.land >= 0.5) && p.waveAmp > 0.001;
+    this.floor.visible = p.floorVisible >= 0.5 && !p.interior;
+    this.interior.visible = !!p.interior;
+    if (p.interior) {
+      this.interior.position.set(camera.position.x, camera.position.y + 4, camera.position.z);
+      this.interior.children[0].rotation.x = t * 0.02;
+      this.bg.visible = false; this.scene.background = new THREE.Color(0x03040a);
+    }
+    this.surface.visible = (!(p.land >= 0.5) && p.waveAmp > 0.001) && !p.interior;
     this.clouds.visible = !camUnder && p.clouds > 0 && !bdTex;
     for (const sp of this.clouds.children) {
       const d = sp.userData;

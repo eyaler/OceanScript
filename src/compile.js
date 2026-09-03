@@ -65,7 +65,9 @@ export function compile(script, options = {}) {
     sourceLang: String(script.meta.lang ?? script.meta.language ?? 'en').toLowerCase(),
     burnSubtitles: options.burnSubtitles ?? (script.meta.subtitles === 'burn' || script.meta.burn_subtitles === true),
     tts: options.tts ?? script.meta.tts ?? 'auto',
-    nikud: script.meta.nikud !== false && script.meta.nikud !== 'off',
+    nikud: script.meta.nikud === true || script.meta.nikud === 'auto' || script.meta.nikud === 'on',
+    lipsync: script.meta.lipsync !== false && script.meta.lipsync !== 'off' && script.meta.lip_sync !== false,
+    pronunciation: script.pronunciation || {},
     timing: options.timing ?? script.meta.timing ?? 'text',
     music: script.meta.music ?? null,
     musicVolume: Number(script.meta.music_volume ?? 0.25),
@@ -120,6 +122,7 @@ export function compile(script, options = {}) {
       count: entry.count ?? def.count ?? 1,
       style: entry.style ?? null,
       image: entry.image ?? null,
+      pattern: entry.pattern ?? null,
       model: entry.model ?? null,
       animation: entry.animation ?? null,
       flip: !!entry.flip,
@@ -138,13 +141,13 @@ export function compile(script, options = {}) {
   const est = {}; // estimated current position per actor (for default durations)
   function actorTracks(name, line) {
     if (name === 'camera') return camera;
-    if (cast[name]?.kind === 'narrator') { warn(line, `"@${name}" is a voice-only narrator and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [] }; }
+    if (cast[name]?.kind === 'narrator') { warn(line, `"@${name}" is a voice-only narrator and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] }; }
     if (!cast[name]) {
       warn(line, `actor "@${name}" was not declared in the cast; assuming a fish`);
       addActor({ name, kind: 'fish' });
     }
     if (!actors[name]) {
-      actors[name] = { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [] };
+      actors[name] = { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] };
     }
     return actors[name];
   }
@@ -273,7 +276,7 @@ export function compile(script, options = {}) {
         });
         if (actorName) {
           const tr = ensurePlaced(actorName, t0, st.line);
-          tr.effects.push({ t0, t1, type: 'talk' });
+          tr.effects.push({ t0, t1, type: 'talk', line: st.line });
           if (st.to && cast[st.to]) tr.looks.push({ t: t0, target: { actor: st.to } });
         }
         break;
@@ -283,6 +286,8 @@ export function compile(script, options = {}) {
         switch (st.name) {
           case 'wait': advance(t0, st.duration ?? 1, false); break;
           case 'sync': cursor = maxEnd; break;
+          case 'irisIn': { const d = st.duration ?? 1; overlays.push({ type: 'iris', t0, t1: t0 + d, from: 0, to: 1 }); advance(t0, d, st.nonBlocking); break; }
+          case 'irisOut': { const d = st.duration ?? 1; overlays.push({ type: 'iris', t0, t1: t0 + d, from: 1, to: 0 }); advance(t0, d, st.nonBlocking); break; }
           case 'fadeIn': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
           case 'fadeOut': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
           case 'black': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 1, color: 'black' }); advance(t0, d, st.nonBlocking); break; }
@@ -444,6 +449,28 @@ export function compile(script, options = {}) {
       case 'emote': {
         const tr = ensurePlaced(name, t0, st.line);
         tr.emotes.push({ t: t0, emotion: st.emotion });
+        break;
+      }
+      case 'smile': case 'frown': {
+        const tr = ensurePlaced(name, t0, st.line);
+        tr.face.push({ t: t0, smile: st.value, teeth: st.teeth ? true : undefined });
+        break;
+      }
+      case 'teeth': { ensurePlaced(name, t0, st.line).face.push({ t: t0, teeth: true }); break; }
+      case 'noteeth': { ensurePlaced(name, t0, st.line).face.push({ t: t0, teeth: false }); break; }
+      case 'openmouth': {
+        const tr = ensurePlaced(name, t0, st.line);
+        if (st.duration) { tr.effects.push({ t0, t1: t0 + st.duration, type: 'mouth', value: st.value }); advance(t0, st.duration, st.nonBlocking); }
+        else tr.face.push({ t: t0, mouth: st.value });
+        break;
+      }
+      case 'closemouth': { ensurePlaced(name, t0, st.line).face.push({ t: t0, mouth: 0 }); break; }
+      case 'blink': case 'wink': case 'yawn': case 'gasp': {
+        const tr = ensurePlaced(name, t0, st.line);
+        const defaults = { blink: 0.4 * (st.count ?? 1), wink: 0.5, yawn: 2.5, gasp: 0.9 };
+        const dur = st.duration ?? defaults[st.verb];
+        tr.effects.push({ t0, t1: t0 + dur, type: st.verb, count: st.count ?? 1 });
+        advance(t0, dur, st.nonBlocking);
         break;
       }
       case 'spin': case 'wiggle': case 'nod': case 'bubbles': case 'cry': case 'spout': case 'glow': {
@@ -642,6 +669,7 @@ export function compile(script, options = {}) {
     tr.emotes.sort((a, b) => a.t - b.t);
     tr.effects.sort((a, b) => a.t0 - b.t0);
     tr.scales.sort((a, b) => a.t0 - b.t0);
+    (tr.face || []).sort((a, b) => a.t - b.t);
   }
   camera.segments.sort((a, b) => a.t0 - b.t0);
   camera.looks.sort((a, b) => a.t0 - b.t0);

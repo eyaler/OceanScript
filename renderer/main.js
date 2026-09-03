@@ -210,7 +210,7 @@ function seek(t) {
     }
     rig.altitude = pos[1];
     const carrying = Object.values(timeline.actors).some((tr) => tr.segments.some((sg) => sg.type === 'follow' && sg.attached && sg.actor === name && sg.t0 <= t && t < sg.t1));
-    const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), t, carrying };
+    const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), face: ev.face(name, t), t, carrying };
     rig.animate(t, state);
     // particle effects in world space
     for (const fx of state.effects) {
@@ -251,9 +251,10 @@ function seek(t) {
       return `<div class="line ${s.kind}" dir="${dir}" style="opacity:${a.toFixed(3)}">${spk}${esc(s.text)}</div>`;
     }).join('<br>');
   } else $subs.innerHTML = '';
-  let fade = 0, fadeColor = 'black', title = null, image = null, credits = null, clip = null;
+  let fade = 0, fadeColor = 'black', title = null, image = null, credits = null, clip = null, iris = null;
   for (const o of ev.overlays(t)) {
     if (o.type === 'fade') { const v = o.from + (o.to - o.from) * smooth(o.u); if (v >= fade) { fade = v; fadeColor = o.color || 'black'; } }
+    if (o.type === 'iris') iris = o.from + (o.to - o.from) * smooth(o.u);
     if (o.type === 'title') title = o;
     if (o.type === 'image') image = o;
     if (o.type === 'credits') credits = o;
@@ -261,6 +262,9 @@ function seek(t) {
   }
   $fade.style.opacity = fade.toFixed(3);
   $fade.style.background = fadeColor;
+  const $iris = document.getElementById('iris');
+  if (iris != null) { $iris.style.opacity = 1; $iris.style.clipPath = `circle(${(iris * 75).toFixed(2)}% at 50% 50%)`; }
+  else $iris.style.opacity = 0;
   const $img = document.getElementById('imagecard');
   if (image) {
     const url = assetUrl(image.src);

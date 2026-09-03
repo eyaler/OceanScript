@@ -49,6 +49,8 @@ jobs:
         id: plan
         run: |
           mkdir -p out
+          PINNED="${{ inputs.script }}"; PINNED="${PINNED%.md}.timing.json"
+          [ -f "$PINNED" ] && cp "$PINNED" out/render.timing.json && echo "using pinned timing $PINNED"
           node bin/oceanscript.js check "${{ inputs.script }}" --lang "${{ inputs.lang }}" --width ${{ inputs.width }} --height ${{ inputs.height }} --timing-file out/render.timing.json > check.txt
           cat check.txt
           FRAMES=$(grep -oE '[0-9]+ frames' check.txt | grep -oE '[0-9]+')

@@ -21,8 +21,8 @@ timing: audio
   he: voice "he-IL-AvriNeural"
 - caspion: fish, silver, size 0.6, label "Caspion", voice "en-US-AnaNeural"
   he: label "כספיון", voice "he-IL-HilaNeural" pitch 8
-- whaley (Little Whale): baby whale, black, size 4, accent purple, baleen, voice "en-US-AnaNeural" rate -5
-  he: label "לווייתן קטן", voice "he-IL-HilaNeural"
+- whaley (Little Whale): baby whale, black, size 4, accent purple, baleen, voice "en-US-GuyNeural" pitch 12 rate -4
+  he: label "לווייתן קטן", voice "he-IL-AvriNeural" pitch 15 rate -4
 - mother (Mother Whale): whale, black, size 10, accent purple, baleen, voice "en-US-JennyNeural" rate -5
   he: label "אמא לווייתנית", voice "he-IL-HilaNeural" pitch -6 rate -5
 - shark: shark, gray, size 4, voice "en-US-ChristopherNeural" pitch -10 rate -5
@@ -34,8 +34,29 @@ timing: audio
 - friends: school, gold, count 14, size 0.35
   he: label "החברים"
 
+# Pronunciation
+<!-- Only difficult words and homographs get vowel points; the pointed form is
+     used for every occurrence, also with prefixes (וכספיון, לשונית). -->
+- כספיון: כַּסְפִּיּוֹן
+- כסוף: כָּסוּף
+- מעבר: מֵעֵבֶר
+- שונית: שׁוּנִית
+- לווייתן: לִוְיָתָן
+- סערה: סְעָרָה
+- קינוח: קִנּוּחַ
+- פעמון: פַּעֲמוֹן
+- שמור: שָׁמוּר
+- מצאת: מָצָאת
+- חברתי: חֲבֶרְתִּי
+- תישא: תִּשָּׂא
+- שמעל: שֶׁמֵּעַל
+- עזוב: עֲזֹב
+- הצילו: הַצִּילוּ
+- במנוחה: בִּמְנוּחָה
+
 # Scene: The Reef
 > time: day, water: turquoise, waves: gentle, depth: shallow, floor: reef
+- music "music/barcarolle.ogg" volume 0.35
 
 - fade in 2s &
 - title "Caspion the Little Fish" for 4s &
@@ -64,6 +85,7 @@ timing: audio
 
 # Scene: The Crying Whale
 > time: day, water: blue, depth: medium, floor: sand, visibility: 45
+- music "music/solveig.ogg" volume 0.3
 @whaley appears at (4, -6, -2)
 @whaley looks at (-6, -6, 4)
 @camera cuts to (-5, -4, 8) looking at @whaley
@@ -89,6 +111,7 @@ timing: audio
 
 # Scene: The Shark
 > time: dusk, water: dark, depth: deep, floor: rock, visibility: 30, rays: off
+- music "music/mountain-king.ogg" volume 0.35
 @whaley appears at (0, -9, -4)
 @caspion appears at (-3, -8, -2)
 @camera cuts to (-6, -7, 8) looking at @whaley
@@ -108,6 +131,7 @@ timing: audio
 @caspion wiggles for 3s
 @caspion: Help!
   he: הצילו!
+- music "music/blue-danube.ogg" volume 0.3
 @mother enters from left to (-4, -10, -10) over 4s &
 @camera cuts to (2, -6, 14) looking at (2, -9, -6)
 @mother looks at @shark
@@ -119,7 +143,6 @@ timing: audio
 @whaley swims near @mother over 3s
 **Little Whale:** Mama! You found me!
   he: אמא! מצאת אותי!
-  he-tts: אִמָּא! מָצָאת אוֹתִי!
 @camera moves to @whaley distance 9 over 3s &
 @whaley looks at @caspion
 **Little Whale:** This is Caspion. He helped me!
@@ -132,6 +155,7 @@ timing: audio
 
 # Scene: The Octopus and the Jellyfish
 > time: day, water: blue, depth: medium, floor: reef, visibility: 40
+- music "music/swan.ogg" volume 0.3
 @octopus appears at (3, -6, -2)
 @jelly appears at (-5, -3, -3)
 @caspion enters from left to (0, -5, 1) over 3s &
@@ -146,7 +170,6 @@ timing: audio
 @octopus wiggles for 2s
 **Octopus:** Then my friend the jellyfish will carry you, with the sea held in her bell.
   he: אז חברתי המדוזה תישא אותך, עם הים שמור בתוך הפעמון שלה.
-  he-tts: אָז חֲבֶרְתִּי הַמֵּדוּזָה תִּשָּׂא אוֹתְךָ, עִם הַיָּם שָׁמוּר בְּתוֹךְ הַפַּעֲמוֹן שֶׁלָּהּ.
 @jelly swims near @caspion over 4s
 @jelly glows for 3s &
 @jelly carries @caspion
@@ -159,6 +182,7 @@ timing: audio
 
 # Scene: Home
 > time: sunset, water: turquoise, waves: gentle, depth: shallow, floor: reef, visibility: 50
+- music "music/morning.ogg" volume 0.35
 @friends appears at (2, -3, -3)
 @jelly appears at (-8, -1, 0)
 @jelly carries @caspion
@@ -176,4 +200,5 @@ timing: audio
   he: The world is simply wonderful, wet or dry!
 @caspion blows bubbles for 2s
 - wait 1s
+- music stop 2s
 - fade out 2s

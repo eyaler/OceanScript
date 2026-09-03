@@ -46,6 +46,9 @@ export async function prepareTimeline(file, opts = {}, log = console.error) {
   let timeline = loadTimeline(file, opts);
   if (timeline.meta.timing !== 'audio') return timeline;
   let lineDurations = null;
+  // A committed `<script>.timing.json` next to the script pins the timing for every render.
+  const pinned = file.replace(/\.md$/i, '.timing.json');
+  if (!opts.timingFile && existsSync(pinned)) opts = { ...opts, timingFile: pinned };
   if (opts.timingFile && existsSync(opts.timingFile)) {
     lineDurations = JSON.parse(readFileSync(opts.timingFile, 'utf8')).lineDurations;
     log(`timing: using ${opts.timingFile}`);

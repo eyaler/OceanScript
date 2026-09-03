@@ -59,6 +59,58 @@ export async function addNikud(text, cacheDir) {
   return pointed;
 }
 
+// Pronunciation glossary: `- word: pointed` entries from a `# Pronunciation`
+// section.  Every occurrence of the bare word is replaced by the pointed form,
+// also when it carries Hebrew prefix letters (ו, ה, ב, כ, ל, מ, ש), so the
+// pronunciation is consistent across the script.
+const HEB_PREFIX = '[וּהבכלמש]{0,3}';
+export function applyGlossary(text, glossary) {
+  if (!glossary || !Object.keys(glossary).length) return text;
+  const entries = Object.entries(glossary).sort((a, b) => b[0].length - a[0].length);
+  let out = text;
+  for (const [word, pointed] of entries) {
+    const bare = stripNikud(word);
+    const re = new RegExp(`(^|[^\\p{L}\\u0591-\\u05C7])(${HEB_PREFIX})(${bare.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?=$|[^\\p{L}\\u0591-\\u05C7])`, 'gu');
+    out = out.replace(re, (m, pre, prefix) => `${pre}${prefix}${pointed}`);
+  }
+  return out;
+}
+
+// Mouth-opening envelope of a clip (25 Hz RMS, normalised), for coarse lip-sync.
+export function clipEnvelope(ff, file, rate = 25) {
+  const r = spawnSync(ff.path, ['-hide_banner', '-loglevel', 'error', '-i', file, '-ac', '1', '-ar', '8000', '-f', 's16le', '-'], { maxBuffer: 64 * 1024 * 1024 });
+  if (r.status !== 0 || !r.stdout) return null;
+  const pcm = new Int16Array(r.stdout.buffer, r.stdout.byteOffset, Math.floor(r.stdout.length / 2));
+  const win = Math.round(8000 / rate);
+  const rms = [];
+  for (let i = 0; i + win <= pcm.length; i += win) {
+    let sum = 0;
+    for (let j = i; j < i + win; j++) sum += pcm[j] * pcm[j];
+    rms.push(Math.sqrt(sum / win));
+  }
+  if (!rms.length) return null;
+  const sorted = [...rms].sort((a, b) => a - b);
+  const ref = sorted[Math.floor(sorted.length * 0.95)] || 1;
+  // light smoothing, then normalise with a soft knee so quiet consonants still move the mouth
+  const out = rms.map((v, i) => {
+    const a = rms[Math.max(0, i - 1)], b = rms[Math.min(rms.length - 1, i + 1)];
+    const x = (0.25 * a + 0.5 * v + 0.25 * b) / ref;
+    return Math.round(Math.min(1, Math.pow(Math.max(0, x), 0.7)) * 100) / 100;
+  });
+  return out;
+}
+
+// Attaches a mouth envelope to every spoken subtitle (clips come from the cache).
+export async function attachEnvelopes(timeline, opts = {}) {
+  const res = await synthesizeAll(timeline, opts);
+  const ff = findFfmpeg();
+  for (const c of res.clips) {
+    const env = clipEnvelope(ff, c.file);
+    if (env) { c.sub.envelope = env; c.sub.envelopeRate = 25; }
+  }
+  return res;
+}
+
 function proxyArgs() {
   const p = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY;
   return p ? ['--proxy', p] : [];
@@ -128,11 +180,13 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
   const clips = [];
   const spoken = timeline.subtitles.filter((s) => s.spoken && s.text);
   let made = 0;
-  const wantNikud = timeline.meta.nikud !== false && lang.split('-')[0] === 'he';
+  const wantNikud = timeline.meta.nikud === true && lang.split('-')[0] === 'he';
+  const glossary = (timeline.meta.pronunciation || {})[lang] || (timeline.meta.pronunciation || {})[lang.split('-')[0]] || null;
   for (const sub of spoken) {
     const v = pickVoice(engine, lang, sub, timeline.cast);
     let spokenText = (sub.texts && (sub.texts[`${lang}-tts`] || sub.texts[`${lang.split('-')[0]}-tts`])) || sub.text;
     if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
+    spokenText = applyGlossary(spokenText, glossary);
     sub.spokenText = spokenText;
     const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);
     const file = path.join(cacheDir, `${key}.mp3`);
@@ -211,8 +265,18 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
     mixed.push(`[c${i}]`);
     nIn++;
   });
+  const voiceLabels = mixed.filter((l) => l.startsWith('[v'));
+  const musicLabels = mixed.filter((l) => l.startsWith('[m'));
+  const otherLabels = mixed.filter((l) => !l.startsWith('[v') && !l.startsWith('[m'));
   if (mixed.length === 0) {
     filters.push(`anullsrc=r=48000:cl=stereo,atrim=0:${duration.toFixed(3)}[out]`);
+  } else if (voiceLabels.length && musicLabels.length) {
+    // duck the music under the voices (side-chain compression), then mix everything
+    filters.push(`${voiceLabels.join('')}amix=inputs=${voiceLabels.length}:normalize=0:duration=longest,apad,atrim=0:${duration.toFixed(3)},asplit=2[voice][sc]`);
+    filters.push(`${musicLabels.join('')}amix=inputs=${musicLabels.length}:normalize=0:duration=longest,apad,atrim=0:${duration.toFixed(3)}[music]`);
+    filters.push(`[music][sc]sidechaincompress=threshold=0.015:ratio=7:attack=40:release=700:makeup=1[ducked]`);
+    const finals = ['[voice]', '[ducked]', ...otherLabels];
+    filters.push(`${finals.join('')}amix=inputs=${finals.length}:normalize=0:duration=longest,apad,atrim=0:${duration.toFixed(3)}[out]`);
   } else {
     filters.push(`${mixed.join('')}amix=inputs=${mixed.length}:normalize=0:duration=longest,apad,atrim=0:${duration.toFixed(3)}[out]`);
   }

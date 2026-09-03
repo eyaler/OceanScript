@@ -6,7 +6,7 @@
 export const ENV_KEYS = new Set([
   'time', 'water', 'waves', 'depth', 'floor', 'visibility', 'caustics',
   'bubbles', 'rays', 'seaweed', 'coral', 'rocks', 'transition', 'sun', 'plankton',
-  'backdrop', 'style', 'clouds', 'sky', 'fog',
+  'backdrop', 'style', 'clouds', 'sky', 'fog', 'interior',
 ]);
 
 export const DIRECTIONS = {
@@ -134,6 +134,16 @@ const ACTOR_VERBS = [
   [/^(?:appears?|is|starts?|begins?|spawns?|pops? up)\b/, 'place'],
   [/^(?:enters?|comes? in|arrives?|swims? in|shows? up)\b/, 'enter'],
   [/^(?:exits?|leaves?|swims? (?:away|off|out)|goes? (?:away|off|out)|departs?)\b/, 'exit'],
+  [/^(?:smiles?|grins?|beams?|smirks?)\b/, 'smile'],
+  [/^(?:frowns?|scowls?|pouts?|sulks?)\b/, 'frown'],
+  [/^(?:shows?|bares?|flashes?|reveals?)\s+(?:its|his|her|their)?\s*teeth\b/, 'teeth'],
+  [/^(?:hides?|covers?)\s+(?:its|his|her|their)?\s*teeth\b/, 'noteeth'],
+  [/^(?:opens?)\s+(?:its|his|her|their)?\s*mouth\b/, 'openmouth'],
+  [/^(?:closes?|shuts?)\s+(?:its|his|her|their)?\s*mouth\b/, 'closemouth'],
+  [/^(?:blinks?)\b/, 'blink'],
+  [/^(?:winks?)\b/, 'wink'],
+  [/^(?:yawns?)\b/, 'yawn'],
+  [/^(?:gasps?)\b/, 'gasp'],
   [/^(?:hides?|disappears?|vanishes?|is gone|goes? invisible)\b/, 'hide'],
   [/^(?:shows?|reappears?|becomes? visible)\b/, 'show'],
   [/^(?:circles?|orbits?|swims? (?:around|round)|goes? (?:around|round)|spirals?)\b/, 'orbit'],
@@ -173,6 +183,8 @@ const CAMERA_VERBS = [
 const DIRECTIVES = [
   [/^(?:wait|pause|hold|beat|rest|delay)\b/, 'wait'],
   [/^(?:sync|wait for all|join|all done|meanwhile ends|then)\b/, 'sync'],
+  [/^iris\s*in\b/, 'irisIn'],
+  [/^iris\s*(?:out|close)\b/, 'irisOut'],
   [/^fade\s*in\b/, 'fadeIn'],
   [/^fade\s*(?:out|to)\b/, 'fadeOut'],
   [/^(?:image|picture|card|plate|illustration|logo)\b/, 'image'],
@@ -261,6 +273,8 @@ export function parseCastAttrs(text) {
   const anim = rest.match(/\b(?:animation|clip)\s*[:=]?\s*["“]([^"”]*)["”]/i);
   if (anim) { actor.animation = anim[1].trim(); rest = rest.replace(anim[0], ' '); }
   if (/\bflip(?:ped)?\b/i.test(rest)) { actor.flip = true; rest = rest.replace(/\bflip(?:ped)?\b/i, ' '); }
+  const pat = rest.match(/\b(spots|spotted|dots|dotted|stripes|striped|bands|banded)\b/i);
+  if (pat) { const w = pat[1].toLowerCase(); actor.pattern = w.startsWith('sp') || w.startsWith('do') ? 'spots' : w.startsWith('st') ? 'stripes' : 'bands'; rest = rest.replace(pat[0], ' '); }
   const acc = rest.match(/\baccent\s*[:=]?\s*(#[0-9a-f]{3,8}|[a-z]+)/i);
   if (acc) { actor.accent = acc[1].toLowerCase(); rest = rest.replace(acc[0], ' '); }
   if (/\b(?:baleen|stripes|striped mouth)\b/i.test(rest)) { actor.baleen = true; rest = rest.replace(/\b(?:baleen|stripes|striped mouth)\b/i, ' '); }
@@ -442,6 +456,21 @@ export function parseActorAction(name, text, line) {
       const to = takeRef(tail); if (to.ref) action.target = { actor: to.ref };
       break;
     }
+    case 'smile': case 'frown': {
+      const big = /\b(big|wide|broad|huge|widely)\b/i.test(tail);
+      const small = /\b(small|slight|faint|little|slightly)\b/i.test(tail);
+      action.value = (mv.verb === 'smile' ? 1 : -1) * (big ? 1 : small ? 0.35 : 0.7);
+      if (/^(?:grins?)/.test(mv.match[0])) action.teeth = true;
+      break;
+    }
+    case 'openmouth': {
+      action.value = /\b(wide|widely|big)\b/i.test(tail) ? 1 : /\b(slightly|a little|a bit)\b/i.test(tail) ? 0.35 : 0.7;
+      break;
+    }
+    case 'blink': {
+      if (action.count == null) action.count = /\b(twice|two)\b/i.test(tail) ? 2 : /\b(three|thrice)\b/i.test(tail) ? 3 : 1;
+      break;
+    }
     case 'scale': {
       const n = takeNumber(tail);
       if (n.value != null) action.size = n.value;
@@ -563,7 +592,7 @@ function parseFrontMatter(lines) {
 export function parseScript(source, { filename = 'script.md' } = {}) {
   const lines = source.replace(/\r\n?/g, '\n').split('\n');
   const { meta, consumed } = parseFrontMatter(lines);
-  const script = { meta, cast: [], statements: [], warnings: [], filename };
+  const script = { meta, cast: [], statements: [], warnings: [], filename, pronunciation: {} };
 
   let mode = 'body'; // or 'cast'
   let inComment = false;
@@ -612,6 +641,7 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
       const level = m[1].length;
       const title = m[2].trim();
       if (/^(?:cast|characters|actors|dramatis personae)\b/i.test(title)) { mode = 'cast'; continue; }
+      if (/^(?:pronunciation|pronounce|glossary|nikud|הגייה|ניקוד)\b/i.test(title)) { mode = 'pronunciation'; continue; }
       mode = 'body';
       if (level === 1) {
         const name = title.replace(/^(?:scene|act|part|chapter)\s*\d*\s*[:.\-–—]?\s*/i, '').trim() || title;
@@ -622,6 +652,17 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
       continue;
     }
 
+    if (mode === 'pronunciation') {
+      m = t.match(/^[-*+]\s+(.*)$/);
+      if (!m) continue;
+      // - word: pointed form      or    - word (he): pointed form
+      const pm = m[1].match(/^(\S+?)\s*(?:\(([a-z]{2,3})\))?\s*[:=→]\s*(.+)$/u);
+      if (!pm) { script.warnings.push(`line ${lineNo}: pronunciation entry must look like \`- word: pointed form\``); continue; }
+      const lang = (pm[2] || 'he').toLowerCase();
+      script.pronunciation[lang] = script.pronunciation[lang] || {};
+      script.pronunciation[lang][pm[1]] = pm[3].trim();
+      continue;
+    }
     if (mode === 'cast') {
       m = t.match(/^[-*+]\s+(.*)$/) || t.match(/^\d+[.)]\s+(.*)$/);
       if (!m) { script.warnings.push(`line ${lineNo}: ignored non-list line in cast section`); continue; }

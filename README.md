@@ -156,6 +156,14 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
   default voices per language live in `DEFAULT_VOICES` in `src/tts.js`.
 * **New TTS engine** – add a case to `synthesize()` in `src/tts.js`.
 
+## Music
+
+`examples/music/` holds six public-domain recordings (pre-1923 78 rpm
+transfers from the Internet Archive, see `examples/music/CREDITS.md`) used by
+the example: Offenbach's Barcarolle, Solveig's Song, In the Hall of the
+Mountain King, The Swan, Morning Mood and the Blue Danube.  Scene music is
+ducked automatically under the voices.
+
 ## Rendering long or high-resolution films on GitHub
 
 The container behind a Claude session renders at roughly one 720p frame per

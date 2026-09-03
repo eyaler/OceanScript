@@ -47,6 +47,22 @@ function rotateY(v, yaw) {
   return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
 }
 
+const FACE_BY_EMOTION = {
+  neutral:   { smile: 0.15, mouthOpen: 0, teeth: false },
+  happy:     { smile: 0.7, mouthOpen: 0.05, teeth: false },
+  excited:   { smile: 0.9, mouthOpen: 0.25, teeth: true, eyesWide: 0.3 },
+  proud:     { smile: 0.55, mouthOpen: 0, teeth: false },
+  sad:       { smile: -0.6, mouthOpen: 0, teeth: false },
+  lonely:    { smile: -0.45, mouthOpen: 0, teeth: false },
+  crying:    { smile: -0.8, mouthOpen: 0.3, teeth: false },
+  scared:    { smile: -0.3, mouthOpen: 0.45, teeth: false, eyesWide: 0.5 },
+  surprised: { smile: 0.1, mouthOpen: 0.7, teeth: false, eyesWide: 0.6 },
+  sleepy:    { smile: 0.1, mouthOpen: 0.1, teeth: false },
+  angry:     { smile: -0.6, mouthOpen: 0.2, teeth: true },
+  calm:      { smile: 0.25, mouthOpen: 0, teeth: false },
+  curious:   { smile: 0.25, mouthOpen: 0.15, teeth: false },
+};
+
 export class TimelineEvaluator {
   constructor(timeline) {
     this.tl = timeline;
@@ -258,6 +274,62 @@ export class TimelineEvaluator {
     const transient = { scared: 10, surprised: 4, excited: 8, crying: 6 };
     if (transient[e.emotion] && t - e.t > transient[e.emotion]) return 'neutral';
     return e.emotion;
+  }
+
+  // Facial state: { smile: -1..1, mouthOpen: 0..1, teeth, blink: 0..1, wink: 0..1 }
+  face(name, t) {
+    const key = `f|${name}|${t.toFixed(5)}`;
+    return this._memo(key, () => {
+      const tr = this.tracks(name);
+      const emo = this.emotion(name, t);
+      const base = FACE_BY_EMOTION[emo] || FACE_BY_EMOTION.neutral;
+      const f = { smile: base.smile, mouthOpen: base.mouthOpen, teeth: base.teeth, blink: 0, wink: 0, eyesWide: base.eyesWide || 0 };
+      if (!tr) return f;
+      let smileSet = null, teethSet = null, mouthSet = null;
+      for (const x of tr.face || []) {
+        if (x.t > t + 1e-9) break;
+        if (x.smile != null) smileSet = x.smile;
+        if (x.teeth != null) teethSet = x.teeth;
+        if (x.mouth != null) mouthSet = x.mouth;
+      }
+      if (smileSet != null) f.smile = smileSet;
+      if (teethSet != null) f.teeth = teethSet;
+      if (mouthSet != null) f.mouthOpen = Math.max(f.mouthOpen, mouthSet);
+      for (const e of this.effects(name, t)) {
+        const u = e.u;
+        if (e.type === 'mouth') f.mouthOpen = Math.max(f.mouthOpen, (e.value ?? 0.7) * Math.sin(Math.PI * Math.min(1, u * 4)));
+        if (e.type === 'yawn') { f.mouthOpen = Math.max(f.mouthOpen, Math.sin(Math.PI * u) * 0.9); f.blink = Math.max(f.blink, Math.sin(Math.PI * u) * 0.8); }
+        if (e.type === 'gasp') { f.mouthOpen = Math.max(f.mouthOpen, 0.8 * (1 - u * 0.3)); f.eyesWide = 0.5; }
+        if (e.type === 'blink') {
+          const n = Math.max(1, e.count || 1);
+          const phase = (u * n) % 1;
+          f.blink = Math.max(f.blink, phase < 0.5 ? Math.min(1, phase * 4) : Math.max(0, 1 - (phase - 0.5) * 4));
+        }
+        if (e.type === 'wink') f.wink = Math.max(f.wink, Math.sin(Math.PI * u));
+        if (e.type === 'talk') {
+          // lip-sync from the voice envelope when available, otherwise a generic rhythm
+          const sub = e.line != null ? this.tl.subtitles.find((x) => x.line === e.line && x.t0 === e.t0) : null;
+          let open;
+          if (sub && sub.envelope && sub.envelope.length) {
+            const rate = sub.envelopeRate || 25;
+            const i = Math.max(0, (t - sub.t0) * rate);
+            const i0 = Math.min(sub.envelope.length - 1, Math.floor(i)), i1 = Math.min(sub.envelope.length - 1, i0 + 1);
+            const a = sub.envelope[i0] ?? 0, b = sub.envelope[i1] ?? 0;
+            open = a + (b - a) * Math.min(1, i - i0);
+          } else open = 0.35 + 0.65 * Math.abs(Math.sin(t * 9 + (this.tl.cast[name]?.index || 0)));
+          f.mouthOpen = Math.max(f.mouthOpen, open);
+        }
+      }
+      // automatic idle blinks: one short blink in every ~4 s window at a pseudo-random moment
+      const seed = (this.tl.cast[name]?.index || 0) * 7.31;
+      const period = 3.6 + ((seed * 13) % 1.7);
+      const win = Math.floor((t + seed) / period);
+      const frac = ((Math.sin(win * 12.9898 + seed) * 43758.5453) % 1 + 1) % 1;
+      const tb = win * period + frac * (period - 0.3) - seed;
+      const dt = t - tb;
+      if (dt >= 0 && dt < 0.16) f.blink = Math.max(f.blink, dt < 0.08 ? dt / 0.08 : 1 - (dt - 0.08) / 0.08);
+      return f;
+    });
   }
 
   scale(name, t) {
