@@ -119,7 +119,7 @@ jobs:
           for f in $(ls out/chunks/*.mp4 | sort); do echo "file '$PWD/$f'"; done > out/list.txt
           ffmpeg -y -f concat -safe 0 -i out/list.txt -c copy out/$NAME.${{ inputs.lang }}.video.mp4
           TF=$(ls out/*.timing.json 2>/dev/null | head -1)
-          node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$NAME.${{ inputs.lang }}.video.mp4 --lang "${{ inputs.lang }}" ${TF:+--timing-file $TF} -o out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.mp4
+          node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$NAME.${{ inputs.lang }}.video.mp4 --lang "${{ inputs.lang }}" ${TF:+--timing-file $TF} -o out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
           ls -la out
       - name: Upload to the release
         env:
@@ -127,4 +127,4 @@ jobs:
         run: |
           NAME=$(basename "${{ inputs.script }}" .md)
           gh release view "${{ inputs.release }}" >/dev/null 2>&1 || gh release create "${{ inputs.release }}" --title "OceanScript renders" --notes "Videos rendered by the Render workflow." --prerelease
-          gh release upload "${{ inputs.release }}" out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.mp4 out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.srt out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.vtt --clobber
+          gh release upload "${{ inputs.release }}" out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4 out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.srt out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.vtt --clobber
