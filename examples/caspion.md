@@ -21,9 +21,9 @@ timing: audio
   he: voice "he-IL-AvriNeural"
 - caspion: fish, silver, size 0.6, label "Caspion", voice "en-US-AnaNeural"
   he: label "כספיון", voice "he-IL-HilaNeural" pitch 8
-- whaley (Little Whale): baby whale, blue, size 4, voice "en-US-AnaNeural" rate -5
+- whaley (Little Whale): baby whale, black, size 4, accent purple, baleen, voice "en-US-AnaNeural" rate -5
   he: label "לווייתן קטן", voice "he-IL-HilaNeural"
-- mother (Mother Whale): whale, navy, size 10, voice "en-US-JennyNeural" rate -5
+- mother (Mother Whale): whale, black, size 10, accent purple, baleen, voice "en-US-JennyNeural" rate -5
   he: label "אמא לווייתנית", voice "he-IL-HilaNeural" pitch -6 rate -5
 - shark: shark, gray, size 4, voice "en-US-ChristopherNeural" pitch -10 rate -5
   he: label "כריש", voice "he-IL-AvriNeural" pitch -10 rate -6
