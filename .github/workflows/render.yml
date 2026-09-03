@@ -43,11 +43,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pip install edge-tts
       - name: Resolve audio timing and count frames
         id: plan
         run: |
-          node bin/oceanscript.js check "${{ inputs.script }}" --lang "${{ inputs.lang }}" --width ${{ inputs.width }} --height ${{ inputs.height }} > check.txt
+          mkdir -p out
+          node bin/oceanscript.js check "${{ inputs.script }}" --lang "${{ inputs.lang }}" --width ${{ inputs.width }} --height ${{ inputs.height }} --timing-file out/render.timing.json > check.txt
           cat check.txt
           FRAMES=$(grep -oE '[0-9]+ frames' check.txt | grep -oE '[0-9]+')
           echo "frames=$FRAMES" >> "$GITHUB_OUTPUT"
