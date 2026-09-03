@@ -82,6 +82,6 @@ test('carry, orbit, effects and overlays', () => {
   const orbit = tl.actors.a.segments.find((s) => s.type === 'orbit');
   assert.equal(orbit.loops, 2); assert.equal(orbit.center.actor, 'b');
   assert.equal(tl.actors.a.effects[0].type, 'glow');
-  assert.deepEqual(tl.overlays.map((o) => o.type), ['title', 'fade']);
+  assert.deepEqual(tl.overlays.filter((o) => !o.hold).map((o) => o.type), ['title', 'fade']);
   assert.equal(tl.overlays[1].t0, orbit.t1 + 2);
 });

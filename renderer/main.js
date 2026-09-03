@@ -212,10 +212,40 @@ function seek(t) {
     const carrying = Object.values(timeline.actors).some((tr) => tr.segments.some((sg) => sg.type === 'follow' && sg.attached && sg.actor === name && sg.t0 <= t && t < sg.t1));
     const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), face: ev.face(name, t), t, carrying };
     rig.animate(t, state);
+    // tear drops (cartoon: they grow at the eye and fall)
+    if (rig.tears) for (const tr of rig.tears) tr.visible = false;
+    const cryFx = state.effects.find((f) => f.type === 'cry');
+    if (cryFx) {
+      if (!rig.tears) {
+        const tearMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(rig.tearColor || '#9fd8ff'), roughness: 0.25, transparent: true, opacity: 0.92 });
+        rig.tears = [0, 1].map(() => {
+          const grp = new THREE.Group();
+          const drop = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10), tearMat);
+          const tip = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.0, 14), tearMat);
+          tip.position.y = 0.75;
+          grp.add(drop, tip);
+          scene.add(grp);
+          return grp;
+        });
+      }
+      rig.group.updateMatrixWorld(true);
+      rig.tears.forEach((tear, i) => {
+        const period = 1.4;
+        const ph = ((cryFx.age + i * 0.7) % period) / period;
+        const local = rig.eyePositions ? rig.eyePositions[i].clone() : new THREE.Vector3((i ? 1 : -1) * 0.14, 0.06, 0.36);
+        const eye = local.applyMatrix4(rig.group.matrixWorld);
+        const grow = Math.min(1, ph / 0.45);
+        const fall = Math.max(0, (ph - 0.45) / 0.55);
+        const size = sc * 0.16 * (0.4 + 0.6 * grow);
+        tear.position.set(eye.x, eye.y - size * 0.9 - fall * fall * sc * 1.6, eye.z + size * 0.3);
+        tear.scale.setScalar(size);
+        tear.visible = true;
+      });
+    }
     // particle effects in world space
     for (const fx of state.effects) {
       if (fx.type === 'bubbles' || fx.type === 'cry' || fx.type === 'spout') {
-        const n = fx.type === 'spout' ? 40 : 18;
+        const n = fx.type === 'spout' ? 40 : fx.type === 'cry' ? 6 : 18;
         const local = fx.type === 'cry' ? (rig.eyePositions ? rig.eyePositions[1].clone() : new THREE.Vector3(0.14, 0.08, 0.36)) : fx.type === 'spout' ? (rig.blowhole || new THREE.Vector3(0, 0.3, 0.1)) : new THREE.Vector3(0, -0.05, 0.5);
         rig.group.updateMatrixWorld(true);
         const origin = local.clone().applyMatrix4(rig.group.matrixWorld);

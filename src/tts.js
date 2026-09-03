@@ -10,6 +10,8 @@ import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, statSync, writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 import { findFfmpeg } from './ffmpeg.js';
 
 const DEFAULT_VOICES = {
@@ -64,6 +66,39 @@ export async function addNikud(text, cacheDir) {
 // also when it carries Hebrew prefix letters (ו, ה, ב, כ, ל, מ, ש), so the
 // pronunciation is consistent across the script.
 const HEB_PREFIX = '[וּהבכלמש]{0,3}';
+// Second-person Hebrew homographs whose pointing depends on the addressee's gender.
+export const HEBREW_DEFAULT_GLOSSARY = {
+  'לך|to:m': 'לְךָ', 'לך|to:f': 'לָךְ',
+  'אותך|to:m': 'אוֹתְךָ', 'אותך|to:f': 'אוֹתָךְ',
+  'שלך|to:m': 'שֶׁלְּךָ', 'שלך|to:f': 'שֶׁלָּךְ',
+  'איתך|to:m': 'אִתְּךָ', 'איתך|to:f': 'אִתָּךְ',
+  'עליך|to:m': 'עָלֶיךָ', 'עליך|to:f': 'עָלַיִךְ',
+  'בשבילך|to:m': 'בִּשְׁבִילְךָ', 'בשבילך|to:f': 'בִּשְׁבִילֵךְ',
+  'ממך|to:m': 'מִמְּךָ', 'ממך|to:f': 'מִמֵּךְ',
+  'אליך|to:m': 'אֵלֶיךָ', 'אליך|to:f': 'אֵלַיִךְ',
+  'מצאת|to:m': 'מָצָאתָ', 'מצאת|to:f': 'מָצָאת',
+  'עזרת|to:m': 'עָזַרְתָּ', 'עזרת|to:f': 'עָזַרְתְּ',
+  'אמרת|to:m': 'אָמַרְתָּ', 'אמרת|to:f': 'אָמַרְתְּ',
+  'ראית|to:m': 'רָאִיתָ', 'ראית|to:f': 'רָאִית',
+  'הצלת|to:m': 'הִצַּלְתָּ', 'הצלת|to:f': 'הִצַּלְתְּ',
+};
+
+// Resolves gender-tagged entries for one line: `word|to:f` applies when the
+// addressee is female, `word|speaker:m` when the speaker is male; untagged
+// entries always apply.  Returns a flat word -> pointed map.
+export function resolveGlossary(glossary, { speakerGender = null, addresseeGender = null } = {}) {
+  const out = {};
+  for (const [key, val] of Object.entries(glossary || {})) {
+    const m = key.match(/^(.*)\|(to|speaker):(m|f)$/);
+    if (!m) { out[key] = val; continue; }
+    const g = m[2] === 'to' ? addresseeGender : speakerGender;
+    const want = m[3] === 'f' ? 'female' : 'male';
+    if (g === want) out[m[1]] = val;
+    else if (g == null && m[3] === 'm' && !(m[1] in out)) out[m[1]] = val; // unknown: masculine default
+  }
+  return out;
+}
+
 export function applyGlossary(text, glossary) {
   if (!glossary || !Object.keys(glossary).length) return text;
   const entries = Object.entries(glossary).sort((a, b) => b[0].length - a[0].length);
@@ -181,11 +216,14 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
   const spoken = timeline.subtitles.filter((s) => s.spoken && s.text);
   let made = 0;
   const wantNikud = timeline.meta.nikud === true && lang.split('-')[0] === 'he';
-  const glossary = (timeline.meta.pronunciation || {})[lang] || (timeline.meta.pronunciation || {})[lang.split('-')[0]] || null;
+  const scriptGlossary = (timeline.meta.pronunciation || {})[lang] || (timeline.meta.pronunciation || {})[lang.split('-')[0]] || {};
+  const glossaryAll = lang.split('-')[0] === 'he' ? { ...HEBREW_DEFAULT_GLOSSARY, ...scriptGlossary } : scriptGlossary;
   for (const sub of spoken) {
     const v = pickVoice(engine, lang, sub, timeline.cast);
     let spokenText = (sub.texts && (sub.texts[`${lang}-tts`] || sub.texts[`${lang.split('-')[0]}-tts`])) || sub.text;
     if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
+    const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
+    if (lang.split('-')[0] === 'he' && sub.kind === 'dialog' && !sub.addressee && /(^|[^\p{L}])(לך|אותך|שלך|איתך|עליך)([^\p{L}]|$)/u.test(spokenText)) log(`warning: line ${sub.line} speaks to someone (${RegExp.$2}) but the addressee is unknown; add \`(to Name)\` after the speaker to get the right gender`);
     spokenText = applyGlossary(spokenText, glossary);
     sub.spokenText = spokenText;
     const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);
@@ -246,7 +284,7 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
     nIn++;
   });
   (timeline.sounds || []).forEach((snd, i) => {
-    const file = resolveAsset(snd.file);
+    const file = snd.builtin ? path.resolve(REPO_ROOT, 'assets', snd.file) : resolveAsset(snd.file);
     if (!existsSync(file)) { log(`warning: sound file not found: ${file}`); return; }
     inputs.push('-ss', String(snd.offset || 0), '-i', file);
     filters.push(`[${nIn}:a]aresample=48000,aformat=channel_layouts=stereo,volume=${snd.volume ?? 1},adelay=${Math.round(snd.t * 1000)}|${Math.round(snd.t * 1000)}[s${i}]`);

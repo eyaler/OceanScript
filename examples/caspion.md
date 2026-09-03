@@ -19,17 +19,17 @@ timing: audio
 # Cast
 - narrator: voice "en-US-GuyNeural"
   he: voice "he-IL-AvriNeural"
-- caspion: fish, silver, size 0.6, label "Caspion", voice "en-US-AnaNeural"
+- caspion: fish, silver, size 0.6, male, label "Caspion", voice "en-US-AnaNeural"
   he: label "כספיון", voice "he-IL-HilaNeural" pitch 8
 - whaley (Little Whale): baby whale, black, size 4, accent purple, baleen, voice "en-US-GuyNeural" pitch 12 rate -4
   he: label "לווייתן קטן", voice "he-IL-AvriNeural" pitch 15 rate -4
 - mother (Mother Whale): whale, black, size 10, accent purple, baleen, voice "en-US-JennyNeural" rate -5
   he: label "אמא לווייתנית", voice "he-IL-HilaNeural" pitch -6 rate -5
-- shark: shark, gray, size 4, voice "en-US-ChristopherNeural" pitch -10 rate -5
+- shark: shark, gray, size 4, male, voice "en-US-ChristopherNeural" pitch -10 rate -5
   he: label "כריש", voice "he-IL-AvriNeural" pitch -10 rate -6
-- octopus: octopus, red, size 1.6, voice "en-US-GuyNeural"
+- octopus: octopus, red, size 1.6, male, voice "en-US-GuyNeural"
   he: label "תמנון", voice "he-IL-AvriNeural" rate -3
-- jelly (Jellyfish): jellyfish, pink, size 1
+- jelly (Jellyfish): jellyfish, pink, size 1, female
   he: label "מדוזה"
 - friends: school, gold, count 14, size 0.35
   he: label "החברים"
@@ -37,7 +37,7 @@ timing: audio
 # Pronunciation
 <!-- Only difficult words and homographs get vowel points; the pointed form is
      used for every occurrence, also with prefixes (וכספיון, לשונית). -->
-- כספיון: כַּסְפִּיּוֹן
+- כספיון: קַסְפִּיוֹן
 - כסוף: כָּסוּף
 - מעבר: מֵעֵבֶר
 - שונית: שׁוּנִית
@@ -46,7 +46,6 @@ timing: audio
 - קינוח: קִנּוּחַ
 - פעמון: פַּעֲמוֹן
 - שמור: שָׁמוּר
-- מצאת: מָצָאת
 - חברתי: חֲבֶרְתִּי
 - תישא: תִּשָּׂא
 - שמעל: שֶׁמֵּעַל
@@ -95,14 +94,14 @@ timing: audio
   he: הרחק מהבית, שמע כספיון מישהו בוכה.
 @caspion enters from left to (-1, -5, 1) over 3s
 @caspion looks at @whaley
-**Caspion:** Why are you crying, little whale?
+**Caspion (to Little Whale):** Why are you crying, little whale?
   he: למה אתה בוכה, לווייתן קטן?
 **Little Whale:** I lost my mother in the storm... I'm all alone.
   he: איבדתי את אמא שלי בסערה... אני לגמרי לבד.
 @camera orbits @whaley distance 11 over 10s &
 @caspion swims near @whaley over 2s
 @caspion feels curious
-**Caspion:** Don't worry. I'll help you find her!
+**Caspion (to Little Whale):** Don't worry. I'll help you find her!
   he: אל תדאג. אני אעזור לך למצוא אותה!
 @whaley feels happy
 @caspion swims around @whaley 2 times over 8s &
@@ -135,20 +134,20 @@ timing: audio
 @mother enters from left to (-4, -10, -10) over 4s &
 @camera cuts to (2, -6, 14) looking at (2, -9, -6)
 @mother looks at @shark
-**Mother Whale:** Leave those little ones alone!
+**Mother Whale (to Shark):** Leave those little ones alone!
   he: עזוב את הקטנים האלה במנוחה!
 @shark feels scared
 @shark exits right over 2s
 @whaley feels happy
 @whaley swims near @mother over 3s
-**Little Whale:** Mama! You found me!
+**Little Whale (to Mother Whale):** Mama! You found me!
   he: אמא! מצאת אותי!
 @camera moves to @whaley distance 9 over 3s &
 @whaley looks at @caspion
 **Little Whale:** This is Caspion. He helped me!
   he: זה כספיון. הוא עזר לי!
 @mother looks at @caspion
-**Mother Whale:** Thank you, brave little fish.
+**Mother Whale (to Caspion):** Thank you, brave little fish.
   he: תודה לך, דג קטן ואמיץ.
 @caspion feels proud
 @caspion spins 3 times over 2s
@@ -163,31 +162,35 @@ timing: audio
 - wait 3s
 @caspion looks at @octopus
 @octopus looks at @caspion
-**Octopus:** So you want to see the world above the water, little fish?
+**Octopus (to Caspion):** So you want to see the world above the water, little fish?
   he: אז אתה רוצה לראות את העולם שמעל המים, דג קטן?
 **Caspion:** More than anything!
   he: יותר מכל דבר בעולם!
 @octopus wiggles for 2s
-**Octopus:** Then my friend the jellyfish will carry you, with the sea held in her bell.
+**Octopus (to Caspion):** Then my friend the jellyfish will carry you, with the sea held in her bell.
   he: אז חברתי המדוזה תישא אותך, עם הים שמור בתוך הפעמון שלה.
 @jelly swims near @caspion over 4s
 @jelly glows for 3s &
 @jelly carries @caspion
 @camera follows @jelly from the front distance 5 &
 @jelly surfaces over 6s
-@camera moves to (0, 1.5, 8) looking at (0, 0.3, 0) over 4s
+@camera cuts to (6, 2.5, 9) looking at (0, 0.5, 0)
+@jelly rises 4 over 5s &
+@camera looks at @jelly over 2s
 > Narrator: And so Caspion rose up, up, up... until he saw the sky for the very first time.
   he: וכך עלה כספיון למעלה, למעלה, למעלה... עד שראה את השמיים בפעם הראשונה.
+@camera moves to (4, 5, 10) looking at @jelly over 4s
 - wait 2s
 
 # Scene: Home
 > time: sunset, water: turquoise, waves: gentle, depth: shallow, floor: reef, visibility: 50
 - music "music/morning.ogg" volume 0.35
 @friends appears at (2, -3, -3)
-@jelly appears at (-8, -1, 0)
+@jelly appears at (-8, 2.5, 0)
 @jelly carries @caspion
 @camera cuts to (0, -2, 9) looking at (0, -3, 0)
-@jelly swims to (-2, -3, 1) over 4s
+@jelly dives to depth 3 over 3s
+@jelly swims to (-2, -3, 1) over 3s
 @jelly drops @caspion
 @caspion swims to (0, -3, 0) over 2s
 @friends swims around @caspion 2 times over 8s &

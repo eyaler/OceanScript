@@ -257,40 +257,110 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
   return rig;
 }
 
+function sharkProfile() {
+  // (z, r): pointed snout, thick mid-body, narrow tail root
+  return [[0.5, 0.0], [0.46, 0.05], [0.4, 0.09], [0.3, 0.13], [0.15, 0.16], [0.0, 0.165], [-0.15, 0.15], [-0.3, 0.11], [-0.42, 0.06], [-0.5, 0.04]];
+}
 function buildShark(color) {
   const g = new THREE.Group();
   const inner = new THREE.Group();
   g.add(inner);
-  const body = new THREE.Mesh(tintVertexBelly(new THREE.SphereGeometry(0.5, 28, 18), color, '#e6ecef', -0.05), mat(color, { vertexColors: true, roughness: 0.6 }));
-  body.scale.set(0.22, 0.3, 1);
-  body.position.z = 0;
-  inner.add(body);
+  const prof = sharkProfile();
+  const topMat = mat(color, { roughness: 0.6 });
+  const bellyMat = mat('#e9edf0', { roughness: 0.6 });
+  const Z_JAW = 0.12;
+  const A = 0.95;
+  const rear = new THREE.Mesh(latheSlice(prof, -0.5, Z_JAW), topMat);
+  const upper = new THREE.Mesh(latheSlice(prof, Z_JAW, 0.5, { phiStart: A, phiLength: Math.PI * 2 - 2 * A }), topMat);
+  inner.add(rear, upper);
+  // white belly band on the rear body (bottom sector, slightly larger)
+  const belly = new THREE.Mesh(latheSlice(prof, -0.45, Z_JAW, { phiStart: Math.PI * 2 - 0.9, phiLength: 1.8, scale: 1.01 }), bellyMat);
+  inner.add(belly);
+  const interior = new THREE.Mesh(latheSlice(prof, Z_JAW, 0.5, { scale: 0.92 }), new THREE.MeshStandardMaterial({ color: new THREE.Color('#9b1022'), roughness: 0.9, side: THREE.DoubleSide }));
+  const throat = new THREE.Mesh(new THREE.CircleGeometry(profileRadius(prof, Z_JAW + 0.02) * 0.92, 24), new THREE.MeshStandardMaterial({ color: new THREE.Color('#5a0a14'), roughness: 1, side: THREE.DoubleSide }));
+  throat.position.set(0, 0, Z_JAW + 0.02); throat.scale.set(1, 0.85, 1);
+  inner.add(interior, throat);
+  const jawPivot = new THREE.Group();
+  jawPivot.position.set(0, -0.01, Z_JAW);
+  const jawGeo = latheSlice(prof, Z_JAW, 0.47, { phiStart: Math.PI * 2 - A, phiLength: 2 * A });
+  jawGeo.translate(0, 0.01, -Z_JAW);
+  const jaw = new THREE.Mesh(jawGeo, bellyMat);
+  jawPivot.add(jaw);
+  inner.add(jawPivot);
+  // teeth along both rims of the mouth
+  const toothMat = mat('#ffffff', { roughness: 0.35 });
+  const teethUpper = new THREE.Group(), teethLower = new THREE.Group();
+  for (let i = 0; i < 9; i++) {
+    const z = 0.15 + i * 0.035;
+    const r = profileRadius(prof, z);
+    for (const sx of [-1, 1]) {
+      for (const [grp, dir] of [[teethUpper, 1], [teethLower, -1]]) {
+        const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.045, 5), toothMat);
+        const ang = A * 0.92;
+        tooth.position.set(sx * r * Math.sin(ang) * 0.96, -r * 0.85 * Math.cos(ang) + dir * 0.012, z);
+        tooth.rotation.x = dir > 0 ? Math.PI : 0;
+        grp.add(tooth);
+      }
+    }
+  }
+  inner.add(teethUpper);
+  teethLower.position.set(0, 0.01, -Z_JAW);
+  jawPivot.add(teethLower);
   const finMat = mat(darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.7 });
   const tail = new THREE.Group();
   tail.position.set(0, 0, -0.47);
   const tailFin = new THREE.Mesh(finShape([[0, 0], [0.3, 0.4], [0.2, 0.05], [0.24, -0.22], [0, -0.05]]).rotateY(-Math.PI / 2), finMat);
   tail.add(tailFin);
   inner.add(tail);
-  const dorsal = new THREE.Mesh(finShape([[0.1, 0], [-0.02, 0.32], [-0.28, 0.02]]).rotateY(-Math.PI / 2), finMat);
-  dorsal.position.set(0, 0.24, 0.02);
+  const dorsal = new THREE.Mesh(finShape([[0.08, 0], [-0.04, 0.24], [-0.26, 0.02]]).rotateY(-Math.PI / 2), finMat);
+  dorsal.position.set(0, 0.13, 0.0);
   inner.add(dorsal);
   const pecs = [];
   for (const sx of [-1, 1]) {
     const pec = new THREE.Mesh(finShape([[0, 0], [0.32, -0.18], [0.36, -0.28], [-0.05, -0.1]]), finMat);
-    pec.position.set(sx * 0.16, -0.08, 0.1);
+    pec.position.set(sx * 0.14, -0.06, 0.02);
     pec.rotation.y = sx * Math.PI / 2;
     pec.rotation.z = -sx * 0.55;
     inner.add(pec);
     pecs.push({ mesh: pec, sx });
   }
-  const eyeMeshes = eyes(inner, color, { z: 0.36, x: 0.13, y: 0.06, r: 0.045 }).eyes;
-  const mouthRig = makeMouth(inner, { z: 0.38, y: -0.11, w: 0.11, h: 0.07, teethCount: 7, teethSize: 0.014, lipColor: '#5a1622', teethDefault: true });
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth: mouthRig, kind: 'shark' };
+  // gill slits
+  const gillMat = mat('#c03050');
+  for (let i = 0; i < 4; i++) {
+    for (const sx of [-1, 1]) {
+      const slit = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.07, 0.008), gillMat);
+      const z = 0.02 - i * 0.03;
+      slit.position.set(sx * profileRadius(prof, z) * 0.99, 0.0, z);
+      inner.add(slit);
+    }
+  }
+  // red eyes, flush
+  const eyeMeshes = [];
+  for (const sx of [-1, 1]) {
+    const z = 0.36, r = profileRadius(prof, z);
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 10), mat('#c8102e', { roughness: 0.3, emissive: new THREE.Color('#400008') }));
+    e.position.set(sx * r * 0.9, r * 0.85 * 0.4, z);
+    e.scale.set(1, 1, 0.5);
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), mat('#101418'));
+    p.position.set(0, 0, 0.03);
+    e.add(p);
+    inner.add(e);
+    eyeMeshes.push(e);
+  }
+  const mouth = {
+    set: (face) => {
+      const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
+      jawPivot.rotation.x = 0.06 + open * 0.45;   // sharks never quite close their mouths
+      interior.visible = true; throat.visible = true;
+    },
+  };
+  mouth.set({ mouthOpen: 0 });
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth, kind: 'shark', eyePositions: eyeMeshes.map((e) => e.position.clone()) };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (2.2 + Math.min(6, state.speed * 1.2)) * emo.wag;
     tail.rotation.y = Math.sin(t * wag + rig.seed) * 0.35;
-    body.rotation.y = Math.sin(t * wag + rig.seed - 0.9) * 0.05;
+    inner.rotation.y += Math.sin(t * wag + rig.seed - 0.9) * 0.04;
   };
   return rig;
 }
@@ -353,6 +423,11 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
   if (baleen) { interiorMat.map = baleenBarsTexture(); interiorMat.map.repeat.set(2, 1); interiorMat.color.set('#ffffff'); }
   const interior = new THREE.Mesh(latheSlice(prof, Z_JAW, 0.5, { scale: 0.93 }), interiorMat);
   inner.add(interior);
+  // throat: closes the back of the mouth so you never see through the body
+  const throat = new THREE.Mesh(new THREE.CircleGeometry(profileRadius(prof, Z_JAW + 0.02) * 0.93, 32), new THREE.MeshStandardMaterial({ color: new THREE.Color('#3a0c16'), roughness: 1, side: THREE.DoubleSide }));
+  throat.position.set(0, 0, Z_JAW + 0.02);
+  throat.scale.set(1, 0.85, 1);
+  inner.add(throat);
   // lower jaw: the bottom sector of the front, hinged at its back edge
   const jawPivot = new THREE.Group();
   jawPivot.position.set(0, -0.02, Z_JAW);
@@ -418,8 +493,9 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
   const mouth = {
     set: (face) => {
       const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
-      jawPivot.rotation.x = open * 0.55;
+      jawPivot.rotation.x = open * 0.38;
       interior.visible = open > 0.03;
+      throat.visible = open > 0.03;
     },
   };
   mouth.set({ mouthOpen: 0 });

@@ -273,6 +273,8 @@ export function parseCastAttrs(text) {
   const anim = rest.match(/\b(?:animation|clip)\s*[:=]?\s*["“]([^"”]*)["”]/i);
   if (anim) { actor.animation = anim[1].trim(); rest = rest.replace(anim[0], ' '); }
   if (/\bflip(?:ped)?\b/i.test(rest)) { actor.flip = true; rest = rest.replace(/\bflip(?:ped)?\b/i, ' '); }
+  const gm = rest.match(/\b(female|male|girl|boy|woman|man|she|he|נקבה|זכר)\b/i);
+  if (gm) { actor.gender = /^(female|girl|woman|she|נקבה)$/i.test(gm[1]) ? 'female' : 'male'; rest = rest.replace(gm[0], ' '); }
   const pat = rest.match(/\b(spots|spotted|dots|dotted|stripes|striped|bands|banded)\b/i);
   if (pat) { const w = pat[1].toLowerCase(); actor.pattern = w.startsWith('sp') || w.startsWith('do') ? 'spots' : w.startsWith('st') ? 'stripes' : 'bands'; rest = rest.replace(pat[0], ' '); }
   const acc = rest.match(/\baccent\s*[:=]?\s*(#[0-9a-f]{3,8}|[a-z]+)/i);
@@ -656,11 +658,18 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
       m = t.match(/^[-*+]\s+(.*)$/);
       if (!m) continue;
       // - word: pointed form      or    - word (he): pointed form
-      const pm = m[1].match(/^(\S+?)\s*(?:\(([a-z]{2,3})\))?\s*[:=→]\s*(.+)$/u);
-      if (!pm) { script.warnings.push(`line ${lineNo}: pronunciation entry must look like \`- word: pointed form\``); continue; }
+      const pm = m[1].match(/^(\S+?)\s*(?:\(([a-z]{2,3})\))?\s*(?:\[\s*((?:to|speaker)?\s*(?:m|f|male|female))\s*\])?\s*[:=→]\s*(.+)$/u);
+      if (!pm) { script.warnings.push(`line ${lineNo}: pronunciation entry must look like \`- word: pointed form\` (optionally \`[f]\` / \`[speaker f]\`)`); continue; }
       const lang = (pm[2] || 'he').toLowerCase();
+      let key = pm[1];
+      if (pm[3]) {
+        const tag = pm[3].toLowerCase().replace(/\s+/g, ' ');
+        const who = tag.startsWith('speaker') ? 'speaker' : 'to';
+        const g = /f/.test(tag.replace(/speaker|to/, '')) ? 'f' : 'm';
+        key = `${pm[1]}|${who}:${g}`;
+      }
       script.pronunciation[lang] = script.pronunciation[lang] || {};
-      script.pronunciation[lang][pm[1]] = pm[3].trim();
+      script.pronunciation[lang][key] = pm[4].trim();
       continue;
     }
     if (mode === 'cast') {
@@ -737,12 +746,16 @@ export function parseScript(source, { filename = 'script.md' } = {}) {
     m = t.match(/^\*\*([^*]+?)\s*:?\*\*\s*:?\s*(.+)$/);
     if (m) {
       let text = m[2].trim();
+      let speakerRaw = m[1].trim();
+      let toName = null;
+      const toM = speakerRaw.match(/^(.*?)\s*(?:\(\s*to\s+(.+?)\s*\)|(?:→|->|to)\s+(.+))$/i);
+      if (toM) { speakerRaw = toM[1].trim(); toName = (toM[2] || toM[3]).trim().replace(/^@/, ''); }
       let nonBlocking = false;
       if (text.endsWith('&')) { nonBlocking = true; text = text.slice(0, -1).trim(); }
       const durM = text.match(/\(\s*(\d+(?:\.\d+)?)\s*(ms|s|sec|m|min)\w*\s*\)\s*$/i);
       let duration = null;
       if (durM) { duration = parseTime(`${durM[1]}${durM[2]}`); text = text.slice(0, durM.index).trim(); }
-      script.statements.push({ type: 'dialog', speaker: m[1].trim(), text: text.replace(/^["“]|["”]$/g, ''), duration, nonBlocking, line: lineNo });
+      script.statements.push({ type: 'dialog', speaker: speakerRaw, text: text.replace(/^["“]|["”]$/g, ''), duration, nonBlocking, to: toName, line: lineNo });
       continue;
     }
 

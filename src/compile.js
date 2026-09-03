@@ -34,6 +34,8 @@ const KIND_COLORS = {
   bird: '#f4f4f4', pelican: '#f6f2ea', bubble: '#dff6ff', sprite: '#ffffff', model: '#ffffff',
 };
 const CAMERA_SPEED = 6;
+// Built-in sound effects (procedurally generated, see assets/sfx) played with effects.
+const SFX_FOR_EFFECT = { cry: 'sfx/cry.wav', bubbles: 'sfx/bubbles.wav', spout: 'sfx/spout.wav', jump: 'sfx/splash.wav' };
 const OFFSCREEN = { left: 25, right: 25, up: 14, down: 14, top: 14, bottom: 14, above: 14, below: 14, forward: 30, front: 30, back: 30, backward: 30, away: 30 };
 
 const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -72,6 +74,7 @@ export function compile(script, options = {}) {
     music: script.meta.music ?? null,
     musicVolume: Number(script.meta.music_volume ?? 0.25),
     tail: Number(script.meta.tail ?? 1.5),
+    sfx: script.meta.sfx !== false && script.meta.sfx !== 'off',
   };
   meta.lang = String(options.lang ?? meta.sourceLang).toLowerCase();
   const lineDurations = options.lineDurations || {};
@@ -117,6 +120,7 @@ export function compile(script, options = {}) {
       voices,
       voice: voices[meta.lang] || voices[meta.lang.split('-')[0]] || null,
       color: entry.color ?? KIND_COLORS[kind] ?? 'silver',
+      gender: entry.gender ?? guessGender(entry.name, entry.label, entry.i18n),
       size,
       speed: entry.speed ?? def.speed * Math.max(0.5, Math.sqrt(size / def.size)),
       count: entry.count ?? def.count ?? 1,
@@ -178,6 +182,7 @@ export function compile(script, options = {}) {
 
   const env = [];
   const subtitles = [];
+  const lastSpeakers = [];
   const overlays = [];
   const markers = [];
   const music = [];
@@ -188,6 +193,7 @@ export function compile(script, options = {}) {
   let cursor = 0;
   let maxEnd = 0;
   let pendingCut = false;
+  let fadeHold = null;
   let currentScene = null;
   let sceneJustStarted = true;
   let visibleInScene = new Set();
@@ -266,12 +272,21 @@ export function compile(script, options = {}) {
         }
         const narratorCast = castOrder.find((n) => cast[n].kind === 'narrator');
         const voiceOwner = actorName ?? (kind === 'narration' ? narratorCast : null);
+        let addressee = st.to && cast[st.to] ? st.to : null;
+        if (!addressee && actorName) {
+          // the other party of the conversation: the last different speaker
+          for (let i = subtitles.length - 1; i >= 0 && !addressee; i--) if (subtitles[i].actor && subtitles[i].actor !== actorName) addressee = subtitles[i].actor;
+        }
+        if (actorName) lastSpeakers.push(actorName);
         subtitles.push({
           t0, t1, kind, speaker: label, actor: actorName, line: st.line, key,
           text: pick(st.text, st.i18n), texts: allTexts(st.text, st.i18n),
           color: actorName ? cast[actorName].color : null,
           voice: voiceOwner ? (cast[voiceOwner].voice ?? null) : null,
           voiceOwner,
+          speakerGender: actorName ? cast[actorName].gender : null,
+          addressee,
+          addresseeGender: addressee ? cast[addressee].gender : null,
           spoken: true,
         });
         if (actorName) {
@@ -286,10 +301,20 @@ export function compile(script, options = {}) {
         switch (st.name) {
           case 'wait': advance(t0, st.duration ?? 1, false); break;
           case 'sync': cursor = maxEnd; break;
-          case 'irisIn': { const d = st.duration ?? 1; overlays.push({ type: 'iris', t0, t1: t0 + d, from: 0, to: 1 }); advance(t0, d, st.nonBlocking); break; }
+          case 'irisIn': { if (fadeHold) { fadeHold.t1 = t0; fadeHold = null; } }
+          case 'irisIn_': { const d = st.duration ?? 1; overlays.push({ type: 'iris', t0, t1: t0 + d, from: 0, to: 1 }); advance(t0, d, st.nonBlocking); break; }
           case 'irisOut': { const d = st.duration ?? 1; overlays.push({ type: 'iris', t0, t1: t0 + d, from: 1, to: 0 }); advance(t0, d, st.nonBlocking); break; }
-          case 'fadeIn': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
-          case 'fadeOut': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
+          case 'fadeIn': { if (fadeHold) { fadeHold.t1 = t0; fadeHold = null; } }
+          case 'fadeIn_': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 0, color: st.color ?? 'black' }); advance(t0, d, st.nonBlocking); break; }
+          case 'fadeOut': {
+            const d = st.duration ?? 1;
+            overlays.push({ type: 'fade', t0, t1: t0 + d, from: 0, to: 1, color: st.color ?? 'black' });
+            // stay on the colour until something brings the picture back (a fade-in, iris-in or scene cut)
+            fadeHold = { type: 'fade', t0: t0 + d, t1: 1e9, from: 1, to: 1, color: st.color ?? 'black', hold: true };
+            overlays.push(fadeHold);
+            advance(t0, d, st.nonBlocking);
+            break;
+          }
           case 'black': { const d = st.duration ?? 1; overlays.push({ type: 'fade', t0, t1: t0 + d, from: 1, to: 1, color: 'black' }); advance(t0, d, st.nonBlocking); break; }
           case 'image': { const d = st.duration ?? 3; overlays.push({ type: 'image', t0, t1: t0 + d, src: st.file, fit: st.fit ?? 'contain', caption: pick(null, st.i18n) }); assets.add(st.file); advance(t0, d, st.nonBlocking); break; }
           case 'clip': { const d = st.duration ?? 5; overlays.push({ type: 'clip', t0, t1: t0 + d, src: st.file, offset: st.offset ?? 0, fit: st.fit ?? 'contain', volume: st.volume ?? 1 }); assets.add(st.file); advance(t0, d, st.nonBlocking); break; }
@@ -478,7 +503,8 @@ export function compile(script, options = {}) {
         const defaults = { spin: (st.count ?? 1) * 1, wiggle: 1.5, nod: 1, bubbles: 2, cry: 3, spout: 2, glow: 3 };
         const dur = st.duration ?? defaults[st.verb];
         tr.effects.push({ t0, t1: t0 + dur, type: st.verb, count: st.count ?? 1, strength: st.strength ?? 1 });
-        if (st.verb === 'cry') tr.emotes.push({ t: t0, emotion: 'sad' });
+        if (st.verb === 'cry') tr.emotes.push({ t: t0, emotion: 'crying' });
+        if (meta.sfx !== false && SFX_FOR_EFFECT[st.verb]) sounds.push({ t: t0, file: SFX_FOR_EFFECT[st.verb], volume: 0.7, offset: 0, builtin: true, duration: dur, actor: name });
         advance(t0, dur, st.nonBlocking);
         break;
       }
@@ -488,6 +514,7 @@ export function compile(script, options = {}) {
         const dur = st.duration ?? 1.2 + size * 0.1;
         const target = st.target ? { pos: resolveTargetPos(st.target, name) } : { pos: from };
         tr.segments.push({ type: 'to', t0, t1: t0 + dur, target, ease: 'linear', arc: st.height ?? (2 + size * 0.5) });
+        if (meta.sfx !== false && from[1] > -1.5) sounds.push({ t: t0 + dur * 0.9, file: SFX_FOR_EFFECT.jump, volume: 0.6, offset: 0, builtin: true, actor: name });
         est[name] = target.pos;
         advance(t0, dur, st.nonBlocking);
         break;
@@ -688,3 +715,8 @@ export function compile(script, options = {}) {
 }
 
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
+function guessGender(name, label, i18n) {
+  const words = [name, label, ...Object.values(i18n || {}).map((v) => v.label)].filter(Boolean).join(' ').toLowerCase();
+  if (/\b(mother|mom|mama|mum|queen|girl|sister|princess|lady|she|her|אמא|מלכה|ילדה|אחות|נסיכה|גברת)\b/.test(words) || /(ית|ה)$/.test(words.split(/\s+/).pop() || '') && /[\u05D0-\u05EA]/.test(words)) return 'female';
+  return 'male';
+}

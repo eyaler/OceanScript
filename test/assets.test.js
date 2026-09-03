@@ -46,11 +46,13 @@ test('new kinds, assets, swallow/spit, media directives', () => {
   assert.deepEqual(tl.env[0].settings, { backdrop: 'assets/city.svg', style: 'flat', clouds: 'many' });
   assert.equal(tl.music.length, 1); assert.equal(tl.music[0].volume, 0.3); assert.equal(tl.music[0].fadeOut, 1);
   assert.equal(tl.sounds[0].volume, 0.5); assert.equal(tl.sounds[0].offset, 2);
-  const types = tl.overlays.map((o) => o.type);
+  const shown = tl.overlays.filter((o) => !o.hold);
+  const types = shown.map((o) => o.type);
   assert.deepEqual(types, ['image', 'clip', 'credits', 'fade']);
-  assert.equal(tl.overlays[1].offset, 10); assert.equal(tl.overlays[3].color, 'white');
-  assert.deepEqual(tl.overlays[2].lines, ['A', 'B', 'C']);
+  assert.equal(shown[1].offset, 10); assert.equal(shown[3].color, 'white');
+  assert.ok(tl.overlays.some((o) => o.hold && o.color === 'white'));                 // fade-out holds its colour
+  assert.deepEqual(shown[2].lines, ['A', 'B', 'C']);
   assert.equal(compile(parseScript(SRC), { lang: 'he' }).overlays[0].caption, 'כותרת');
   assert.deepEqual([...tl.assets].sort(), ['assets/boat.glb', 'assets/book.png', 'assets/city.svg', 'assets/cop.svg', 'assets/f.ttf', 'assets/making.mp4']);
-  assert.equal(tl.music[0].t1, tl.overlays[2].t1);                                  // music stops at the credits' end
+  assert.equal(tl.music[0].t1, shown[2].t1);                                  // music stops at the credits' end
 });

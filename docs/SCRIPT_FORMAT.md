@@ -124,6 +124,18 @@ the pointed form, consistently, also when the word carries a prefix letter
 - מעבר: מֵעֵבֶר
 ```
 
+**Gender and addressee.** Hebrew second-person forms are homographs: לך is
+לְךָ to a male and לָךְ to a female.  Give every character a gender in the cast
+and say who a line is spoken to, either `**Caspion (to Little Whale):** ...` or
+`@caspion says "..." to @whaley`; when omitted, the addressee is the previous
+different speaker in the conversation.  Glossary entries can then be tagged:
+`- מצאת [f]: מָצָאת` applies when the addressee is female, `[m]` when male,
+`[speaker f]` / `[speaker m]` by the speaker's gender.  A built-in Hebrew
+glossary already covers the common second-person forms (לך, אותך, שלך, איתך,
+עליך, ממך, אליך, בשבילך, מצאת, עזרת, אמרת, ראית, הצלת); a warning names any
+line that uses one of them with an unknown addressee.  The writer still owns
+first- and third-person agreement in the translated text itself.
+
 A `he-tts:` line under a `he:` line replaces the spoken text of that one line
 (phonetic respelling, or a fully pointed sentence).  `nikud: auto` in the
 front matter points every Hebrew line with Dicta's Nakdan service instead
@@ -152,6 +164,8 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   film's signature whale: `- whale: whale, black, size 10, accent purple, baleen`.
 * **pattern** for fish: `spots`, `stripes` or `bands` in the accent colour, e.g.
   `- puffer: fish, magenta, spots, accent yellow`.
+* **gender**: `male` or `female` (guessed from names like *mother* otherwise).
+  It drives gender-dependent pronunciation (below) and default voices.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
   `turtle`, `crab`, `ray`, `eel`, `seahorse`, `starfish`, `school` (a shoal of
   small fish; `count N` sets how many), `bird`, `pelican`, `bubble`, and two
@@ -234,7 +248,7 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | jump | `@dolphin jumps height 3 over 1.5s` (an arc; breaches if at the surface) |
 | nod | `@turtle nods` |
 | scale | `@puffer grows to size 2 over 1s`, `shrinks` |
-| bubbles / cry / spout / glow | `@caspion blows bubbles for 2s`, `@whale cries for 3s`, `@whale spouts`, `@jelly glows for 3s` |
+| bubbles / cry / spout / glow | `@caspion blows bubbles for 2s`, `@whale cries for 3s` (tear drops fall from the eyes in the accent colour, with a sob sound), `@whale spouts`, `@jelly glows for 3s`.  Crying, bubbles, spouts and jumps play built-in sound effects (`sfx: off` in the front matter disables them) |
 | speed | `@shark speed 8` (metres per second for later default durations) |
 | carry / drop | `@jelly carries @caspion` ... `@jelly drops @caspion` (pelicans hold the passenger in the pouch, bubbles inside, whales on the back) |
 | swallow / spit | `@whale swallows @caspion` (attaches and hides), `@whale spits out @caspion` (reappears, tossed towards the camera) |
@@ -290,7 +304,7 @@ actor's colour.  Right-to-left text is detected automatically.
 | --- | --- |
 | `- wait 2s` | advance time |
 | `- sync` / `---` | wait for all running actions |
-| `- fade in 2s`, `- fade out 2s`, `- fade out to white 1s`, `- black 1s` | fades (to black, white or `#hex`) |
+| `- fade in 2s`, `- fade out 2s`, `- fade out to white 1s`, `- black 1s` | fades (to black, white or `#hex`); a fade-out holds its colour until the next fade-in or iris-in |
 | `- iris out 1s`, `- iris in 1s` | circle-iris transitions, as in the film's endings |
 | `- title "text" for 4s` | centred title card (`subtitle "..."` adds a second line) |
 | `- caption "text" for 3s` | subtitle without a speaker |
