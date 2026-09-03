@@ -274,7 +274,12 @@ export function compile(script, options = {}) {
         }
         const narratorCast = castOrder.find((n) => cast[n].kind === 'narrator');
         const voiceOwner = actorName ?? (kind === 'narration' ? narratorCast : null);
-        let addressee = st.to && cast[st.to] ? st.to : null;
+        let addressee = null;
+        if (st.to) {
+          const toKey = String(st.to).toLowerCase();
+          addressee = cast[st.to] ? st.to : (castOrder.find((c) => cast[c].kind !== 'narrator' && (c.toLowerCase() === toKey || Object.values(cast[c].labels).some((l) => l.toLowerCase() === toKey))) || null);
+          if (!addressee) warn(st.line, `unknown addressee "${st.to}"`);
+        }
         if (!addressee && actorName) {
           // the other party of the conversation: the last different speaker
           for (let i = subtitles.length - 1; i >= 0 && !addressee; i--) if (subtitles[i].actor && subtitles[i].actor !== actorName) addressee = subtitles[i].actor;

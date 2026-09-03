@@ -203,15 +203,20 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
     pos = at + word.length;
     var lastEnd = oe;
     if (/[\u05B0-\u05C7]/.test(original)) { out += original; continue; } // already pointed by author/glossary
-    const opts = (t.options || []).flatMap((o) => (o[1] || []).map((m) => ({ form: o[0].replace(/\|/g, ''), code: BigInt(m[0]), lemma: m[1] })));
+    // readings in Dicta's ranking order; only twins that include the best reading count
+    const opts = (t.options || []).flatMap((o, rank) => (o[1] || []).map((m) => ({ form: o[0].replace(/\|/g, ''), code: BigInt(m[0]), lemma: m[1], rank })));
     let chosen = null;
+    const isSecondSuffix = (f) => /ך[\u05B8\u05B0]$/.test(f);   // ends in ךָ (masc) or ךְ (fem)
     outer: for (let i = 0; i < opts.length; i++) for (let j = 0; j < opts.length; j++) {
       const a = opts[i], b = opts[j];
       if (i === j || a.lemma !== b.lemma || a.form === b.form) continue;
+      if (Math.min(a.rank, b.rank) !== 0 || Math.max(a.rank, b.rank) > 3) continue;
       const x = a.code ^ b.code;
       let femBit = null, who = null;
-      if (x === SUFFIX_GENDER_XOR) { femBit = FEM_SUFFIX_BIT; who = 'to'; }
-      else if (x === VERB_GENDER_XOR) {
+      if (x === SUFFIX_GENDER_XOR) {
+        if (!(isSecondSuffix(a.form) && isSecondSuffix(b.form))) continue;      // third-person suffixes are not ours to change
+        femBit = FEM_SUFFIX_BIT; who = 'to';
+      } else if (x === VERB_GENDER_XOR) {
         femBit = FEM_VERB_BIT;
         if (/ת$/.test(word) && /ת\u05BC?\u05B8$/.test(a.form) !== /ת\u05BC?\u05B8$/.test(b.form)) who = 'to';   // second person past: one twin ends in תָּ
         else if (hasAni) who = 'speaker';
@@ -310,7 +315,7 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
     if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
     const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
     spokenText = applyGlossary(spokenText, glossary);
-    if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false) {
+    if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false && sub.kind === 'dialog') {
       spokenText = await agreeGender(spokenText, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender }, cacheDir, (m) => log(`line ${sub.line}: ${m}`));
     }
     sub.spokenText = spokenText;
