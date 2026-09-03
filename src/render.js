@@ -111,7 +111,8 @@ export async function render(file, args = {}) {
   const total = endFrame - startFrame;
 
   if (!out) out = path.join('out', `${timeline.meta.scriptName}.${ff?.h264 ? 'mp4' : 'webm'}`);
-  if (timeline.meta.lineDurations && !existsSync(out.replace(/\.[^.]+$/, '.timing.json'))) {
+  mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+  if (timeline.meta.lineDurations && args.raw !== true && !existsSync(out.replace(/\.[^.]+$/, '.timing.json'))) {
     writeFileSync(out.replace(/\.[^.]+$/, '.timing.json'), JSON.stringify({ lineDurations: timeline.meta.lineDurations }, null, 2));
   }
   mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
