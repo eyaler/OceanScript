@@ -83,6 +83,7 @@ function makeMouth(parent, { z = 0.48, y = -0.06, w = 0.12, h = 0.06, teethCount
   g.position.set(0, y, z);
   const cavity = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), mat('#4a1220', { roughness: 0.6 }));
   cavity.scale.set(w, h * 0.05, w * 0.35);
+  cavity.position.z = -w * 0.25; // recessed into the head
   g.add(cavity);
   const teethMat = mat('#f6f6f0', { roughness: 0.4 });
   const teeth = new THREE.Group();
@@ -103,8 +104,8 @@ function makeMouth(parent, { z = 0.48, y = -0.06, w = 0.12, h = 0.06, teethCount
   const api = { group: g, cavity, teeth, smile, w, h, teethDefault, talkOpen: 0 };
   api.set = (face) => {
     const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
-    cavity.scale.set(w * (1 + open * 0.15), h * (0.05 + open * 0.95), w * 0.35);
-    cavity.position.y = -h * open * 0.5;
+    cavity.scale.set(w, h * (0.05 + open * 0.95), w * 0.35);
+    cavity.position.y = -h * open * 0.45;
     const sm = face.smile || 0;
     if (Math.abs(sm) < 0.08) { smile.rotation.z = -Math.PI / 2 - arc / 2; smile.scale.set(1, 0.06, 1); smile.position.y = 0; }
     else if (sm > 0) { smile.rotation.z = -Math.PI / 2 - arc / 2; smile.scale.set(1, 0.25 + 0.75 * sm, 1); smile.position.y = w * 0.55 * sm; }
@@ -242,7 +243,7 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
   let eyeMeshes = null, mouthMesh = null, mouthRig = null;
   if (detail !== 'low') {
     eyeMeshes = eyes(inner, color, { z: 0.33, x: 0.12, y: 0.1, r: 0.075 }).eyes;
-    mouthRig = makeMouth(inner, { z: 0.46, y: -0.07, w: 0.09, h: 0.06, teethCount: 4, teethSize: 0.012 });
+    mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.075, h: 0.045, teethCount: 4, teethSize: 0.01 });
   }
   const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, mouth: mouthRig, kind: 'fish' };
   rig.animate = (t, state) => {
@@ -283,7 +284,7 @@ function buildShark(color) {
     pecs.push({ mesh: pec, sx });
   }
   const eyeMeshes = eyes(inner, color, { z: 0.36, x: 0.13, y: 0.06, r: 0.045 }).eyes;
-  const mouthRig = makeMouth(inner, { z: 0.4, y: -0.13, w: 0.15, h: 0.12, teethCount: 7, teethSize: 0.02, lipColor: '#5a1622', teethDefault: true });
+  const mouthRig = makeMouth(inner, { z: 0.38, y: -0.11, w: 0.11, h: 0.07, teethCount: 7, teethSize: 0.014, lipColor: '#5a1622', teethDefault: true });
   const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth: mouthRig, kind: 'shark' };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
@@ -297,51 +298,81 @@ function buildShark(color) {
 function whaleProfile(kind) {
   // (z, r) pairs from nose to tail; length 1
   if (kind === 'dolphin') return [[0.5, 0.0], [0.47, 0.035], [0.42, 0.05], [0.36, 0.09], [0.25, 0.13], [0.1, 0.15], [-0.05, 0.145], [-0.2, 0.11], [-0.33, 0.07], [-0.43, 0.04], [-0.5, 0.02]];
-  return [[0.5, 0.0], [0.47, 0.1], [0.42, 0.17], [0.32, 0.24], [0.18, 0.28], [0.0, 0.29], [-0.15, 0.26], [-0.28, 0.19], [-0.38, 0.12], [-0.45, 0.07], [-0.5, 0.04]];
+  return [[0.5, 0.0], [0.48, 0.09], [0.44, 0.16], [0.36, 0.23], [0.25, 0.27], [0.1, 0.29], [0.0, 0.29], [-0.15, 0.26], [-0.28, 0.19], [-0.38, 0.12], [-0.45, 0.07], [-0.5, 0.04]];
 }
-
-// Black/white baleen stripes as a canvas texture (the film's signature whale).
-function baleenTexture() {
+// radius of the profile at z (linear interpolation)
+function profileRadius(prof, z) {
+  for (let i = 0; i < prof.length - 1; i++) {
+    const [z0, r0] = prof[i], [z1, r1] = prof[i + 1];
+    if (z <= z0 && z >= z1) { const u = (z0 - z) / Math.max(1e-6, z0 - z1); return r0 + (r1 - r0) * u; }
+  }
+  return prof[prof.length - 1][1];
+}
+// Lathe of a (z, r) profile slice, revolved around +z.  phi = 0 is the underside.
+function latheSlice(prof, zMin, zMax, { segments = 40, phiStart = 0, phiLength = Math.PI * 2, scale = 1 } = {}) {
+  const pts = [];
+  const zs = prof.map((p) => p[0]).filter((z) => z < zMax && z > zMin);
+  const all = [zMin, ...zs, zMax].sort((a, b) => a - b); // ascending: outward-facing normals
+  for (const z of all) pts.push(new THREE.Vector2(Math.max(0.001, profileRadius(prof, z) * scale), z * scale));
+  const geo = new THREE.LatheGeometry(pts, segments, phiStart, phiLength);
+  geo.rotateX(Math.PI / 2); // lathe y -> +z ; lathe z (r cos phi) -> -y  => phi = 0 is the bottom
+  geo.scale(1, 0.85, 1);
+  geo.computeVertexNormals();
+  return geo;
+}
+function baleenBarsTexture(dark = '#2a0b12', light = '#f2f2f4', bars = 28) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 64;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = '#f4f4f4'; ctx.fillRect(0, 0, 512, 64);
-  ctx.fillStyle = '#101010';
-  for (let x = 0; x < 512; x += 24) ctx.fillRect(x, 0, 11, 64);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  return t;
+  ctx.fillStyle = dark; ctx.fillRect(0, 0, 512, 64);
+  ctx.fillStyle = light;
+  const w = 512 / bars;
+  for (let i = 0; i < bars; i++) ctx.fillRect(i * w + w * 0.3, 0, w * 0.4, 64);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
 }
 
 function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {}) {
   const g = new THREE.Group();
   const inner = new THREE.Group();
   g.add(inner);
-  const prof = whaleProfile(kind).map(([z, r]) => new THREE.Vector2(r, z));
-  const geo = new THREE.LatheGeometry(prof, 36);
-  geo.rotateX(Math.PI / 2); // lathe y axis -> +z
-  geo.scale(1, 0.85, 1);
-  geo.computeVertexNormals();
-  const dark = new THREE.Color(color).getHSL({}).l < 0.2;
-  tintVertexBelly(geo, color, dark ? color : lighten(color, 0.55), -0.1);
-  const body = new THREE.Mesh(geo, mat(color, { vertexColors: true, roughness: dark ? 0.35 : 0.5 }));
-  inner.add(body);
+  const prof = whaleProfile(kind);
   const accentHex = accent ? toHex(accent, '#8a3fb0') : null;
-  const finMat = mat(accentHex || darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.6 });
+  const bodyMat = mat(color, { roughness: 0.5 });
+  const bellyMat = mat(lighten(color, kind === 'dolphin' ? 0.55 : 0.15), { roughness: 0.5 });
+  const Z_JAW = 0.06;            // the mouth reaches back to here
+  const A = kind === 'dolphin' ? 0.75 : 1.0;   // half-angle of the jaw sector (radians)
+  // rear body (full revolution) + upper front (everything but the jaw sector)
+  const rear = new THREE.Mesh(latheSlice(prof, -0.5, Z_JAW), bodyMat);
+  const upper = new THREE.Mesh(latheSlice(prof, Z_JAW, 0.5, { phiStart: A, phiLength: Math.PI * 2 - 2 * A }), bodyMat);
+  inner.add(rear, upper);
+  // dark mouth interior with baleen bars; only visible when the jaw opens
+  const interiorMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#5a1420'), roughness: 0.9, side: THREE.DoubleSide });
+  if (baleen) { interiorMat.map = baleenBarsTexture(); interiorMat.map.repeat.set(2, 1); interiorMat.color.set('#ffffff'); }
+  const interior = new THREE.Mesh(latheSlice(prof, Z_JAW, 0.5, { scale: 0.93 }), interiorMat);
+  inner.add(interior);
+  // lower jaw: the bottom sector of the front, hinged at its back edge
+  const jawPivot = new THREE.Group();
+  jawPivot.position.set(0, -0.02, Z_JAW);
+  const jawGeo = latheSlice(prof, Z_JAW, 0.5, { phiStart: Math.PI * 2 - A, phiLength: 2 * A, scale: 1.0 });
+  jawGeo.translate(0, 0.02, -Z_JAW);
+  const jaw = new THREE.Mesh(jawGeo, bellyMat);
+  jawPivot.add(jaw);
+  inner.add(jawPivot);
+  // the baleen shows between the lips as a striped band along the seam
+  let seamBands = [];
   if (baleen) {
-    // a striped band over the lower front of the head: the visible baleen
-    const headProf = whaleProfile(kind).filter(([z]) => z >= 0.05).map(([z, r]) => new THREE.Vector2(r * 1.015, z));
-    headProf.push(new THREE.Vector2(headProf[headProf.length - 1].x, 0.02));
-    const bg = new THREE.LatheGeometry(headProf, 36, Math.PI * 1.62, Math.PI * 0.76);
-    bg.rotateX(Math.PI / 2);
-    bg.scale(1, 0.85, 1);
-    bg.computeVertexNormals();
-    const tex = baleenTexture();
-    tex.repeat.set(1, 6);
-    const band = new THREE.Mesh(bg, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, side: THREE.DoubleSide }));
-    inner.add(band);
+    const bandMat = new THREE.MeshStandardMaterial({ map: baleenBarsTexture('#111116', '#f4f4f6', 40), roughness: 0.6, side: THREE.DoubleSide });
+    bandMat.map.repeat.set(3, 1);
+    for (const [ps, pl] of [[A - 0.02, 0.34], [Math.PI * 2 - A - 0.32, 0.34]]) {
+      const band = new THREE.Mesh(latheSlice(prof, Z_JAW + 0.02, 0.49, { phiStart: ps, phiLength: pl, scale: 1.012 }), bandMat);
+      inner.add(band);
+      seamBands.push(band);
+    }
   }
+  const finMat = mat(accentHex || darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.6 });
   // flukes (horizontal)
   const tail = new THREE.Group();
   tail.position.set(0, 0, -0.48);
@@ -349,32 +380,55 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
   fluke.scale.set(kind === 'dolphin' ? 0.7 : 1, 1, 1);
   tail.add(fluke);
   inner.add(tail);
-  // pectoral flippers
+  // pectoral flippers, swept back along the body
   const pecs = [];
   for (const sx of [-1, 1]) {
     const pec = new THREE.Mesh(finShape([[0, 0], [0.26, -0.08], [0.3, -0.16], [0.05, -0.12]]), finMat);
-    pec.position.set(sx * (kind === 'dolphin' ? 0.12 : 0.24), -0.08, 0.15);
+    pec.position.set(sx * (kind === 'dolphin' ? 0.12 : 0.23), -0.1, 0.1);
     pec.rotation.y = sx * Math.PI / 2;
-    pec.rotation.z = -sx * 0.45;
+    pec.rotation.z = -sx * 0.5;
     inner.add(pec);
     pecs.push({ mesh: pec, sx });
   }
   const dorsal = new THREE.Mesh(finShape([[0.08, 0], [-0.02, kind === 'dolphin' ? 0.16 : 0.08], [-0.18, 0]]).rotateY(-Math.PI / 2), finMat);
-  dorsal.position.set(0, kind === 'dolphin' ? 0.13 : 0.24, -0.1);
+  dorsal.position.set(0, (kind === 'dolphin' ? 0.13 : 0.24) * 0.85, -0.1);
   inner.add(dorsal);
-  const eyeMeshes = eyes(inner, color, { z: 0.36, x: kind === 'dolphin' ? 0.1 : 0.22, y: 0.05, r: kind === 'dolphin' ? 0.03 : (accentHex ? 0.07 : 0.045) }).eyes;
-  if (accentHex) for (const e of eyeMeshes) { const p = e.children[0]; p.material = mat(accentHex, { roughness: 0.3 }); p.scale.setScalar(1.3); }
-  // smile: partial torus
-  const mouthRig = makeMouth(inner, kind === 'dolphin'
-    ? { z: 0.46, y: -0.05, w: 0.08, h: 0.05, teethCount: 6, teethSize: 0.01 }
-    : { z: 0.44, y: -0.12, w: 0.2, h: 0.14, teethCount: baleen ? 0 : 6, teethSize: 0.02, lipColor: baleen ? '#f4f4f4' : '#2a1a22' });
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth: mouthRig, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex };
+  // flush eyes: flattened discs on the head surface, purple iris for the film look
+  const eyeZ = kind === 'dolphin' ? 0.3 : 0.3;
+  const rz = profileRadius(prof, eyeZ);
+  const eyeMeshes = [];
+  for (const sx of [-1, 1]) {
+    const ang = 0.35; // above the equator
+    const e = new THREE.Mesh(new THREE.SphereGeometry(kind === 'dolphin' ? 0.03 : 0.065, 16, 12), mat('#ffffff', { roughness: 0.3 }));
+    e.position.set(sx * rz * Math.cos(ang) * 0.97, rz * 0.85 * Math.sin(ang), eyeZ);
+    e.scale.set(1, 1.1, 0.45);
+    e.lookAt(sx * 2, e.position.y + 0.3, eyeZ + 0.2);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(kind === 'dolphin' ? 0.018 : 0.036, 12, 10), mat(accentHex || '#101418', { roughness: 0.3 }));
+    iris.position.set(0, 0.005, 0.03);
+    iris.scale.set(1, 1, 0.5);
+    e.add(iris);
+    inner.add(e);
+    eyeMeshes.push(e);
+  }
+  const blowhole = new THREE.Mesh(new THREE.CircleGeometry(0.02, 12), mat('#0b0b10'));
+  blowhole.position.set(0, profileRadius(prof, 0.15) * 0.85 + 0.002, 0.15);
+  blowhole.rotation.x = -Math.PI / 2;
+  inner.add(blowhole);
+  // mouth API used by the face system
+  const mouth = {
+    set: (face) => {
+      const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
+      jawPivot.rotation.x = open * 0.55;
+      interior.visible = open > 0.03;
+    },
+  };
+  mouth.set({ mouthOpen: 0 });
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex, eyePositions: eyeMeshes.map((e) => e.position.clone()) };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (1.3 + Math.min(4, state.speed * 0.5)) * emo.wag;
     tail.rotation.x = Math.sin(t * wag + rig.seed) * 0.35;
-    body.rotation.x = Math.sin(t * wag + rig.seed - 1.0) * 0.04;
-    for (const p of pecs) p.mesh.rotation.z = -p.sx * (0.45 + Math.sin(t * wag * 0.7 + p.sx) * 0.2);
+    for (const p of pecs) p.mesh.rotation.z = -p.sx * (0.5 + Math.sin(t * wag * 0.7 + p.sx) * 0.2);
   };
   return rig;
 }

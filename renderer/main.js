@@ -216,7 +216,7 @@ function seek(t) {
     for (const fx of state.effects) {
       if (fx.type === 'bubbles' || fx.type === 'cry' || fx.type === 'spout') {
         const n = fx.type === 'spout' ? 40 : 18;
-        const local = fx.type === 'cry' ? new THREE.Vector3(0.14, 0.08, 0.36) : fx.type === 'spout' ? (rig.blowhole || new THREE.Vector3(0, 0.3, 0.1)) : new THREE.Vector3(0, -0.05, 0.5);
+        const local = fx.type === 'cry' ? (rig.eyePositions ? rig.eyePositions[1].clone() : new THREE.Vector3(0.14, 0.08, 0.36)) : fx.type === 'spout' ? (rig.blowhole || new THREE.Vector3(0, 0.3, 0.1)) : new THREE.Vector3(0, -0.05, 0.5);
         rig.group.updateMatrixWorld(true);
         const origin = local.clone().applyMatrix4(rig.group.matrixWorld);
         for (let i = 0; i < n; i++) {
