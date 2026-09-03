@@ -19,8 +19,8 @@
   #fade { position: absolute; inset: 0; background: #000; opacity: 0; }
   /* circle iris: a black frame with a transparent hole (clip-path on an inverted mask is not
      available everywhere, so the hole is painted with a huge box-shadow) */
-  #iris { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
-  #iris::before { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-radius: 50%; box-shadow: 0 0 0 4000px #000; }
+  #iris { position: absolute; inset: 0; opacity: 0; pointer-events: none; overflow: hidden; --d: 0px; }
+  #iris::before { content: ""; position: absolute; left: 50%; top: 50%; width: var(--d); height: var(--d); transform: translate(-50%, -50%); border-radius: 50%; box-shadow: 0 0 0 4000px #000; }
   #imagecard { position: absolute; inset: 0; background: #000; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   #imagecard img { width: 100%; height: 100%; object-fit: contain; }
   #imagecard .cap { position: absolute; bottom: 6%; left: 6%; right: 6%; text-align: center; color: #fff; font-size: calc(30px * var(--s)); text-shadow: 0 2px 8px rgba(0,0,0,.8); }

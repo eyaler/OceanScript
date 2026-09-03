@@ -263,7 +263,7 @@ function seek(t) {
   $fade.style.opacity = fade.toFixed(3);
   $fade.style.background = fadeColor;
   const $iris = document.getElementById('iris');
-  if (iris != null) { $iris.style.opacity = 1; $iris.style.clipPath = `circle(${(iris * 75).toFixed(2)}% at 50% 50%)`; }
+  if (iris != null) { $iris.style.opacity = 1; $iris.style.setProperty('--d', `${(iris * Math.hypot(width, height) * 1.02).toFixed(1)}px`); }
   else $iris.style.opacity = 0;
   const $img = document.getElementById('imagecard');
   if (image) {
