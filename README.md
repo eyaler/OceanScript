@@ -70,7 +70,11 @@ node bin/oceanscript.js render examples/caspion.md --jobs 3 -o out/caspion.mp4
 # the same frames with Hebrew title card, subtitles and voices
 node bin/oceanscript.js render examples/caspion.md --jobs 3 --lang he -o out/caspion.he.mp4
 # ...or without re-rendering, reusing the frames of an existing render
+# (title cards, image captions and credits stay in the rendered language)
 node bin/oceanscript.js mux examples/caspion.md --video out/caspion.mp4 --lang he -o out/caspion.he.mp4
+
+# prove two renders share the same frames (per-frame PSNR; "inf" = identical)
+scripts/compare-renders.sh out/caspion.en.mp4 out/caspion.he.mp4
 
 # quick low-res render of one part
 node bin/oceanscript.js render examples/caspion.md --scale 0.5 --start 20 --end 30
