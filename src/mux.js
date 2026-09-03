@@ -15,9 +15,10 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
   mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
 
   // subtitles
+  const range = args.range || null;
   const srt = `${base}.srt`, vtt = `${base}.vtt`;
-  writeFileSync(srt, toSrt(timeline));
-  writeFileSync(vtt, toVtt(timeline));
+  writeFileSync(srt, toSrt(timeline, range));
+  writeFileSync(vtt, toVtt(timeline, range));
   log(`subtitles: ${srt}, ${vtt}`);
 
   // audio: voice + music
@@ -39,7 +40,7 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
     const hasMusic = music || (timeline.music || []).length || (timeline.sounds || []).length || (timeline.overlays || []).some((o) => o.type === 'clip');
     if (clips.length || hasMusic) {
       audio = `${base}.audio.wav`;
-      mixTrack(timeline, clips, audio, { music, musicVolume: timeline.meta.musicVolume, resolveAsset, log });
+      mixTrack(timeline, clips, audio, { music, musicVolume: timeline.meta.musicVolume, resolveAsset, range, log });
     }
   }
 

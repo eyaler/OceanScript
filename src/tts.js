@@ -207,7 +207,7 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
  * A clip longer than its subtitle slot is sped up (atempo, max 1.45x); if it
  * still overflows the slot a warning is logged.
  */
-export function mixTrack(timeline, clips, outFile, { music = null, musicVolume = 0.25, voiceVolume = 1, resolveAsset = (f) => f, log = console.error } = {}) {
+export function mixTrack(timeline, clips, outFile, { music = null, musicVolume = 0.25, voiceVolume = 1, resolveAsset = (f) => f, range = null, log = console.error } = {}) {
   const ff = findFfmpeg();
   const duration = timeline.meta.duration;
   const inputs = [];
@@ -280,7 +280,13 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
   } else {
     filters.push(`${mixed.join('')}amix=inputs=${mixed.length}:normalize=0:duration=longest,apad,atrim=0:${duration.toFixed(3)}[out]`);
   }
-  const args = ['-y', '-hide_banner', '-loglevel', 'error', ...inputs, '-filter_complex', filters.join(';'), '-map', '[out]', '-c:a', 'pcm_s16le', outFile];
+  // partial renders: keep only the rendered time range, re-based to 0
+  let mapLabel = '[out]';
+  if (range && (range.start > 0 || range.end < duration)) {
+    filters.push(`[out]atrim=${range.start.toFixed(3)}:${Math.min(duration, range.end).toFixed(3)},asetpts=PTS-STARTPTS[cut]`);
+    mapLabel = '[cut]';
+  }
+  const args = ['-y', '-hide_banner', '-loglevel', 'error', ...inputs, '-filter_complex', filters.join(';'), '-map', mapLabel, '-c:a', 'pcm_s16le', outFile];
   const r = spawnSync(ff.path, args, { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(`ffmpeg mix failed: ${r.stderr}`);
   return outFile;

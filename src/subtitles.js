@@ -9,17 +9,19 @@ function ts(sec, sep) {
 }
 
 // Subtitle cues: one per subtitle entry, speaker prefixed for dialog.
-export function cues(timeline) {
+export function cues(timeline, range = null) {
+  const start = range ? range.start : 0;
+  const end = range ? range.end : Infinity;
   return timeline.subtitles
-    .filter((s) => s.text)
-    .map((s) => ({ t0: s.t0, t1: s.t1, text: s.kind === 'dialog' && s.speaker ? `${s.speaker}: ${s.text}` : s.text, kind: s.kind }))
+    .filter((s) => s.text && s.t1 > start && s.t0 < end)
+    .map((s) => ({ t0: Math.max(0, s.t0 - start), t1: Math.min(end, s.t1) - start, text: s.kind === 'dialog' && s.speaker ? `${s.speaker}: ${s.text}` : s.text, kind: s.kind }))
     .sort((a, b) => a.t0 - b.t0);
 }
 
-export function toSrt(timeline) {
-  return cues(timeline).map((c, i) => `${i + 1}\n${ts(c.t0, ',')} --> ${ts(c.t1, ',')}\n${c.text}\n`).join('\n') + '\n';
+export function toSrt(timeline, range = null) {
+  return cues(timeline, range).map((c, i) => `${i + 1}\n${ts(c.t0, ',')} --> ${ts(c.t1, ',')}\n${c.text}\n`).join('\n') + '\n';
 }
 
-export function toVtt(timeline) {
-  return 'WEBVTT\n\n' + cues(timeline).map((c, i) => `${i + 1}\n${ts(c.t0, '.')} --> ${ts(c.t1, '.')}\n${c.kind === 'narration' ? `<i>${c.text}</i>` : c.text}\n`).join('\n') + '\n';
+export function toVtt(timeline, range = null) {
+  return 'WEBVTT\n\n' + cues(timeline, range).map((c, i) => `${i + 1}\n${ts(c.t0, '.')} --> ${ts(c.t1, '.')}\n${c.kind === 'narration' ? `<i>${c.text}</i>` : c.text}\n`).join('\n') + '\n';
 }

@@ -158,7 +158,7 @@ export async function render(file, args = {}) {
     const ffargs = ['-f', 'concat', '-safe', '0', '-i', list, '-c:v', 'copy', '-movflags', '+faststart', videoOnly];
     await runFfmpeg(ff, ffargs).done;
     rmSync(chunkDir, { recursive: true, force: true });
-    if (!raw) await finalize(timeline, videoOnly, out, args);
+    if (!raw) await finalize(timeline, videoOnly, out, { ...args, range: { start: startFrame / fps, end: endFrame / fps } });
     console.error(`done in ${fmt((Date.now() - t0) / 1000)} -> ${out}`);
     return out;
   }
@@ -208,7 +208,7 @@ export async function render(file, args = {}) {
     server.close();
   }
   if (ffmpeg) await ffmpeg.done;
-  if (ff && !raw) await finalize(timeline, videoOnly, out, args);
+  if (ff && !raw) await finalize(timeline, videoOnly, out, { ...args, range: { start: startFrame / fps, end: endFrame / fps } });
   if (!args.quiet) console.error(`done in ${fmt((Date.now() - t0) / 1000)}${ff ? ` -> ${out}` : ''}`);
   return out;
 }
