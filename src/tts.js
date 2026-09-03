@@ -76,10 +76,10 @@ export const HEBREW_DEFAULT_GLOSSARY = {
   'בשבילך|to:m': 'בִּשְׁבִילְךָ', 'בשבילך|to:f': 'בִּשְׁבִילֵךְ',
   'ממך|to:m': 'מִמְּךָ', 'ממך|to:f': 'מִמֵּךְ',
   'אליך|to:m': 'אֵלֶיךָ', 'אליך|to:f': 'אֵלַיִךְ',
-  'מצאת|to:m': 'מָצָאתָ', 'מצאת|to:f': 'מָצָאת',
+  'מצאת|to:m': 'מָצָאתָ', 'מצאת|to:f': 'מָצָאתְ',
   'עזרת|to:m': 'עָזַרְתָּ', 'עזרת|to:f': 'עָזַרְתְּ',
   'אמרת|to:m': 'אָמַרְתָּ', 'אמרת|to:f': 'אָמַרְתְּ',
-  'ראית|to:m': 'רָאִיתָ', 'ראית|to:f': 'רָאִית',
+  'ראית|to:m': 'רָאִיתָ', 'ראית|to:f': 'רָאִיתְ',
   'הצלת|to:m': 'הִצַּלְתָּ', 'הצלת|to:f': 'הִצַּלְתְּ',
 };
 
@@ -144,6 +144,92 @@ export async function attachEnvelopes(timeline, opts = {}) {
     if (env) { c.sub.envelope = env; c.sub.envelopeRate = 25; }
   }
   return res;
+}
+
+// ---- general gender agreement for Hebrew --------------------------------------
+// Dicta's morphological analysis lists every pointing of a word with a code
+// whose gender field lives in bits 21-22 (the word's own gender: verbs,
+// participles, adjectives) or bits 39-40 (the gender of a pronominal suffix:
+// לך / אותך / שלך ...).  When a word's options are "gender twins" (same lemma,
+// codes differing only in one of those fields), the right one is chosen:
+//   * suffix twins and second-person past verbs (...ת) follow the addressee,
+//   * words in a clause with אני follow the speaker,
+//   * words in a clause with אתה / את follow the addressee,
+//   * anything else is left unpointed (the writer's spelling stands).
+// Only those words get pointed, so easy words stay clean.  Feminine second
+// person past forms get an explicit final shva (מָצָאתְ) so engines close the
+// syllable.
+const VERB_GENDER_XOR = (1n << 21n) | (1n << 22n);
+const SUFFIX_GENDER_XOR = (1n << 39n) | (1n << 40n);
+const FEM_VERB_BIT = 1n << 22n;   // calibrated on מָצָאת / מָצָאתָ
+const FEM_SUFFIX_BIT = 1n << 40n;
+async function nakdanMorph(text, cacheDir) {
+  const key = createHash('sha1').update('nakdan-morph|' + text).digest('hex').slice(0, 16);
+  const file = path.join(cacheDir, `${key}.morph.json`);
+  if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
+  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: true, keepmetagim: false, keepqq: false, nodageshdefmem: false, patachma: false });
+  const r = spawnSync('curl', ['-sS', '-m', '40', '-H', 'Content-Type: application/json', '-d', body, NAKDAN_URL], { encoding: 'utf8', env: { ...process.env, SSL_CERT_FILE: process.env.SSL_CERT_FILE || '/root/.ccr/ca-bundle.crt' } });
+  let tokens;
+  try { tokens = JSON.parse(r.stdout); } catch { return null; }
+  writeFileSync(file, JSON.stringify(tokens));
+  return tokens;
+}
+export async function agreeGender(text, { speakerGender = null, addresseeGender = null } = {}, cacheDir, log = () => {}) {
+  if (!/[\u05D0-\u05EA]/.test(text)) return text;
+  const tokens = await nakdanMorph(stripNikud(text), cacheDir);
+  if (!tokens) return text;
+  const hasAni = /(^|[^\p{L}])אני([^\p{L}]|$)/u.test(text);
+  const hasAta = /(^|[^\p{L}])(אתה|את)([^\p{L}]|$)/u.test(text);
+  if (/(^|[^\p{L}])אתה([^\p{L}]|$)/u.test(text) && addresseeGender === 'female') log('warning: the text says אתה (masculine "you") but the addressee is female');
+  const warned = new Set();
+  const warnOnce = (m) => { if (!warned.has(m)) { warned.add(m); log(m); } };
+  // walk the original text token by token so existing nikud / glossary results are preserved
+  let out = '';
+  let pos = 0;
+  const plain = stripNikud(text);
+  for (const t of tokens) {
+    if (t.sep) continue;
+    const word = t.word;
+    const at = plain.indexOf(word, pos);
+    if (at < 0) continue;
+    // map plain index -> original text index (skip nikud marks)
+    let oi = 0, pi = 0;
+    while (pi < at) { if (!/[\u0591-\u05C7]/.test(text[oi])) pi++; oi++; }
+    let oe = oi, pe = 0;
+    while (pe < word.length) { if (!/[\u0591-\u05C7]/.test(text[oe])) pe++; oe++; }
+    while (oe < text.length && /[\u0591-\u05C7]/.test(text[oe])) oe++;
+    const original = text.slice(oi, oe);
+    out += text.slice(pos === 0 && out === '' ? 0 : lastEnd, oi);
+    pos = at + word.length;
+    var lastEnd = oe;
+    if (/[\u05B0-\u05C7]/.test(original)) { out += original; continue; } // already pointed by author/glossary
+    const opts = (t.options || []).flatMap((o) => (o[1] || []).map((m) => ({ form: o[0].replace(/\|/g, ''), code: BigInt(m[0]), lemma: m[1] })));
+    let chosen = null;
+    outer: for (let i = 0; i < opts.length; i++) for (let j = 0; j < opts.length; j++) {
+      const a = opts[i], b = opts[j];
+      if (i === j || a.lemma !== b.lemma || a.form === b.form) continue;
+      const x = a.code ^ b.code;
+      let femBit = null, who = null;
+      if (x === SUFFIX_GENDER_XOR) { femBit = FEM_SUFFIX_BIT; who = 'to'; }
+      else if (x === VERB_GENDER_XOR) {
+        femBit = FEM_VERB_BIT;
+        if (/ת$/.test(word) && /ת\u05BC?\u05B8$/.test(a.form) !== /ת\u05BC?\u05B8$/.test(b.form)) who = 'to';   // second person past: one twin ends in תָּ
+        else if (hasAni) who = 'speaker';
+        else if (hasAta) who = 'to';
+        else continue;
+      } else continue;
+      const g = who === 'to' ? addresseeGender : speakerGender;
+      if (!g) { warnOnce(`warning: "${word}" depends on the ${who === 'to' ? 'addressee' : 'speaker'}'s gender, which is unknown`); continue; }
+      const fem = (a.code & femBit) !== 0n ? a : b;
+      const masc = fem === a ? b : a;
+      chosen = g === 'female' ? fem.form : masc.form;
+      if (g === 'female' && /ת$/.test(chosen)) chosen += '\u05B0';
+      break outer;
+    }
+    out += chosen ?? original;
+  }
+  out += text.slice(lastEnd ?? 0);
+  return out;
 }
 
 function proxyArgs() {
@@ -223,8 +309,10 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
     let spokenText = (sub.texts && (sub.texts[`${lang}-tts`] || sub.texts[`${lang.split('-')[0]}-tts`])) || sub.text;
     if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
     const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
-    if (lang.split('-')[0] === 'he' && sub.kind === 'dialog' && !sub.addressee && /(^|[^\p{L}])(לך|אותך|שלך|איתך|עליך)([^\p{L}]|$)/u.test(spokenText)) log(`warning: line ${sub.line} speaks to someone (${RegExp.$2}) but the addressee is unknown; add \`(to Name)\` after the speaker to get the right gender`);
     spokenText = applyGlossary(spokenText, glossary);
+    if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false) {
+      spokenText = await agreeGender(spokenText, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender }, cacheDir, (m) => log(`line ${sub.line}: ${m}`));
+    }
     sub.spokenText = spokenText;
     const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);
     const file = path.join(cacheDir, `${key}.mp3`);
@@ -291,6 +379,17 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
     mixed.push(`[s${i}]`);
     nIn++;
   });
+  // Ambience bed (soft underwater wash), looped under everything
+  if (timeline.meta.ambience !== false && timeline.meta.ambience !== 'off') {
+    const amb = path.resolve(REPO_ROOT, 'assets', 'sfx', 'underwater.wav');
+    if (existsSync(amb)) {
+      const vol = typeof timeline.meta.ambience === 'number' ? timeline.meta.ambience : 0.12;
+      inputs.push('-stream_loop', '-1', '-i', amb);
+      filters.push(`[${nIn}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${duration.toFixed(3)},volume=${vol}[amb]`);
+      mixed.push('[amb]');
+      nIn++;
+    }
+  }
   // Video clips with sound
   (timeline.overlays || []).filter((o) => o.type === 'clip' && o.volume > 0).forEach((o, i) => {
     const file = resolveAsset(o.src);

@@ -56,6 +56,9 @@ starts at the same time.
 | `timing` | `text` (dialog length estimated from the text) or `audio` (each spoken line lasts as long as its longest voice clip across all languages, plus padding) – both give identical frames in every language | text |
 | `subtitles` | `burn` draws subtitles into the frames; otherwise they are a soft track | soft |
 | `music` | background music file (relative to the script), looped under the voices | |
+| `ambience` | soft underwater wash under everything: `off`, or a gain such as `0.1` | 0.12 |
+| `sfx` | `off` disables the built-in effect sounds (sobs, bubbles, spouts, splashes) | on |
+| `agreement` | `off` disables automatic Hebrew gender agreement | on |
 | `music_volume` | music gain under the voices | 0.25 |
 | `audio` | a finished audio file to mux instead of generating voices | |
 | `tail` | seconds of padding after the last action | 1.5 |
@@ -124,17 +127,22 @@ the pointed form, consistently, also when the word carries a prefix letter
 - מעבר: מֵעֵבֶר
 ```
 
-**Gender and addressee.** Hebrew second-person forms are homographs: לך is
-לְךָ to a male and לָךְ to a female.  Give every character a gender in the cast
-and say who a line is spoken to, either `**Caspion (to Little Whale):** ...` or
-`@caspion says "..." to @whaley`; when omitted, the addressee is the previous
-different speaker in the conversation.  Glossary entries can then be tagged:
-`- מצאת [f]: מָצָאת` applies when the addressee is female, `[m]` when male,
-`[speaker f]` / `[speaker m]` by the speaker's gender.  A built-in Hebrew
-glossary already covers the common second-person forms (לך, אותך, שלך, איתך,
-עליך, ממך, אליך, בשבילך, מצאת, עזרת, אמרת, ראית, הצלת); a warning names any
-line that uses one of them with an unknown addressee.  The writer still owns
-first- and third-person agreement in the translated text itself.
+**Gender agreement (general).** Many Hebrew forms are homographs whose
+pointing depends on gender: לך is לְךָ to a male and לָךְ to a female; מצאת is
+מָצָאתָ or מָצָאתְ; רוצה is רוֹצֶה or רוֹצָה.  Give every character a gender in
+the cast and say who a line is spoken to, either `**Caspion (to Little
+Whale):** ...` or `@caspion says "..." to @whaley`; when omitted, the addressee
+is the previous different speaker in the conversation.  Before synthesis each
+Hebrew line is analysed morphologically (Dicta) and every word whose readings
+are gender twins is pointed for the right person: pronominal suffixes and
+second-person past verbs follow the addressee, words in a clause with אני
+follow the speaker, words in a clause with אתה / את follow the addressee, and
+anything else is left as written.  Only those words are pointed, so easy words
+stay clean.  Warnings name words whose gender cannot be resolved (unknown
+addressee) and lines that say אתה to a female character.  Glossary entries
+still override: `- מצאת [f]: מָצָאתְ` applies when the addressee is female,
+`[m]` when male, `[speaker f]` / `[speaker m]` by the speaker's gender.
+`agreement: off` disables the automatic step.
 
 A `he-tts:` line under a `he:` line replaces the spoken text of that one line
 (phonetic respelling, or a fully pointed sentence).  `nikud: auto` in the
