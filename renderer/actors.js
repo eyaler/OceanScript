@@ -259,7 +259,7 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
 
 function sharkProfile() {
   // (z, r): pointed snout, thick mid-body, narrow tail root
-  return [[0.5, 0.0], [0.46, 0.05], [0.4, 0.09], [0.3, 0.13], [0.15, 0.16], [0.0, 0.165], [-0.15, 0.15], [-0.3, 0.11], [-0.42, 0.06], [-0.5, 0.04]];
+  return [[0.5, 0.0], [0.46, 0.05], [0.4, 0.09], [0.3, 0.13], [0.15, 0.16], [0.0, 0.165], [-0.15, 0.15], [-0.3, 0.11], [-0.42, 0.06], [-0.49, 0.03], [-0.5, 0.001]];
 }
 function buildShark(color) {
   const g = new THREE.Group();
@@ -372,8 +372,8 @@ function buildShark(color) {
 
 function whaleProfile(kind) {
   // (z, r) pairs from nose to tail; length 1
-  if (kind === 'dolphin') return [[0.5, 0.0], [0.47, 0.035], [0.42, 0.05], [0.36, 0.09], [0.25, 0.13], [0.1, 0.15], [-0.05, 0.145], [-0.2, 0.11], [-0.33, 0.07], [-0.43, 0.04], [-0.5, 0.02]];
-  return [[0.5, 0.0], [0.48, 0.09], [0.44, 0.16], [0.36, 0.23], [0.25, 0.27], [0.1, 0.29], [0.0, 0.29], [-0.15, 0.26], [-0.28, 0.19], [-0.38, 0.12], [-0.45, 0.07], [-0.5, 0.04]];
+  if (kind === 'dolphin') return [[0.5, 0.0], [0.47, 0.035], [0.42, 0.05], [0.36, 0.09], [0.25, 0.13], [0.1, 0.15], [-0.05, 0.145], [-0.2, 0.11], [-0.33, 0.07], [-0.43, 0.04], [-0.49, 0.015], [-0.5, 0.001]];
+  return [[0.5, 0.0], [0.48, 0.09], [0.44, 0.16], [0.36, 0.23], [0.25, 0.27], [0.1, 0.29], [0.0, 0.29], [-0.15, 0.26], [-0.28, 0.19], [-0.38, 0.12], [-0.45, 0.07], [-0.49, 0.03], [-0.5, 0.001]];
 }
 // radius of the profile at z (linear interpolation)
 function profileRadius(prof, z) {
@@ -446,18 +446,20 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
   jawPivot.add(new THREE.Mesh(jawLiningGeo, interiorMat));
   inner.add(jawPivot);
   // baleen: rows of thin white plates hanging from the upper jaw rim (seen when the mouth opens)
+  const baleenGroup = new THREE.Group();
+  inner.add(baleenGroup);
   if (baleen) {
-    const plateMat = mat('#f2f2f4', { roughness: 0.5, side: THREE.DoubleSide });
-    for (let i = 0; i < 16; i++) {
-      const z = Z_JAW + 0.05 + i * ((0.47 - Z_JAW - 0.05) / 15);
-      const r = profileRadius(prof, z);
-      for (const sx of [-1, 1]) {
-        const ang = A - 0.04;
-        const plate = new THREE.Mesh(new THREE.BoxGeometry(0.006, r * 0.42, 0.014), plateMat);
-        plate.position.set(sx * r * Math.sin(ang) * 0.93, -r * 0.85 * Math.cos(ang) * 0.9 - r * 0.2, z);
-        plate.rotation.z = sx * 0.15;
-        inner.add(plate);
-      }
+    // baleen: a striped band hanging from the roof of the mouth just inside each
+    // upper lip (thin plate geometry seen edge-on leaks through the shell in
+    // the software rasteriser, so it is a texture on a curved strip instead).
+    // Hidden while the jaw is closed, a white fringe once it opens.
+    const tex = baleenBarsTexture('#5a1420', '#f2f2f4', 22);
+    tex.center.set(0.5, 0.5); tex.rotation = Math.PI / 2;   // bars run across the band, one plate per stripe
+    const plateMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, side: THREE.DoubleSide });
+    const W = 0.42;                                          // angular width of each band (radians)
+    for (const [phiStart] of [[A - 0.02], [Math.PI * 2 - A - W + 0.02]]) {
+      const band = new THREE.Mesh(latheSlice(prof, Z_JAW + 0.03, 0.47, { rScale: 0.93, phiStart, phiLength: W }), plateMat);
+      baleenGroup.add(band);
     }
   }
   const finMat = mat(accentHex || darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.6 });
@@ -507,12 +509,13 @@ function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {
     set: (face) => {
       const open = Math.max(0, Math.min(1, face.mouthOpen || 0));
       jawPivot.rotation.x = open * 0.3;
+      baleenGroup.visible = open > 0.2;
       interior.visible = true;
       throat.visible = true;
     },
   };
   mouth.set({ mouthOpen: 0 });
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex, eyePositions: eyeMeshes.map((e) => e.position.clone()) };
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouth, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), eyePositions: eyeMeshes.map((e) => e.position.clone()) };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (1.3 + Math.min(4, state.speed * 0.5)) * emo.wag;

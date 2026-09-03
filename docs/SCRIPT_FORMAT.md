@@ -56,7 +56,7 @@ starts at the same time.
 | `timing` | `text` (dialog length estimated from the text) or `audio` (each spoken line lasts as long as its longest voice clip across all languages, plus padding) – both give identical frames in every language | text |
 | `subtitles` | `burn` draws subtitles into the frames; otherwise they are a soft track | soft |
 | `music` | background music file (relative to the script), looped under the voices | |
-| `ambience` | soft underwater wash under everything: `off`, or a gain such as `0.1` | 0.12 |
+| `ambience` | `on` (or a gain such as `0.06`) adds a soft, slow underwater wash under everything | off |
 | `sfx` | `off` disables the built-in effect sounds (sobs, bubbles, spouts, splashes) | on |
 | `agreement` | `off` disables automatic Hebrew gender agreement | on |
 | `music_volume` | music gain under the voices | 0.25 |

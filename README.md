@@ -161,7 +161,7 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
 `examples/music/` holds six public-domain recordings (pre-1923 78 rpm
 transfers from the Internet Archive, see `examples/music/CREDITS.md`) used by
 the example: Offenbach's Barcarolle, Solveig's Song, In the Hall of the
-Mountain King, The Swan, Morning Mood and the Blue Danube.  Scene music is
+Mountain King, The Swan and Morning Mood.  Scene music is
 ducked automatically under the voices.
 
 ## Rendering long or high-resolution films on GitHub

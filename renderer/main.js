@@ -232,12 +232,21 @@ function seek(t) {
       rig.tears.forEach((tear, i) => {
         const period = 1.4;
         const ph = ((cryFx.age + i * 0.7) % period) / period;
-        const local = rig.eyePositions ? rig.eyePositions[i].clone() : new THREE.Vector3((i ? 1 : -1) * 0.14, 0.06, 0.36);
-        const eye = local.applyMatrix4(rig.group.matrixWorld);
+        let eye;
+        if (rig.eyeMeshes && rig.eyeMeshes[i]) {
+          eye = new THREE.Vector3();
+          rig.eyeMeshes[i].getWorldPosition(eye);
+          const eyeR = (rig.eyeMeshes[i].geometry.parameters?.radius || 0.05) * sc;
+          eye.y -= eyeR * 0.8;                      // from the lower rim of the eye
+        } else {
+          eye = new THREE.Vector3((i ? 1 : -1) * 0.14, 0.06, 0.36).applyMatrix4(rig.group.matrixWorld);
+        }
         const grow = Math.min(1, ph / 0.45);
         const fall = Math.max(0, (ph - 0.45) / 0.55);
-        const size = sc * 0.16 * (0.4 + 0.6 * grow);
-        tear.position.set(eye.x, eye.y - size * 0.9 - fall * fall * sc * 1.6, eye.z + size * 0.3);
+        // a drop about the size of the eye itself
+        const eyeSize = rig.eyeMeshes && rig.eyeMeshes[i] ? (rig.eyeMeshes[i].geometry.parameters?.radius || 0.05) * sc : sc * 0.06;
+        const size = eyeSize * 0.9 * (0.4 + 0.6 * grow);
+        tear.position.set(eye.x, eye.y - size * 0.6 - fall * fall * sc * 1.6, eye.z + size * 0.2);
         tear.scale.setScalar(size);
         tear.visible = true;
       });

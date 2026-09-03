@@ -76,10 +76,10 @@ export const HEBREW_DEFAULT_GLOSSARY = {
   'בשבילך|to:m': 'בִּשְׁבִילְךָ', 'בשבילך|to:f': 'בִּשְׁבִילֵךְ',
   'ממך|to:m': 'מִמְּךָ', 'ממך|to:f': 'מִמֵּךְ',
   'אליך|to:m': 'אֵלֶיךָ', 'אליך|to:f': 'אֵלַיִךְ',
-  'מצאת|to:m': 'מָצָאתָ', 'מצאת|to:f': 'מָצָאתְ',
+  'מצאת|to:m': 'מָצָאתָ', 'מצאת|to:f': 'מָצָאתְּ',
   'עזרת|to:m': 'עָזַרְתָּ', 'עזרת|to:f': 'עָזַרְתְּ',
   'אמרת|to:m': 'אָמַרְתָּ', 'אמרת|to:f': 'אָמַרְתְּ',
-  'ראית|to:m': 'רָאִיתָ', 'ראית|to:f': 'רָאִיתְ',
+  'ראית|to:m': 'רָאִיתָ', 'ראית|to:f': 'רָאִיתְּ',
   'הצלת|to:m': 'הִצַּלְתָּ', 'הצלת|to:f': 'הִצַּלְתְּ',
 };
 
@@ -157,8 +157,9 @@ export async function attachEnvelopes(timeline, opts = {}) {
 //   * words in a clause with אתה / את follow the addressee,
 //   * anything else is left unpointed (the writer's spelling stands).
 // Only those words get pointed, so easy words stay clean.  Feminine second
-// person past forms get an explicit final shva (מָצָאתְ) so engines close the
-// syllable.
+// person past forms get an explicit final dagesh + shva (מָצָאתְּ): with a plain
+// shva the neural voices still read a trailing "-ta"; with the dagesh they close
+// the syllable ("matzat").
 const VERB_GENDER_XOR = (1n << 21n) | (1n << 22n);
 const SUFFIX_GENDER_XOR = (1n << 39n) | (1n << 40n);
 const FEM_VERB_BIT = 1n << 22n;   // calibrated on מָצָאת / מָצָאתָ
@@ -228,7 +229,7 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
       const fem = (a.code & femBit) !== 0n ? a : b;
       const masc = fem === a ? b : a;
       chosen = g === 'female' ? fem.form : masc.form;
-      if (g === 'female' && /ת$/.test(chosen)) chosen += '\u05B0';
+      if (g === 'female' && /ת$/.test(chosen)) chosen += '\u05BC\u05B0';
       break outer;
     }
     out += chosen ?? original;
@@ -388,7 +389,7 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
   if (timeline.meta.ambience !== false && timeline.meta.ambience !== 'off') {
     const amb = path.resolve(REPO_ROOT, 'assets', 'sfx', 'underwater.wav');
     if (existsSync(amb)) {
-      const vol = typeof timeline.meta.ambience === 'number' ? timeline.meta.ambience : 0.12;
+      const vol = typeof timeline.meta.ambience === 'number' ? timeline.meta.ambience : 0.06;
       inputs.push('-stream_loop', '-1', '-i', amb);
       filters.push(`[${nIn}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${duration.toFixed(3)},volume=${vol}[amb]`);
       mixed.push('[amb]');

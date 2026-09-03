@@ -132,7 +132,7 @@ timing: audio
 @caspion wiggles for 3s
 @caspion: Help!
   he: הצילו!
-- music "music/blue-danube.ogg" volume 0.3
+- music "music/swan.ogg" volume 0.3
 @mother enters from left to (-4, -10, -10) over 4s &
 @camera cuts to (2, -6, 14) looking at (2, -9, -6)
 @mother looks at @shark
@@ -156,7 +156,7 @@ timing: audio
 
 # Scene: The Octopus and the Jellyfish
 > time: day, water: blue, depth: medium, floor: reef, visibility: 40
-- music "music/swan.ogg" volume 0.3
+- music "music/morning.ogg" volume 0.3
 @octopus appears at (3, -6, -2)
 @jelly appears at (-5, -3, -3)
 @caspion enters from left to (0, -5, 1) over 3s &
@@ -169,8 +169,8 @@ timing: audio
 **Caspion:** More than anything!
   he: יותר מכל דבר בעולם!
 @octopus wiggles for 2s
-**Octopus (to Caspion):** Then my friend the jellyfish will carry you, with the sea held in her bell.
-  he: אז חברתי המדוזה תישא אותך, עם הים שמור בתוך הפעמון שלה.
+**Octopus (to Caspion):** Then my friend the jellyfish will carry you, with a little sea inside her bell.
+  he: אז חברתי המדוזה תישא אותך, עם קצת ים בתוך הפעמון שלה.
 @jelly swims near @caspion over 4s
 @jelly glows for 3s &
 @jelly carries @caspion
@@ -186,7 +186,7 @@ timing: audio
 
 # Scene: Home
 > time: sunset, water: turquoise, waves: gentle, depth: shallow, floor: reef, visibility: 50
-- music "music/morning.ogg" volume 0.35
+- music "music/barcarolle.ogg" volume 0.35
 @friends appears at (2, -3, -3)
 @jelly appears at (-8, 2.5, 0)
 @jelly carries @caspion

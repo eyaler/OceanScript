@@ -75,7 +75,7 @@ export function compile(script, options = {}) {
     musicVolume: Number(script.meta.music_volume ?? 0.25),
     tail: Number(script.meta.tail ?? 1.5),
     sfx: script.meta.sfx !== false && script.meta.sfx !== 'off',
-    ambience: script.meta.ambience === undefined ? true : script.meta.ambience,
+    ambience: script.meta.ambience === undefined ? false : script.meta.ambience,   // opt-in
     agreement: script.meta.agreement !== false && script.meta.agreement !== 'off',
   };
   meta.lang = String(options.lang ?? meta.sourceLang).toLowerCase();
