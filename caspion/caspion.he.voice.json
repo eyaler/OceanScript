@@ -1,0 +1,272 @@
+[
+  {
+    "t0": 5,
+    "slot": 7.309999999999999,
+    "duration": 6.91,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "כספיון היה דג כסוף קטן, שאהב לשחות מהר יותר ורחוק יותר מכל האחרים.",
+    "spoken": "כַּסְפִּיּוֹן הָיָה דָּג כָּסוּף קָטָן, שֶׁאָהַב לִשְׂחוֹת מַהֵר יוֹתֵר וְרָחוֹק יוֹתֵר מִכָּל הָאֲחֵרִים.",
+    "clip": "out/.tts-cache/fdc130b4fafd4523.mp3"
+  },
+  {
+    "t0": 12.309999999999999,
+    "slot": 5.489999999999998,
+    "duration": 5.33,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בואו, כולם! בואו נראה מה יש מעבר לשונית!",
+    "spoken": "בּוֹאוּ, כֻּלָּם! בּוֹאוּ נִרְאֶה מָה יֵשׁ מֵעֵבֶר לְשׁוֹנִית!",
+    "clip": "out/.tts-cache/a7d696147790903a.mp3"
+  },
+  {
+    "t0": 18.799999999999997,
+    "slot": 6.280000000000001,
+    "duration": 5.98,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "אבל חבריו פחדו לעזוב את השונית, וכספיון יצא לדרך לבדו.",
+    "spoken": "אֲבָל חֲבֵרָיו פָּחֲדוּ לַעֲזֹב אֶת הַשּׁוּנִית, וְכַסְפִּיּוֹן יָצָא לַדֶּרֶךְ לְבַדּוֹ.",
+    "clip": "out/.tts-cache/930b0b8d31e99858.mp3"
+  },
+  {
+    "t0": 25.08,
+    "slot": 4.670000000000002,
+    "duration": 4.34,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "הרחק מהבית, שמע כספיון מישהו בוכה.",
+    "spoken": "הַרְחֵק מֵהַבַּיִת, שָׁמַע כַּסְפִּיּוֹן מִישֶׁהוּ בּוֹכֶה.",
+    "clip": "out/.tts-cache/e83ace14a7558ea6.mp3"
+  },
+  {
+    "t0": 32.75,
+    "slot": 3.3999999999999986,
+    "duration": 3.31,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "למה אתה בוכה, לווייתן קטן?",
+    "spoken": "לָמָּה אַתָּה בּוֹכֶה, לִוְיָתָן קָטָן?",
+    "clip": "out/.tts-cache/9e80a13ddc28ae37.mp3"
+  },
+  {
+    "t0": 36.15,
+    "slot": 5.780000000000001,
+    "duration": 4.9,
+    "speaker": "לווייתן קטן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "איבדתי את אמא שלי בסערה... אני לגמרי לבד.",
+    "spoken": "אִבַּדְתִּי אֶת אִמָּא שֶׁלִּי בִּסְעָרָה... אֲנִי לְגַמְרֵי לְבַד.",
+    "clip": "out/.tts-cache/3ed532c82392227c.mp3"
+  },
+  {
+    "t0": 43.93,
+    "slot": 4.549999999999997,
+    "duration": 3.43,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אל תדאג. אני אעזור לך למצוא אותה!",
+    "spoken": "אַל תִּדְאַג. אֲנִי אֶעֱזֹר לְךָ לִמְצֹא אוֹתָהּ!",
+    "clip": "out/.tts-cache/abe7aa4c49fe2e14.mp3"
+  },
+  {
+    "t0": 62.48,
+    "slot": 6.979999999999997,
+    "duration": 6.12,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -10,
+      "rate": -6
+    },
+    "text": "ובכן, ובכן... חטיף, וגם קינוח.",
+    "spoken": "וּבְכֵן, וּבְכֵן... חֲטִיף, וְגַם קִנּוּחַ.",
+    "clip": "out/.tts-cache/36cf31147dd42417.mp3"
+  },
+  {
+    "t0": 72.46,
+    "slot": 2.230000000000004,
+    "duration": 1.78,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "הצילו!",
+    "spoken": "הַצִּילוּ!",
+    "clip": "out/.tts-cache/5b319c90530a8ca8.mp3"
+  },
+  {
+    "t0": 74.69,
+    "slot": 3.569999999999993,
+    "duration": 3.19,
+    "speaker": "אמא לווייתנית",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -6,
+      "rate": -5
+    },
+    "text": "עזוב את הקטנים האלה במנוחה!",
+    "spoken": "עֲזֹב אֶת הַקְּטַנִּים הָאֵלֶּה בִּמְנוּחָה!",
+    "clip": "out/.tts-cache/b6793b34f41f60c7.mp3"
+  },
+  {
+    "t0": 83.25999999999999,
+    "slot": 4,
+    "duration": 3.29,
+    "speaker": "לווייתן קטן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "אמא! מצאת אותי!",
+    "spoken": "אִמָּא! מָצָאת אוֹתִי!",
+    "clip": "out/.tts-cache/4ae1683f0f461c7a.mp3"
+  },
+  {
+    "t0": 87.25999999999999,
+    "slot": 4.75,
+    "duration": 2.74,
+    "speaker": "לווייתן קטן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "זה כספיון. הוא עזר לי!",
+    "spoken": "זֶה כַּסְפִּיּוֹן. הוּא עָזַר לִי!",
+    "clip": "out/.tts-cache/2d987c8f7c350a8d.mp3"
+  },
+  {
+    "t0": 92.00999999999999,
+    "slot": 4.189999999999998,
+    "duration": 3.7,
+    "speaker": "אמא לווייתנית",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -6,
+      "rate": -5
+    },
+    "text": "תודה לך, דג קטן ואמיץ.",
+    "spoken": "תּוֹדָה לְךָ, דָּג קָטָן וְאַמִּיץ.",
+    "clip": "out/.tts-cache/0950dea6c653b2ce.mp3"
+  },
+  {
+    "t0": 101.19999999999999,
+    "slot": 5.299999999999997,
+    "duration": 4.85,
+    "speaker": "תמנון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "אז אתה רוצה לראות את העולם שמעל המים, דג קטן?",
+    "spoken": "אָז אַתָּה רוֹצֶה לִרְאוֹת אֶת הָעוֹלָם שֶׁמֵּעַל הַמַּיִם, דָּג קָטָן?",
+    "clip": "out/.tts-cache/17ec8585b948e2a9.mp3"
+  },
+  {
+    "t0": 106.49999999999999,
+    "slot": 2.950000000000003,
+    "duration": 2.76,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "יותר מכל דבר בעולם!",
+    "spoken": "יוֹתֵר מִכָּל דָּבָר בָּעוֹלָם!",
+    "clip": "out/.tts-cache/3566d70276db3608.mp3"
+  },
+  {
+    "t0": 111.44999999999999,
+    "slot": 5.920000000000002,
+    "duration": 5.66,
+    "speaker": "תמנון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "אז חברתי המדוזה תישא אותך, עם הים שמור בתוך הפעמון שלה.",
+    "spoken": "אָז חֲבֶרְתִּי הַמֵּדוּזָה תִּשָּׂא אוֹתְךָ, עִם הַיָּם שָׁמוּר בְּתוֹךְ הַפַּעֲמוֹן שֶׁלָּהּ.",
+    "clip": "out/.tts-cache/7f871a0792f93f97.mp3"
+  },
+  {
+    "t0": 131.37,
+    "slot": 8.25,
+    "duration": 7.85,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": 0
+    },
+    "text": "וכך עלה כספיון למעלה, למעלה, למעלה... עד שראה את השמיים בפעם הראשונה.",
+    "spoken": "וְכָךְ עָלָה כַּסְפִּיּוֹן לְמַעְלָה, לְמַעְלָה, לְמַעְלָה... עַד שֶׁרָאָה אֶת הַשָּׁמַיִם בַּפַּעַם הָרִאשׁוֹנָה.",
+    "clip": "out/.tts-cache/fcd3f74d9b3d9332.mp3"
+  },
+  {
+    "t0": 149.62,
+    "slot": 4.6299999999999955,
+    "duration": 4.46,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "העולם פשוט נפלא... רטוב או יבש!",
+    "spoken": "הָעוֹלָם פָּשׁוּט נִפְלָא... רָטֹב אוֹ יָבֵשׁ!",
+    "clip": "out/.tts-cache/9090083eecccdb0a.mp3"
+  }
+]
