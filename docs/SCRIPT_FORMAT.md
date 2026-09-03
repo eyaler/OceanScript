@@ -127,6 +127,12 @@ the pointed form, consistently, also when the word carries a prefix letter
 - מעבר: מֵעֵבֶר
 ```
 
+Point vowels only, and add a dagesh only where it changes the consonant (בּ, כּ,
+פּ): the Edge voices misread a dagesh in ג, ד or ת after a vowel (גַּן becomes
+"gyan", דּוֹתָן "devotan").  Common words are usually read correctly unpointed;
+check doubtful ones by listening to the clips in `out/.tts-cache` (or transcribe
+them with Whisper) before adding an entry.
+
 **Gender agreement (general).** Many Hebrew forms are homographs whose
 pointing depends on gender: לך is לְךָ to a male and לָךְ to a female; מצאת is
 מָצָאתָ or מָצָאתְ; רוצה is רוֹצֶה or רוֹצָה.  Give every character a gender in
@@ -172,6 +178,9 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   film's signature whale: `- whale: whale, black, size 10, accent purple, baleen`.
 * **pattern** for fish: `spots`, `stripes` or `bands` in the accent colour, e.g.
   `- puffer: fish, magenta, spots, accent yellow`.
+* **eyes** `eyes 2` (or `big eyes`) scales a fish's eyes, and **forelock** (or
+  `curly`) gives it a curly forelock in the accent colour: `- dothan: fish,
+  orange, bands, accent cyan, eyes 2, forelock`.
 * **gender**: `male` or `female` (guessed from names like *mother* otherwise).
   It drives gender-dependent pronunciation (below) and default voices.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,

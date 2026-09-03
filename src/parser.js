@@ -281,6 +281,10 @@ export function parseCastAttrs(text) {
   if (acc) { actor.accent = acc[1].toLowerCase(); rest = rest.replace(acc[0], ' '); }
   if (/\b(?:baleen|stripes|striped mouth)\b/i.test(rest)) { actor.baleen = true; rest = rest.replace(/\b(?:baleen|stripes|striped mouth)\b/i, ' '); }
   if (/\bbillboard\b/i.test(rest)) { actor.billboard = true; rest = rest.replace(/\bbillboard\b/i, ' '); }
+  const ey = rest.match(/\b(?:eyes|eye)\s*[:=]?\s*(\d+(?:\.\d+)?)\b/i);
+  if (ey) { actor.eyes = Number(ey[1]); rest = rest.replace(ey[0], ' '); }
+  else if (/\b(?:big|huge|large) eyes\b/i.test(rest)) { actor.eyes = 1.8; rest = rest.replace(/\b(?:big|huge|large) eyes\b/i, ' '); }
+  if (/\b(?:forelock|curly|curls|quiff|בלורית)\b/i.test(rest)) { actor.forelock = true; rest = rest.replace(/\b(?:forelock|curly|curls|quiff|בלורית)\b/i, ' '); }
   const q = takeQuote(rest);
   if (q.quote != null && actor.label == null) { actor.label = q.quote; rest = q.rest; }
   for (const key of ['size', 'speed', 'count', 'pitch', 'rate', 'volume']) {

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" width="240" height="220">
+  <g stroke="#1b2a4a" stroke-width="6" stroke-linejoin="round" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="bold" text-anchor="middle">
+    <rect x="20" y="120" width="90" height="90" rx="10" fill="#3fa34d"/><text x="65" y="185" fill="#f4f6f8" stroke="none">א</text>
+    <rect x="130" y="120" width="90" height="90" rx="10" fill="#3b7dd8"/><text x="175" y="185" fill="#f4f6f8" stroke="none">ב</text>
+    <rect x="75" y="25" width="90" height="90" rx="10" fill="#f7d64a"/><text x="120" y="90" fill="#1b2a4a" stroke="none">ג</text>
+  </g>
+</svg>

@@ -204,7 +204,7 @@ function patternTexture(kind, base, accent, seed = 1) {
   return tex;
 }
 
-function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, accent = null, seed = 1 } = {}) {
+function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, accent = null, seed = 1, eyeScale = 1, forelock = false } = {}) {
   const g = new THREE.Group();
   const inner = new THREE.Group();
   g.add(inner);
@@ -242,8 +242,24 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
   }
   let eyeMeshes = null, mouthMesh = null, mouthRig = null;
   if (detail !== 'low') {
-    eyeMeshes = eyes(inner, color, { z: 0.33, x: 0.12, y: 0.1, r: 0.075 }).eyes;
+    // big eyes sit a little higher and further apart so they stay on the head
+    const er = 0.075 * eyeScale, k = Math.min(1, Math.max(0, eyeScale - 1));
+    eyeMeshes = eyes(inner, color, { z: 0.33 - 0.05 * k, x: 0.12 + 0.06 * k, y: 0.1 + 0.06 * k, r: er }).eyes;
     mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.075, h: 0.045, teethCount: 4, teethSize: 0.01 });
+  }
+  if (forelock) {
+    // a curly forelock: a few little rings tumbling over the forehead
+    const curlMat = mat(accent || darken(color, 0.25), { roughness: 0.6 });
+    const curls = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2, rr = 0.03 + 0.012 * ((i * 7) % 3);
+      const c = new THREE.Mesh(new THREE.TorusGeometry(rr, rr * 0.45, 8, 14), curlMat);
+      c.position.set(Math.sin(a) * 0.06, 0.42 + Math.cos(a * 1.7) * 0.03, 0.2 + Math.cos(a) * 0.07);
+      c.rotation.set(Math.sin(a * 2) * 0.9, a, Math.cos(a) * 0.6);
+      curls.add(c);
+    }
+    curls.position.z = 0.02;
+    inner.add(curls);
   }
   const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, mouth: mouthRig, kind: 'fish' };
   rig.animate = (t, state) => {
@@ -925,7 +941,7 @@ export function createActorRig(cast, seed, extra = {}) {
     case 'seahorse': rig = buildEel(color, { kind: 'seahorse' }); break;
     case 'starfish': rig = buildStarfish(color); break;
     case 'school': rig = buildSchool(color, Math.max(3, Math.round(cast.count || 12))); break;
-    default: rig = buildFish(color, { pattern: cast.pattern || null, accent: cast.accent ? toHex(cast.accent) : null, seed: Math.round(seed) }); break;
+    default: rig = buildFish(color, { pattern: cast.pattern || null, accent: cast.accent ? toHex(cast.accent) : null, seed: Math.round(seed), eyeScale: cast.eyes || 1, forelock: !!cast.forelock }); break;
   }
   rig.seed = seed;
   rig.size = cast.size;

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <g stroke="#1b2a4a" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="40" y="120" width="320" height="160" rx="14" fill="#ffd97a"/>
+    <path d="M20 125 L200 30 L380 125 Z" fill="#ff6f61"/>
+    <rect x="165" y="180" width="70" height="100" rx="10" fill="#2aa198"/>
+    <circle cx="222" cy="232" r="5" fill="#1b2a4a" stroke="none"/>
+    <rect x="70" y="160" width="60" height="55" rx="8" fill="#8ec5ff"/>
+    <rect x="270" y="160" width="60" height="55" rx="8" fill="#8ec5ff"/>
+    <line x1="100" y1="160" x2="100" y2="215"/><line x1="70" y1="187" x2="130" y2="187"/>
+    <line x1="300" y1="160" x2="300" y2="215"/><line x1="270" y1="187" x2="330" y2="187"/>
+    <rect x="110" y="62" width="180" height="46" rx="12" fill="#f4f6f8"/>
+    <path d="M60 255 q10 -10 20 0 t20 0 t20 0" fill="none" stroke="#2f7dd8"/>
+    <path d="M280 255 q10 -10 20 0 t20 0 t20 0" fill="none" stroke="#2f7dd8"/>
+  </g>
+  <text x="200" y="96" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" text-anchor="middle" fill="#1b2a4a" direction="rtl">גן הים</text>
+  <path d="M120 40 c 10 -20 30 -20 40 0 c -10 -8 -30 -8 -40 0 z" fill="#ff8ad0" stroke="#1b2a4a" stroke-width="3"/>
+</svg>

@@ -129,6 +129,8 @@ export function compile(script, options = {}) {
       style: entry.style ?? null,
       image: entry.image ?? null,
       pattern: entry.pattern ?? null,
+      eyes: entry.eyes ?? null,
+      forelock: entry.forelock ?? false,
       model: entry.model ?? null,
       animation: entry.animation ?? null,
       flip: !!entry.flip,
