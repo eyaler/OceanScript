@@ -217,7 +217,21 @@ function whaleProfile(kind) {
   return [[0.5, 0.0], [0.47, 0.1], [0.42, 0.17], [0.32, 0.24], [0.18, 0.28], [0.0, 0.29], [-0.15, 0.26], [-0.28, 0.19], [-0.38, 0.12], [-0.45, 0.07], [-0.5, 0.04]];
 }
 
-function buildWhale(color, { kind = 'whale' } = {}) {
+// Black/white baleen stripes as a canvas texture (the film's signature whale).
+function baleenTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#f4f4f4'; ctx.fillRect(0, 0, 512, 64);
+  ctx.fillStyle = '#101010';
+  for (let x = 0; x < 512; x += 24) ctx.fillRect(x, 0, 11, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+function buildWhale(color, { kind = 'whale', accent = null, baleen = false } = {}) {
   const g = new THREE.Group();
   const inner = new THREE.Group();
   g.add(inner);
@@ -226,10 +240,25 @@ function buildWhale(color, { kind = 'whale' } = {}) {
   geo.rotateX(Math.PI / 2); // lathe y axis -> +z
   geo.scale(1, 0.85, 1);
   geo.computeVertexNormals();
-  tintVertexBelly(geo, color, lighten(color, 0.55), -0.1);
-  const body = new THREE.Mesh(geo, mat(color, { vertexColors: true, roughness: 0.5 }));
+  const dark = new THREE.Color(color).getHSL({}).l < 0.2;
+  tintVertexBelly(geo, color, dark ? color : lighten(color, 0.55), -0.1);
+  const body = new THREE.Mesh(geo, mat(color, { vertexColors: true, roughness: dark ? 0.35 : 0.5 }));
   inner.add(body);
-  const finMat = mat(darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.6 });
+  const accentHex = accent ? toHex(accent, '#8a3fb0') : null;
+  const finMat = mat(accentHex || darken(color, 0.1), { side: THREE.DoubleSide, roughness: 0.6 });
+  if (baleen) {
+    // a striped band over the lower front of the head: the visible baleen
+    const headProf = whaleProfile(kind).filter(([z]) => z >= 0.05).map(([z, r]) => new THREE.Vector2(r * 1.015, z));
+    headProf.push(new THREE.Vector2(headProf[headProf.length - 1].x, 0.02));
+    const bg = new THREE.LatheGeometry(headProf, 36, Math.PI * 1.15, Math.PI * 0.7);
+    bg.rotateX(Math.PI / 2);
+    bg.scale(1, 0.85, 1);
+    bg.computeVertexNormals();
+    const tex = baleenTexture();
+    tex.repeat.set(1, 6);
+    const band = new THREE.Mesh(bg, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, side: THREE.DoubleSide }));
+    inner.add(band);
+  }
   // flukes (horizontal)
   const tail = new THREE.Group();
   tail.position.set(0, 0, -0.48);
@@ -250,9 +279,10 @@ function buildWhale(color, { kind = 'whale' } = {}) {
   const dorsal = new THREE.Mesh(finShape([[0.08, 0], [-0.02, kind === 'dolphin' ? 0.16 : 0.08], [-0.18, 0]]).rotateY(-Math.PI / 2), finMat);
   dorsal.position.set(0, kind === 'dolphin' ? 0.13 : 0.24, -0.1);
   inner.add(dorsal);
-  const eyeMeshes = eyes(inner, color, { z: 0.36, x: kind === 'dolphin' ? 0.1 : 0.22, y: 0.05, r: kind === 'dolphin' ? 0.03 : 0.045 }).eyes;
+  const eyeMeshes = eyes(inner, color, { z: 0.36, x: kind === 'dolphin' ? 0.1 : 0.22, y: 0.05, r: kind === 'dolphin' ? 0.03 : (accentHex ? 0.07 : 0.045) }).eyes;
+  if (accentHex) for (const e of eyeMeshes) { const p = e.children[0]; p.material = mat(accentHex, { roughness: 0.3 }); p.scale.setScalar(1.3); }
   // smile: partial torus
-  const smile = new THREE.Mesh(new THREE.TorusGeometry(kind === 'dolphin' ? 0.07 : 0.16, 0.012, 6, 20, Math.PI * 0.8), mat('#2a1a22'));
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(kind === 'dolphin' ? 0.07 : 0.16, 0.012, 6, 20, Math.PI * 0.8), mat(baleen ? '#f4f4f4' : '#2a1a22'));
   smile.position.set(0, -0.02, 0.46);
   smile.rotation.z = Math.PI + Math.PI * 0.1;
   smile.rotation.x = 0.35;
@@ -261,7 +291,7 @@ function buildWhale(color, { kind = 'whale' } = {}) {
   mouthMesh.position.set(0, -0.09, 0.44);
   mouthMesh.scale.set(kind === 'dolphin' ? 1 : 2.2, 0.35, 0.5);
   inner.add(mouthMesh);
-  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15) };
+  const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, kind, blowhole: new THREE.Vector3(0, 0.26, 0.15), tearColor: accentHex };
   rig.animate = (t, state) => {
     const emo = animateCommon(rig, t, state);
     const wag = (1.3 + Math.min(4, state.speed * 0.5)) * emo.wag;
@@ -660,8 +690,8 @@ export function createActorRig(cast, seed, extra = {}) {
   let rig;
   switch (cast.kind) {
     case 'shark': rig = buildShark(color); break;
-    case 'whale': rig = buildWhale(color, { kind: 'whale' }); break;
-    case 'dolphin': rig = buildWhale(color, { kind: 'dolphin' }); break;
+    case 'whale': rig = buildWhale(color, { kind: 'whale', accent: cast.accent, baleen: cast.baleen }); break;
+    case 'dolphin': rig = buildWhale(color, { kind: 'dolphin', accent: cast.accent }); break;
     case 'octopus': rig = buildOctopus(color, { kind: 'octopus' }); break;
     case 'squid': rig = buildOctopus(color, { kind: 'squid' }); break;
     case 'jellyfish': rig = buildJellyfish(color); break;

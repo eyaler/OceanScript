@@ -105,10 +105,34 @@ per character and per language in the cast:
 ```
 
 `voice` names an engine voice (`edge-tts --list-voices`), `pitch` is a Hz
-offset and `rate` a percentage.  Characters without a voice get a default one
+offset and `rate` a percentage.  Keep both small: neural voices sound
+artificial when shifted far.  Characters without a voice get a default one
 for the language (child-like for small creatures, a narrator voice for
 narration).  A cast entry named `narrator` (or of kind `narrator`) is
 voice-only and never appears in the scene.  Captions are shown but not spoken.
+
+**Hebrew pronunciation.** Unpointed Hebrew is ambiguous, so before synthesis
+every Hebrew line is vowel-pointed (nikud) with Dicta's Nakdan service and the
+pointed text is spoken (the subtitle keeps the plain text).  The pointed text
+is written to `<out>.voice.json` for checking.  To fix a word the automatic
+pointing gets wrong, or to respell a name phonetically, add a `he-tts:` line
+under the `he:` line; it is spoken instead of the subtitle text:
+
+```markdown
+**Little Whale:** Mama! You found me!
+  he: אמא! מצאת אותי!
+  he-tts: אִמָּא! מָצָאת אוֹתִי!
+```
+
+`nikud: off` in the front matter disables the automatic pointing.
+
+**Engines.** `edge` (free, Microsoft neural voices: he-IL-Avri/Hila, many
+English voices) is the default.  `elevenlabs` is used automatically when
+`ELEVENLABS_API_KEY` is set (per-character voices via `voice "<voice id>"`,
+`ELEVENLABS_MODEL` defaults to `eleven_multilingual_v2`); it is markedly more
+natural in Hebrew.  `gtts` is a last resort; `none` renders silent video.  The
+same script renders identical frames whichever engine is used, provided the
+saved `.timing.json` is reused.
 
 ## Cast
 
@@ -119,6 +143,9 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
 - name (Display Name): kind ...
 ```
 
+* **accent** `accent purple` (fins, tongue, tears and iris of a whale in a second
+  colour) and **baleen** (black-and-white baleen stripes over the mouth), for the
+  film's signature whale: `- whale: whale, black, size 10, accent purple, baleen`.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
   `turtle`, `crab`, `ray`, `eel`, `seahorse`, `starfish`, `school` (a shoal of
   small fish; `count N` sets how many), `bird`, `pelican`, `bubble`, and two

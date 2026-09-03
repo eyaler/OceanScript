@@ -65,6 +65,7 @@ export function compile(script, options = {}) {
     sourceLang: String(script.meta.lang ?? script.meta.language ?? 'en').toLowerCase(),
     burnSubtitles: options.burnSubtitles ?? (script.meta.subtitles === 'burn' || script.meta.burn_subtitles === true),
     tts: options.tts ?? script.meta.tts ?? 'auto',
+    nikud: script.meta.nikud !== false && script.meta.nikud !== 'off',
     timing: options.timing ?? script.meta.timing ?? 'text',
     music: script.meta.music ?? null,
     musicVolume: Number(script.meta.music_volume ?? 0.25),
@@ -72,6 +73,16 @@ export function compile(script, options = {}) {
   };
   meta.lang = String(options.lang ?? meta.sourceLang).toLowerCase();
   const lineDurations = options.lineDurations || {};
+  // Stable keys for per-line timing: speaker + source text (+ occurrence), so
+  // editing the script above a line does not invalidate saved timing.
+  const keyCounts = new Map();
+  const lineKey = (speaker, text) => {
+    const base = `${speaker ?? ''}|${text}`;
+    const n = (keyCounts.get(base) || 0) + 1;
+    keyCounts.set(base, n);
+    return n > 1 ? `${base}#${n}` : base;
+  };
+  const savedDuration = (key, line) => (lineDurations[key] != null ? lineDurations[key] : lineDurations[line]);
   // Picks the localised variant of a translatable statement/cast entry.
   const pick = (base, i18n, key = 'text') => {
     const v = i18n && (i18n[meta.lang] || i18n[meta.lang.split('-')[0]]);
@@ -112,6 +123,8 @@ export function compile(script, options = {}) {
       model: entry.model ?? null,
       animation: entry.animation ?? null,
       flip: !!entry.flip,
+      accent: entry.accent ?? null,
+      baleen: !!entry.baleen,
       billboard: entry.billboard ?? (entry.image ? true : false),
       index: castOrder.length,
       declared: line != null,
@@ -228,7 +241,9 @@ export function compile(script, options = {}) {
       }
       case 'dialog': {
         const t0 = cursor;
-        const dur = lineDurations[st.line] != null ? Math.max(lineDurations[st.line], st.duration ?? 0) : (st.duration ?? dialogDuration(st.text));
+        const key = lineKey(st.speaker, st.text);
+        const saved = savedDuration(key, st.line);
+        const dur = saved != null ? Math.max(saved, st.duration ?? 0) : (st.duration ?? dialogDuration(st.text));
         const t1 = advance(t0, dur, st.nonBlocking);
         const speakerName = st.speaker;
         let kind = 'dialog';
@@ -249,7 +264,7 @@ export function compile(script, options = {}) {
         const narratorCast = castOrder.find((n) => cast[n].kind === 'narrator');
         const voiceOwner = actorName ?? (kind === 'narration' ? narratorCast : null);
         subtitles.push({
-          t0, t1, kind, speaker: label, actor: actorName, line: st.line,
+          t0, t1, kind, speaker: label, actor: actorName, line: st.line, key,
           text: pick(st.text, st.i18n), texts: allTexts(st.text, st.i18n),
           color: actorName ? cast[actorName].color : null,
           voice: voiceOwner ? (cast[voiceOwner].voice ?? null) : null,
@@ -283,7 +298,7 @@ export function compile(script, options = {}) {
           }
           case 'sound': { sounds.push({ t: t0, file: st.file, volume: st.volume ?? 1, offset: st.offset ?? 0 }); if (st.duration) advance(t0, st.duration, st.nonBlocking); break; }
           case 'title': { const d = st.duration ?? 3; overlays.push({ type: 'title', t0, t1: t0 + d, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), subtitle: pick(st.subtitle ?? null, st.i18n, 'subtitle') }); advance(t0, d, st.nonBlocking); break; }
-          case 'caption': { const d = lineDurations[st.line] ?? st.duration ?? dialogDuration(st.quote); subtitles.push({ t0, t1: t0 + d, kind: 'caption', speaker: null, line: st.line, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), spoken: false }); advance(t0, d, st.nonBlocking); break; }
+          case 'caption': { const key = lineKey('', st.quote); const d = savedDuration(key, st.line) ?? st.duration ?? dialogDuration(st.quote); subtitles.push({ t0, t1: t0 + d, kind: 'caption', speaker: null, line: st.line, key, text: pick(st.quote, st.i18n), texts: allTexts(st.quote, st.i18n), spoken: false }); advance(t0, d, st.nonBlocking); break; }
           case 'cut': pendingCut = true; break;
           case 'marker': markers.push({ t: t0, label: st.quote || 'marker', kind: 'marker' }); break;
           default: warn(st.line, `directive "${st.name}" is not supported yet; ignored`);

@@ -261,6 +261,9 @@ export function parseCastAttrs(text) {
   const anim = rest.match(/\b(?:animation|clip)\s*[:=]?\s*["“]([^"”]*)["”]/i);
   if (anim) { actor.animation = anim[1].trim(); rest = rest.replace(anim[0], ' '); }
   if (/\bflip(?:ped)?\b/i.test(rest)) { actor.flip = true; rest = rest.replace(/\bflip(?:ped)?\b/i, ' '); }
+  const acc = rest.match(/\baccent\s*[:=]?\s*(#[0-9a-f]{3,8}|[a-z]+)/i);
+  if (acc) { actor.accent = acc[1].toLowerCase(); rest = rest.replace(acc[0], ' '); }
+  if (/\b(?:baleen|stripes|striped mouth)\b/i.test(rest)) { actor.baleen = true; rest = rest.replace(/\b(?:baleen|stripes|striped mouth)\b/i, ' '); }
   if (/\bbillboard\b/i.test(rest)) { actor.billboard = true; rest = rest.replace(/\bbillboard\b/i, ' '); }
   const q = takeQuote(rest);
   if (q.quote != null && actor.label == null) { actor.label = q.quote; rest = q.rest; }

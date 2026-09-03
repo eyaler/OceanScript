@@ -1,0 +1,128 @@
+# Renders an OceanScript screenplay on GitHub-hosted runners and publishes the
+# video as a GitHub Release asset (up to 2 GB per file), so long or
+# high-resolution films are not limited by the 100 MB per-file limit of git.
+#
+# Frames are deterministic, so the frame range is split across a matrix of
+# parallel jobs; a final job concatenates the chunks, adds voices and
+# subtitles, and uploads the result.
+name: Render
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Script file (relative to the repo)
+        default: examples/caspion.md
+      lang:
+        description: Language code (subtitles, title cards, voices)
+        default: en
+      width:
+        description: Output width
+        default: "1920"
+      height:
+        description: Output height
+        default: "1080"
+      chunks:
+        description: Number of parallel render jobs
+        default: "6"
+      crf:
+        description: x264 quality (lower = better, 18 = near lossless)
+        default: "17"
+      release:
+        description: Release tag to upload to
+        default: renders
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      frames: ${{ steps.plan.outputs.frames }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: pip install edge-tts
+      - name: Resolve audio timing and count frames
+        id: plan
+        run: |
+          node bin/oceanscript.js check "${{ inputs.script }}" --lang "${{ inputs.lang }}" --width ${{ inputs.width }} --height ${{ inputs.height }} > check.txt
+          cat check.txt
+          FRAMES=$(grep -oE '[0-9]+ frames' check.txt | grep -oE '[0-9]+')
+          echo "frames=$FRAMES" >> "$GITHUB_OUTPUT"
+          python3 - "$FRAMES" "${{ inputs.chunks }}" <<'PY' >> "$GITHUB_OUTPUT"
+          import sys, json, math
+          frames, n = int(sys.argv[1]), int(sys.argv[2])
+          per = math.ceil(frames / n)
+          chunks = [{"i": i, "a": i * per, "b": min(frames, (i + 1) * per)} for i in range(n) if i * per < frames]
+          print("matrix=" + json.dumps({"chunk": chunks}))
+          PY
+      - name: Save timing
+        uses: actions/upload-artifact@v4
+        with:
+          name: timing
+          path: out/*.timing.json
+          if-no-files-found: ignore
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install edge-tts
+      - uses: actions/download-artifact@v4
+        with: { name: timing, path: out }
+        continue-on-error: true
+      - name: Render frames ${{ matrix.chunk.a }}-${{ matrix.chunk.b }}
+        run: |
+          TF=$(ls out/*.timing.json 2>/dev/null | head -1)
+          node bin/oceanscript.js render "${{ inputs.script }}" --lang "${{ inputs.lang }}" \
+            --width ${{ inputs.width }} --height ${{ inputs.height }} --crf ${{ inputs.crf }} \
+            --start-frame ${{ matrix.chunk.a }} --end-frame ${{ matrix.chunk.b }} --raw \
+            ${TF:+--timing-file $TF} -o out/chunks/chunk_$(printf %02d ${{ matrix.chunk.i }}).mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chunk-${{ matrix.chunk.i }}
+          path: out/chunks/*.mp4
+
+  publish:
+    needs: [plan, render]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install edge-tts
+      - uses: actions/download-artifact@v4
+        with: { pattern: chunk-*, path: out/chunks, merge-multiple: true }
+      - uses: actions/download-artifact@v4
+        with: { name: timing, path: out }
+        continue-on-error: true
+      - name: Concatenate, add voices and subtitles
+        run: |
+          NAME=$(basename "${{ inputs.script }}" .md)
+          ls out/chunks
+          for f in $(ls out/chunks/*.mp4 | sort); do echo "file '$PWD/$f'"; done > out/list.txt
+          ffmpeg -y -f concat -safe 0 -i out/list.txt -c copy out/$NAME.${{ inputs.lang }}.video.mp4
+          TF=$(ls out/*.timing.json 2>/dev/null | head -1)
+          node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$NAME.${{ inputs.lang }}.video.mp4 --lang "${{ inputs.lang }}" ${TF:+--timing-file $TF} -o out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.mp4
+          ls -la out
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NAME=$(basename "${{ inputs.script }}" .md)
+          gh release view "${{ inputs.release }}" >/dev/null 2>&1 || gh release create "${{ inputs.release }}" --title "OceanScript renders" --notes "Videos rendered by the Render workflow." --prerelease
+          gh release upload "${{ inputs.release }}" out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.mp4 out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.srt out/$NAME.${{ inputs.lang }}.${{ inputs.width }}p.vtt --clobber

@@ -31,7 +31,7 @@ export async function resolveLineDurations(file, opts = {}, log = console.error)
     if (res.engine === 'none') break;
     for (const c of res.clips) {
       const need = Math.max(MIN_SLOT, c.duration + PAD);
-      lineDurations[c.sub.line] = Math.max(lineDurations[c.sub.line] ?? 0, need);
+      lineDurations[c.sub.key] = Math.max(lineDurations[c.sub.key] ?? 0, need);
     }
   }
   return { lineDurations, languages: langs, engine };

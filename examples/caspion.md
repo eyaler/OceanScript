@@ -19,16 +19,16 @@ timing: audio
 # Cast
 - narrator: voice "en-US-GuyNeural"
   he: voice "he-IL-AvriNeural"
-- caspion: fish, silver, size 0.6, label "Caspion", voice "en-US-AnaNeural" pitch 10 rate 5
-  he: label "כספיון", voice "he-IL-HilaNeural" pitch 30 rate 8
-- whaley (Little Whale): baby whale, blue, size 4, voice "en-US-AnaNeural" pitch -5 rate -5
-  he: label "לווייתן קטן", voice "he-IL-HilaNeural" pitch 12 rate -6
-- mother (Mother Whale): whale, navy, size 10, voice "en-US-JennyNeural" pitch -12 rate -8
-  he: label "אמא לווייתנית", voice "he-IL-HilaNeural" pitch -12 rate -10
-- shark: shark, gray, size 4, voice "en-US-ChristopherNeural" pitch -25 rate -10
-  he: label "כריש", voice "he-IL-AvriNeural" pitch -25 rate -12
-- octopus: octopus, red, size 1.6, voice "en-US-GuyNeural" pitch -8
-  he: label "תמנון", voice "he-IL-AvriNeural" pitch -6 rate -4
+- caspion: fish, silver, size 0.6, label "Caspion", voice "en-US-AnaNeural"
+  he: label "כספיון", voice "he-IL-HilaNeural" pitch 8
+- whaley (Little Whale): baby whale, blue, size 4, voice "en-US-AnaNeural" rate -5
+  he: label "לווייתן קטן", voice "he-IL-HilaNeural"
+- mother (Mother Whale): whale, navy, size 10, voice "en-US-JennyNeural" rate -5
+  he: label "אמא לווייתנית", voice "he-IL-HilaNeural" pitch -6 rate -5
+- shark: shark, gray, size 4, voice "en-US-ChristopherNeural" pitch -10 rate -5
+  he: label "כריש", voice "he-IL-AvriNeural" pitch -10 rate -6
+- octopus: octopus, red, size 1.6, voice "en-US-GuyNeural"
+  he: label "תמנון", voice "he-IL-AvriNeural" rate -3
 - jelly (Jellyfish): jellyfish, pink, size 1
   he: label "מדוזה"
 - friends: school, gold, count 14, size 0.35
@@ -119,6 +119,7 @@ timing: audio
 @whaley swims near @mother over 3s
 **Little Whale:** Mama! You found me!
   he: אמא! מצאת אותי!
+  he-tts: אִמָּא! מָצָאת אוֹתִי!
 @camera moves to @whaley distance 9 over 3s &
 @whaley looks at @caspion
 **Little Whale:** This is Caspion. He helped me!
@@ -145,6 +146,7 @@ timing: audio
 @octopus wiggles for 2s
 **Octopus:** Then my friend the jellyfish will carry you, with the sea held in her bell.
   he: אז חברתי המדוזה תישא אותך, עם הים שמור בתוך הפעמון שלה.
+  he-tts: אָז חֲבֶרְתִּי הַמֵּדוּזָה תִּשָּׂא אוֹתְךָ, עִם הַיָּם שָׁמוּר בְּתוֹךְ הַפַּעֲמוֹן שֶׁלָּהּ.
 @jelly swims near @caspion over 4s
 @jelly glows for 3s &
 @jelly carries @caspion

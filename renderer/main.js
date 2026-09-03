@@ -231,7 +231,9 @@ function seek(t) {
             const side = fx.type === 'cry' ? (i % 2 ? 1 : -1) : 0;
             const wob = Math.sin(age * 5 + i) * 0.08 * sc;
             const ox = fx.type === 'cry' ? side * 0.14 * sc * 2 - 0.14 * sc : 0;
-            fxEmit(origin.x + ox + wob, origin.y + k * 2.2 * sc + (fx.type === 'cry' ? -0.05 : 0), origin.z + Math.cos(age * 4 + i) * 0.05 * sc, (0.04 + k * 0.05) * sc * (fx.type === 'cry' ? 0.7 : 1), fx.type === 'cry' ? 0.6 : 1, fx.type === 'cry' ? 0.85 : 1, 1);
+            const tc = fx.type === 'cry' && rig.tearColor ? new THREE.Color(rig.tearColor) : null;
+            if (fx.type === 'cry' && tc) fxEmit(origin.x + ox + wob, origin.y - k * 1.6 * sc, origin.z + Math.cos(age * 4 + i) * 0.05 * sc, (0.1 + k * 0.04) * sc, tc.r, tc.g, tc.b);
+            else fxEmit(origin.x + ox + wob, origin.y + k * 2.2 * sc + (fx.type === 'cry' ? -0.05 : 0), origin.z + Math.cos(age * 4 + i) * 0.05 * sc, (0.04 + k * 0.05) * sc * (fx.type === 'cry' ? 0.7 : 1), fx.type === 'cry' ? 0.6 : 1, fx.type === 'cry' ? 0.85 : 1, 1);
           }
         }
       }

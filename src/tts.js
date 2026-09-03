@@ -8,7 +8,7 @@
 // character with ffmpeg), `none`.
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, statSync, writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { findFfmpeg } from './ffmpeg.js';
 
@@ -29,9 +29,34 @@ function pyHas(mod) { return spawnSync('python3', ['-c', `import ${mod}`], { std
 
 export function detectEngine(preferred = 'auto') {
   if (preferred && preferred !== 'auto') return preferred;
+  if (process.env.ELEVENLABS_API_KEY) return 'elevenlabs';
   if (which('edge-tts') || pyHas('edge_tts')) return 'edge';
   if (pyHas('gtts')) return 'gtts';
   return 'none';
+}
+
+// ---- Hebrew vowel pointing (nikud) -------------------------------------------
+// Unpointed Hebrew is ambiguous, so TTS engines mispronounce many words.  Before
+// synthesis, Hebrew lines are sent to Dicta's Nakdan service (cached) and the
+// vocalised text is spoken instead.  Authors can override any line with a
+// `he-tts:` continuation line (pointed text or phonetic respelling).
+const NAKDAN_URL = process.env.NAKDAN_URL || 'https://nakdan-5-3.loadbalancer.dicta.org.il/api';
+export function stripNikud(text) { return text.replace(/[\u0591-\u05C7]/g, ''); }
+export async function addNikud(text, cacheDir) {
+  if (!/[\u05D0-\u05EA]/.test(text)) return text;
+  if (/[\u05B0-\u05C7]/.test(text)) return text; // already pointed by the author
+  const key = createHash('sha1').update('nakdan|' + text).digest('hex').slice(0, 16);
+  const file = path.join(cacheDir, `${key}.nikud.json`);
+  if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8')).pointed;
+  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: false, keepmetagim: false, keepqq: false, nodageshdefmem: false, patachma: false });
+  const r = spawnSync('curl', ['-sS', '-m', '40', '-H', 'Content-Type: application/json', '-d', body, NAKDAN_URL], { encoding: 'utf8', env: { ...process.env, SSL_CERT_FILE: process.env.SSL_CERT_FILE || '/root/.ccr/ca-bundle.crt' } });
+  let pointed = text;
+  try {
+    const tokens = JSON.parse(r.stdout);
+    pointed = tokens.map((t) => (t.sep || !t.options || !t.options.length) ? t.word : t.options[0].replace(/\|/g, '')).join('');
+  } catch { return text; }
+  writeFileSync(file, JSON.stringify({ text, pointed }));
+  return pointed;
 }
 
 function proxyArgs() {
@@ -71,6 +96,15 @@ async function synthesize(engine, text, v, lang, outFile) {
     if (r.status !== 0 || !existsSync(outFile) || statSync(outFile).size === 0) throw new Error(`edge-tts failed: ${(r.stderr || '').trim().split('\n').pop()}`);
     return;
   }
+  if (engine === 'elevenlabs') {
+    const key = process.env.ELEVENLABS_API_KEY;
+    if (!key) throw new Error('ELEVENLABS_API_KEY is not set');
+    const voiceId = v.voice || process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
+    const body = JSON.stringify({ text, model_id: process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2', voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.3, speed: 1 + (v.rate || 0) / 100 } });
+    const r = spawnSync('curl', ['-sS', '-m', '120', '-f', '-o', outFile, '-H', `xi-api-key: ${key}`, '-H', 'Content-Type: application/json', '-H', 'Accept: audio/mpeg', '-d', body, `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`], { encoding: 'utf8' });
+    if (r.status !== 0 || !existsSync(outFile) || statSync(outFile).size === 0) throw new Error(`elevenlabs failed: ${(r.stderr || '').trim().split('\n').pop()}`);
+    return;
+  }
   if (engine === 'gtts') {
     const gl = GTTS_LANG[lang.split('-')[0]] || lang.split('-')[0];
     const r = spawnSync('python3', ['-c', 'import sys; from gtts import gTTS; gTTS(sys.argv[1], lang=sys.argv[2]).save(sys.argv[3])', text, gl, outFile], { encoding: 'utf8' });
@@ -94,12 +128,16 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
   const clips = [];
   const spoken = timeline.subtitles.filter((s) => s.spoken && s.text);
   let made = 0;
+  const wantNikud = timeline.meta.nikud !== false && lang.split('-')[0] === 'he';
   for (const sub of spoken) {
     const v = pickVoice(engine, lang, sub, timeline.cast);
-    const key = createHash('sha1').update(JSON.stringify([engine, lang, v, sub.text])).digest('hex').slice(0, 16);
+    let spokenText = (sub.texts && (sub.texts[`${lang}-tts`] || sub.texts[`${lang.split('-')[0]}-tts`])) || sub.text;
+    if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
+    sub.spokenText = spokenText;
+    const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);
     const file = path.join(cacheDir, `${key}.mp3`);
     if (!existsSync(file) || statSync(file).size === 0) {
-      await synthesize(engine, sub.text, v, lang, file);
+      await synthesize(engine, spokenText, v, lang, file);
       made++;
     }
     const duration = probeDuration(ff, file);
@@ -186,5 +224,5 @@ export function mixTrack(timeline, clips, outFile, { music = null, musicVolume =
 
 // Writes a JSON manifest next to the audio (useful for inspection / lip-sync work).
 export function writeManifest(clips, file) {
-  writeFileSync(file, JSON.stringify(clips.map((c) => ({ t0: c.sub.t0, slot: c.sub.t1 - c.sub.t0, duration: c.duration, speaker: c.sub.speaker, kind: c.sub.kind, voice: c.voice, text: c.sub.text, clip: c.file })), null, 2));
+  writeFileSync(file, JSON.stringify(clips.map((c) => ({ t0: c.sub.t0, slot: c.sub.t1 - c.sub.t0, duration: c.duration, speaker: c.sub.speaker, kind: c.sub.kind, voice: c.voice, text: c.sub.text, spoken: c.sub.spokenText, clip: c.file })), null, 2));
 }

@@ -156,6 +156,20 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
   default voices per language live in `DEFAULT_VOICES` in `src/tts.js`.
 * **New TTS engine** – add a case to `synthesize()` in `src/tts.js`.
 
+## Rendering long or high-resolution films on GitHub
+
+The container behind a Claude session renders at roughly one 720p frame per
+second and git refuses files over 100 MB, so long or 1080p films are rendered
+by the **Render** workflow (`.github/workflows/render.yml`) instead: run it
+from the Actions tab with a script, language, resolution and number of parallel
+chunks.  Frames are deterministic, so the chunks render in parallel on separate
+runners and are concatenated losslessly; the final job adds voices and
+subtitles and uploads the video to a GitHub Release (assets may be up to 2 GB).
+A 35-minute film at 1080p in 12 chunks takes about two hours.
+
+Renders made inside a session are committed to the `renders` branch (files
+under 100 MB) and, when under 30 MB, attached to the chat.
+
 ## Tests
 
 ```bash
