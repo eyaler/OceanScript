@@ -23,6 +23,8 @@ export const KIND_DEFAULTS = {
   pelican:   { size: 1.8, speed: 7 },
   bubble:    { size: 1.2, speed: 1 },
   sprite:    { size: 1.5, speed: 3 },
+  bike:      { size: 1.0, speed: 4 },
+  mango:     { size: 0.4, speed: 2 },
   model:     { size: 1.5, speed: 3 },
   narrator:  { size: 1,   speed: 1 },
 };
@@ -31,7 +33,7 @@ const KIND_COLORS = {
   fish: 'silver', shark: 'gray', whale: '#3b6fb6', octopus: '#c2452d', jellyfish: '#ff9ad5',
   turtle: '#4f8f3a', crab: '#e2542b', school: '#f5b73b', dolphin: '#7e9fc4', seahorse: '#f2c14e',
   starfish: '#ff7f50', ray: '#556677', eel: '#4c6b3a', squid: '#d88ca6',
-  bird: '#f4f4f4', pelican: '#f6f2ea', bubble: '#dff6ff', sprite: '#ffffff', model: '#ffffff',
+  bird: '#f4f4f4', pelican: '#f6f2ea', bubble: '#dff6ff', sprite: '#ffffff', model: '#ffffff', bike: '#d63a2f', mango: '#f7b731',
 };
 const CAMERA_SPEED = 6;
 // Built-in sound effects (procedurally generated, see assets/sfx) played with effects.
@@ -219,6 +221,7 @@ export function compile(script, options = {}) {
   };
 
   // ---- statements -------------------------------------------------------------
+  const eatenSides = new Map();
   for (const st of script.statements) {
     if (st.type !== 'scene' && st.type !== 'env' && st.type !== 'note' && st.type !== 'beat') sceneJustStarted = false;
     switch (st.type) {
@@ -359,6 +362,7 @@ export function compile(script, options = {}) {
     const t0 = cursor;
     const size = sizeOf(name);
     const ease = st.ease ?? 'smooth';
+    if (st.verb === 'eat' && st.target?.actor && !['mango'].includes(cast[st.target.actor]?.kind)) st.verb = 'swallow';
     switch (st.verb) {
       case 'place': {
         const tr = actorTracks(name, st.line);
@@ -459,7 +463,7 @@ export function compile(script, options = {}) {
           offset = view === 'behind' ? [0, 0, -gap] : view === 'front' ? [0, 0, gap] : view === 'above' ? [0, gap, 0] : view === 'below' ? [0, -gap, 0] : [gap, 0, 0];
         }
         const dur = st.duration ?? Infinity;
-        tr.segments.push({ type: 'follow', t0, t1: Number.isFinite(dur) ? t0 + dur : 1e9, actor: other, offset, frame: (view === 'behind' || view === 'front') ? 'local' : 'world' });
+        tr.segments.push({ type: 'follow', t0, t1: Number.isFinite(dur) ? t0 + dur : 1e9, actor: other, offset, frame: (view === 'behind' || view === 'front' || view === 'side') ? 'local' : 'world' });
         est[name] = vadd(estPos(other), offset);
         if (Number.isFinite(dur)) advance(t0, dur, st.nonBlocking);
         break;
@@ -542,9 +546,11 @@ export function compile(script, options = {}) {
         cast[name].speed = st.speed;
         break;
       }
-      case 'carry': case 'swallow': {
-        const carrier = name;
-        const carried = st.target.actor;
+      case 'carry': case 'swallow': case 'ride': {
+        // `@bike carries @caspion` and `@caspion rides @bike` are the same attachment
+        const carrier = st.verb === 'ride' ? st.target?.actor : name;
+        const carried = st.verb === 'ride' ? name : st.target?.actor;
+        if (!carrier || !carried) { warn(st.line, `${st.verb} needs an @actor`); break; }
         ensurePlaced(carrier, t0, st.line);
         const tr = ensurePlaced(carried, t0, st.line);
         const ck = cast[carrier]?.kind;
@@ -555,6 +561,7 @@ export function compile(script, options = {}) {
           : ck === 'bubble' ? [0, 0, 0]
           : ck === 'jellyfish' ? [0, -cs * 0.25, 0]
           : ck === 'octopus' || ck === 'squid' ? [0, -cs * 0.3, cs * 0.3]
+          : ck === 'bike' ? [0, cs * 0.5, cs * 0.02]
           : [0, cs * 0.35, 0];
         const offset = st.target.offset ?? defOff;
         tr.segments.push({ type: 'follow', t0, t1: 1e9, actor: carrier, offset, frame: 'local', attached: true });
@@ -579,12 +586,48 @@ export function compile(script, options = {}) {
         }
         break;
       }
-      case 'drop': {
-        const carried = st.target?.actor;
+      case 'drop': case 'dismount': {
+        const carried = st.verb === 'dismount' ? name : st.target?.actor;
         if (carried) {
           const tr = ensurePlaced(carried, t0, st.line);
           tr.segments.push({ type: 'hold', t0, t1: t0 });
         }
+        break;
+      }
+      case 'split': {
+        // a mango (or any food) breaks into two halves that drift apart
+        const tr = ensurePlaced(name, t0, st.line);
+        const dur = st.duration ?? 0.8;
+        tr.effects.push({ t0, t1: 1e9, type: 'split', dur });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
+      case 'eat': {
+        // `@caspion eats @mango over 5s`: the eater chews on the half nearest to
+        // it (pulp floats off, its face gets messy), the mango loses that half
+        const food = st.target?.actor;
+        const tr = ensurePlaced(name, t0, st.line);
+        const ft = food ? ensurePlaced(food, t0, st.line) : null;
+        const dur = st.duration ?? 5;
+        let side = 1;
+        if (ft) {
+          const dx = estPos(name)[0] - estPos(food)[0];
+          const taken = eatenSides.get(food) || new Set();
+          side = Math.abs(dx) > 0.05 ? Math.sign(dx) : (taken.has(-1) ? 1 : -1);
+          if (taken.has(side)) side = -side;
+          taken.add(side); eatenSides.set(food, taken);
+          if (!ft.effects.some((e) => e.type === 'split')) ft.effects.push({ t0, t1: 1e9, type: 'split', dur: 0.6 });
+          ft.effects.push({ t0, t1: 1e9, dur, type: 'eaten', side });   // stays eaten
+        }
+        tr.effects.push({ t0, t1: t0 + dur, type: 'eat', side });
+        tr.effects.push({ t0: t0 + 0.6, t1: t0 + dur + 25, type: 'messy' });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
+      case 'clean': {
+        const tr = ensurePlaced(name, t0, st.line);
+        for (const e of tr.effects) if (e.type === 'messy' && e.t0 <= t0 && e.t1 > t0) e.t1 = t0 + 1;
+        advance(t0, st.duration ?? 1, st.nonBlocking);
         break;
       }
       default:
@@ -631,7 +674,7 @@ export function compile(script, options = {}) {
         const offset = st.target.offset ?? camOffsetFor(other, view, st.distance, st.height);
         const dur = st.duration ?? Infinity;
         const blend = 1.0;
-        camera.segments.push({ type: 'follow', t0, t1: Number.isFinite(dur) ? t0 + dur : 1e9, actor: other, offset, frame: (view === 'behind' || view === 'front') ? 'local' : 'world', blend });
+        camera.segments.push({ type: 'follow', t0, t1: Number.isFinite(dur) ? t0 + dur : 1e9, actor: other, offset, frame: (view === 'behind' || view === 'front' || view === 'side') ? 'local' : 'world', blend });
         camera.looks.push({ t0, t1: t0 + blend, target: { actor: other } });
         camEst = vadd(estPos(other), offset);
         if (Number.isFinite(dur)) advance(t0, dur, st.nonBlocking);

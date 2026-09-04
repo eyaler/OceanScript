@@ -245,20 +245,22 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
     // big eyes sit a little higher and further apart so they stay on the head
     const er = 0.075 * eyeScale, k = Math.min(1, Math.max(0, eyeScale - 1));
     eyeMeshes = eyes(inner, color, { z: 0.33 - 0.05 * k, x: 0.12 + 0.06 * k, y: 0.1 + 0.06 * k, r: er }).eyes;
-    mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.075, h: 0.045, teethCount: 4, teethSize: 0.01 });
+    if (detail === 'high') mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.075, h: 0.045, teethCount: 4, teethSize: 0.01 });
+    else mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.06, h: 0.035, teethCount: 1, teethSize: 0.006 });
   }
   if (forelock) {
-    // a curly forelock: a few little rings tumbling over the forehead
-    const curlMat = mat(accent || darken(color, 0.25), { roughness: 0.6 });
+    // a curly forelock in the body colour, tumbling over the forehead (the
+    // head is the front of the body, the dorsal fin sits further back)
+    const curlMat = mat(color, { roughness: 0.55 });
     const curls = new THREE.Group();
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2, rr = 0.03 + 0.012 * ((i * 7) % 3);
-      const c = new THREE.Mesh(new THREE.TorusGeometry(rr, rr * 0.45, 8, 14), curlMat);
-      c.position.set(Math.sin(a) * 0.06, 0.42 + Math.cos(a * 1.7) * 0.03, 0.2 + Math.cos(a) * 0.07);
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2, rr = 0.028 + 0.012 * ((i * 5) % 3);
+      const c = new THREE.Mesh(new THREE.TorusGeometry(rr, rr * 0.5, 8, 14), curlMat);
+      const ang = -0.35 + (i / 6) * 0.7;                      // spread across the brow
+      c.position.set(Math.sin(ang) * 0.16, 0.27 + Math.cos(a * 1.3) * 0.04, 0.3 + Math.cos(ang) * 0.1);
       c.rotation.set(Math.sin(a * 2) * 0.9, a, Math.cos(a) * 0.6);
       curls.add(c);
     }
-    curls.position.z = 0.02;
     inner.add(curls);
   }
   const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, mouth: mouthRig, kind: 'fish' };
@@ -902,7 +904,7 @@ function buildSchool(color, count) {
   const members = [];
   const radius = 0.9 * Math.cbrt(count);
   for (let i = 0; i < count; i++) {
-    const f = buildFish(color, { detail: 'low' });
+    const f = buildFish(color, { detail: 'medium', seed: Math.round(r() * 1000) });
     f.seed = r() * 100;
     f.size = 1;
     const off = new THREE.Vector3((r() - 0.5) * 2 * radius, (r() - 0.5) * radius, (r() - 0.5) * 2 * radius);
@@ -918,6 +920,172 @@ function buildSchool(color, count) {
       m.rig.group.rotation.set(0, Math.sin(t * 0.6 + m.ph) * 0.2, 0);
       m.rig.animate(t, { ...state, speed: state.speed + 1, effects: [] });
     }
+  };
+  return rig;
+}
+
+// ---- bicycle ----------------------------------------------------------------------
+// A cartoon bicycle facing +z, about one unit long, origin at the bottom bracket.
+// Wheels and pedals turn with the distance travelled (state.dist).
+function buildBike(color) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const frameMat = mat(color, { roughness: 0.4, metalness: 0.3 });
+  const darkMat = mat('#1b1e24', { roughness: 0.7 });
+  const chromeMat = mat('#c9d3dc', { roughness: 0.3, metalness: 0.6 });
+  const R = 0.22;
+  const tube = (a, b, r = 0.018, m = frameMat) => {
+    const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b);
+    const len = va.distanceTo(vb);
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), m);
+    c.position.copy(va).lerp(vb, 0.5);
+    c.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize());
+    inner.add(c);
+    return c;
+  };
+  const wheels = [];
+  for (const z of [-0.34, 0.34]) {
+    const w = new THREE.Group();
+    w.position.set(0, 0, z);
+    const tyre = new THREE.Mesh(new THREE.TorusGeometry(R, 0.035, 10, 28), darkMat);
+    tyre.rotation.y = Math.PI / 2;
+    w.add(tyre);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.06, 10), chromeMat);
+    hub.rotation.z = Math.PI / 2;
+    w.add(hub);
+    for (let i = 0; i < 8; i++) {
+      const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, R * 2 - 0.05, 4), chromeMat);
+      sp.rotation.x = (i / 8) * Math.PI;
+      w.add(sp);
+    }
+    inner.add(w);
+    wheels.push(w);
+  }
+  const seatTop = [0, 0.36, -0.1], head = [0, 0.34, 0.26], bb = [0, 0, 0];
+  tube(bb, seatTop);                        // seat tube
+  tube(bb, head);                           // down tube
+  tube(seatTop, head);                      // top tube
+  tube(bb, [0, 0, -0.34]);                  // chain stays
+  tube(seatTop, [0, 0, -0.34]);             // seat stays
+  tube(head, [0, 0, 0.34]);                 // fork
+  tube([0, 0.34, 0.26], [0, 0.44, 0.24], 0.016, chromeMat);          // stem
+  tube([-0.17, 0.44, 0.24], [0.17, 0.44, 0.24], 0.014, chromeMat);   // handlebar
+  for (const sx of [-1, 1]) { const grip = tube([sx * 0.13, 0.44, 0.24], [sx * 0.18, 0.44, 0.24], 0.02, darkMat); }
+  tube([0, 0.36, -0.1], [0, 0.44, -0.12], 0.014, chromeMat);          // seat post
+  const saddle = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), darkMat);
+  saddle.scale.set(0.9, 0.45, 1.5);
+  saddle.position.set(0, 0.46, -0.13);
+  inner.add(saddle);
+  // crank + pedals
+  const crank = new THREE.Group();
+  const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 8), chromeMat);
+  axle.rotation.z = Math.PI / 2;
+  crank.add(axle);
+  for (const sx of [-1, 1]) {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.15, 0.03), chromeMat);
+    arm.position.set(sx * 0.09, sx * 0.065, 0);
+    crank.add(arm);
+    const pedal = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.05), darkMat);
+    pedal.position.set(sx * 0.13, sx * 0.13, 0);
+    pedal.userData.sx = sx;
+    crank.add(pedal);
+  }
+  inner.add(crank);
+  const chainring = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 6, 20), chromeMat);
+  chainring.rotation.y = Math.PI / 2;
+  chainring.position.x = 0.04;
+  inner.add(chainring);
+  const rig = { group: g, inner, kind: 'bike', wantsDistance: true, seatPoint: new THREE.Vector3(0, 0.5, 0.02) };
+  rig.animate = (t, state) => {
+    inner.rotation.set(0, 0, 0);
+    inner.position.set(0, 0, 0);
+    const worldR = R * (rig.size || 1);
+    const ang = (state.dist || 0) / Math.max(1e-3, worldR);
+    for (const w of wheels) w.rotation.x = -ang;
+    crank.rotation.x = -ang * 0.45;
+    // pedals stay level
+    crank.children.forEach((c) => { if (c.userData.sx) c.rotation.x = ang * 0.45; });
+    for (const fx of state.effects) {
+      if (fx.type === 'wiggle') inner.rotation.z += Math.sin(t * 18) * 0.3 * Math.sin(Math.PI * fx.u);
+    }
+  };
+  return rig;
+}
+
+// ---- mango ------------------------------------------------------------------------
+// A ripe mango (yellow with a red blush and a leaf) that splits into two halves,
+// each of which can be eaten away (effects `split`, `eaten`).
+function buildMango(color) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const skin = new THREE.Color(color), blush = new THREE.Color('#e2492c'), flesh = new THREE.Color('#f9a825');
+  const halfMats = [];
+  const makeHalf = (sx) => {
+    const geo = new THREE.SphereGeometry(0.5, 24, 16, sx > 0 ? -Math.PI / 2 : Math.PI / 2, Math.PI);
+    const pos = geo.attributes.position, col = new Float32Array(pos.count * 3), tmp = new THREE.Color();
+    for (let i = 0; i < pos.count; i++) {
+      const k = THREE.MathUtils.smoothstep(pos.getY(i) - pos.getZ(i) * 0.3, -0.1, 0.5);
+      tmp.copy(skin).lerp(blush, k * 0.85);
+      col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.02 });
+    halfMats.push(m);
+    const half = new THREE.Group();
+    const shell = new THREE.Mesh(geo, m);
+    half.add(shell);
+    // the cut face: juicy flesh with a pale pit
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.49, 32), new THREE.MeshStandardMaterial({ color: flesh, roughness: 0.55, side: THREE.DoubleSide }));
+    face.rotation.y = sx > 0 ? -Math.PI / 2 : Math.PI / 2;
+    face.position.x = sx * 0.003;
+    half.add(face);
+    const pit = new THREE.Mesh(new THREE.CircleGeometry(0.2, 24), new THREE.MeshStandardMaterial({ color: new THREE.Color('#f5e6b3'), roughness: 0.8, side: THREE.DoubleSide }));
+    pit.rotation.y = face.rotation.y;
+    pit.position.set(sx * 0.006, 0, 0);
+    pit.scale.set(1, 1.6, 1);
+    half.add(pit);
+    half.scale.set(0.8, 1, 0.7);
+    inner.add(half);
+    return half;
+  };
+  const halves = [makeHalf(-1), makeHalf(1)];
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.14, 8), mat('#6b4a2b', { roughness: 0.9 }));
+  stem.position.set(0, 0.52, -0.05);
+  inner.add(stem);
+  const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), mat('#3fa34d', { roughness: 0.6, side: THREE.DoubleSide }));
+  leaf.scale.set(0.5, 0.12, 1.4);
+  leaf.position.set(0.1, 0.56, 0.1);
+  leaf.rotation.set(0.3, 0.6, 0.2);
+  inner.add(leaf);
+  const rig = { group: g, inner, kind: 'mango', fixedYaw: true };   // a fruit never turns to face where it drifts
+  rig.animate = (t, state) => {
+    inner.rotation.set(0, 0, 0);
+    inner.position.set(0, Math.sin(t * 1.2) * 0.02, 0);
+    inner.rotation.y = Math.sin(t * 0.7) * 0.15;
+    let sep = 0;
+    const bites = [1, 1];
+    for (const fx of state.effects) {
+      if (fx.type === 'split') sep = smoother(Math.min(1, fx.age / (fx.dur || 0.8)));
+      if (fx.type === 'eaten') {
+        const i = fx.side > 0 ? 1 : 0;
+        // four cartoon bites, each a quick shrink, then gone
+        const k = Math.min(1, fx.age / (fx.dur || 5));
+        const steps = 4, sIdx = Math.floor(k * steps), frac = (k * steps) % 1;
+        bites[i] = Math.max(0, 1 - (sIdx + smoother(Math.min(1, frac * 3))) / steps);
+      }
+    }
+    halves.forEach((h, i) => {
+      const sx = i === 0 ? -1 : 1;
+      h.position.x = sx * sep * 0.95;
+      h.rotation.y = sx * sep * 0.35;
+      const sc = bites[i];
+      h.scale.set(0.8 * sc, 1 * sc, 0.7 * sc);
+      h.visible = sc > 0.02;
+    });
+    stem.visible = leaf.visible = sep < 0.5;
+    for (const fx of state.effects) if (fx.type === 'wiggle') inner.rotation.z += Math.sin(t * 20) * 0.2 * Math.sin(Math.PI * fx.u);
   };
   return rig;
 }
@@ -941,6 +1109,8 @@ export function createActorRig(cast, seed, extra = {}) {
     case 'seahorse': rig = buildEel(color, { kind: 'seahorse' }); break;
     case 'starfish': rig = buildStarfish(color); break;
     case 'school': rig = buildSchool(color, Math.max(3, Math.round(cast.count || 12))); break;
+    case 'bike': rig = buildBike(color); break;
+    case 'mango': rig = buildMango(toHex(cast.color, '#f7b731')); break;
     default: rig = buildFish(color, { pattern: cast.pattern || null, accent: cast.accent ? toHex(cast.accent) : null, seed: Math.round(seed), eyeScale: cast.eyes || 1, forelock: !!cast.forelock }); break;
   }
   rig.seed = seed;

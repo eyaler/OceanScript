@@ -231,6 +231,8 @@ export class TimelineEvaluator {
       let raw;
       let eventT = -Infinity;
       const seg = this.activeSegment(name, t);
+      // a passenger faces exactly where its carrier faces (rider on a bike, fish in a pouch)
+      if (seg && seg.type === 'follow' && seg.attached && t >= seg.t0 + (seg.blend ?? 0.5)) return this.heading(seg.actor, t);
       if (m.dir) {
         raw = m.dir;
         if (seg) eventT = seg.t0;
@@ -306,6 +308,7 @@ export class TimelineEvaluator {
           f.blink = Math.max(f.blink, phase < 0.5 ? Math.min(1, phase * 4) : Math.max(0, 1 - (phase - 0.5) * 4));
         }
         if (e.type === 'wink') f.wink = Math.max(f.wink, Math.sin(Math.PI * u));
+        if (e.type === 'eat') f.mouthOpen = Math.max(f.mouthOpen, 0.25 + 0.6 * Math.abs(Math.sin(e.age * 7)) * (u < 0.92 ? 1 : (1 - u) / 0.08));
         if (e.type === 'talk') {
           // lip-sync from the voice envelope when available, otherwise a generic rhythm
           const sub = e.line != null ? this.tl.subtitles.find((x) => x.line === e.line && x.t0 === e.t0) : null;
@@ -341,6 +344,27 @@ export class TimelineEvaluator {
     if (!cur) return 1;
     const u = smoother((t - cur.t0) / Math.max(1e-6, cur.t1 - cur.t0));
     return prev + (cur.to - prev) * u;
+  }
+
+  // distance travelled since the start (metres), from the timeline itself so
+  // every render chunk agrees: used to spin wheels and pedals
+  distance(name, t) {
+    const step = 0.05;
+    const n = Math.max(0, Math.floor(t / step));
+    if (!this._dist) this._dist = new Map();
+    let d = this._dist.get(name);
+    if (!d) { d = { sums: [0], last: this.pos(name, 0) }; this._dist.set(name, d); }
+    while (d.sums.length <= n) {
+      const k = d.sums.length;
+      const p = this.pos(name, k * step);
+      const vis = this.visible(name, k * step) && this.visible(name, (k - 1) * step);
+      const dd = vis ? Math.hypot(p[0] - d.last[0], p[1] - d.last[1], p[2] - d.last[2]) : 0;
+      d.sums.push(d.sums[k - 1] + (dd < 3 ? dd : 0));
+      d.last = p;
+    }
+    const p = this.pos(name, t);
+    const tail = Math.hypot(p[0] - d.last[0], p[1] - d.last[1], p[2] - d.last[2]);
+    return d.sums[n] + (n === d.sums.length - 1 && tail < 3 ? tail : 0);
   }
 
   effects(name, t) {

@@ -148,7 +148,12 @@ const ACTOR_VERBS = [
   [/^(?:shows?|reappears?|becomes? visible)\b/, 'show'],
   [/^(?:circles?|orbits?|swims? (?:around|round)|goes? (?:around|round)|spirals?)\b/, 'orbit'],
   [/^(?:follows?|swims? (?:with|behind|after)|stays? (?:with|near|by)|accompan(?:y|ies)|tags? along)\b/, 'follow'],
-  [/^(?:swallows?|eats?|gulps?(?: down)?|devours?|engulfs?)\b/, 'swallow'],
+  [/^(?:rides?|mounts?|gets? on(?:to)?|climbs? on(?:to)?|sits? on|hops? on(?:to)?)\b/, 'ride'],
+  [/^(?:dismounts?|gets? off|climbs? off|steps? off|hops? off|jumps? off|falls? off)\b/, 'dismount'],
+  [/^(?:splits?|halves|breaks? open|cuts? open|opens? up)\b/, 'split'],
+  [/^(?:eats?|bites?|munches?|nibbles?|chews?)\b/, 'eat'],
+  [/^(?:cleans?(?: up)?|wipes?|washes?)\b/, 'clean'],
+  [/^(?:swallows?|gulps?(?: down)?|devours?|engulfs?)\b/, 'swallow'],
   [/^(?:spits?(?: out)?|coughs? up|lets? out|frees?|sets? free)\b/, 'spit'],
   [/^(?:swims?|moves?|goes?|glides?|drifts?|floats?|travels?|heads?|rushes?|darts?|dashes?|flees?|hurries?|sinks?|rises?|dives?|surfaces?|approaches?|chases?|flies|fly|flys?|soars?|walks?|runs?|crawls?|scuttles?|lands?|takes? off)\b/, 'move'],
   [/^(?:stops? following|stops?|halts?|pauses?|freezes?)\b/, 'stop'],
@@ -213,9 +218,10 @@ function matchVerb(list, text) {
 const KINDS = new Set([
   'fish', 'whale', 'shark', 'octopus', 'jellyfish', 'turtle', 'crab', 'school',
   'dolphin', 'seahorse', 'starfish', 'ray', 'eel', 'squid', 'narrator', 'voice',
-  'bird', 'pelican', 'bubble', 'sprite', 'model',
+  'bird', 'pelican', 'bubble', 'sprite', 'model', 'bike', 'mango',
 ]);
 const KIND_ALIASES = {
+  bicycle: 'bike', bikes: 'bike', bicycles: 'bike', mangoes: 'mango', mangos: 'mango', fruit: 'mango',
   fishes: 'fish', minnow: 'fish', goldfish: 'fish', clownfish: 'fish', sardine: 'fish', tuna: 'fish',
   whales: 'whale', calf: 'whale', humpback: 'whale', orca: 'whale',
   sharks: 'shark', 'great white': 'shark',
@@ -502,9 +508,9 @@ export function parseActorAction(name, text, line) {
       }
       break;
     }
-    case 'carry': case 'drop': case 'swallow': case 'spit': {
+    case 'carry': case 'drop': case 'swallow': case 'spit': case 'ride': case 'dismount': case 'eat': case 'split': case 'clean': {
       const t = parseTarget(tail); tail = t.rest;
-      if ((mv.verb === 'carry' || mv.verb === 'swallow') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
+      if ((mv.verb === 'carry' || mv.verb === 'swallow' || mv.verb === 'ride' || mv.verb === 'eat') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
       action.target = t.target;
       break;
     }

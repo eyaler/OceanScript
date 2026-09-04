@@ -206,11 +206,13 @@ function seek(t) {
       rig.group.rotation.set(0, camYaw, 0, 'YXZ');
       rig.group.scale.set(sc * ((facingLeft !== !!rig.flip) ? -1 : 1), sc, sc);
     } else {
-      rig.group.rotation.set(-pitch, yaw + (rig.sideways ? Math.PI / 2 : 0), roll, 'YXZ');
+      if (rig.fixedYaw) rig.group.rotation.set(0, 0, 0);
+      else rig.group.rotation.set(-pitch, yaw + (rig.sideways ? Math.PI / 2 : 0), roll, 'YXZ');
     }
     rig.altitude = pos[1];
     const carrying = Object.values(timeline.actors).some((tr) => tr.segments.some((sg) => sg.type === 'follow' && sg.attached && sg.actor === name && sg.t0 <= t && t < sg.t1));
     const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), face: ev.face(name, t), t, carrying };
+    if (rig.wantsDistance) state.dist = ev.distance(name, t);
     rig.animate(t, state);
     // tear drops (cartoon: they grow at the eye and fall)
     if (rig.tears) for (const tr of rig.tears) tr.visible = false;
@@ -251,8 +253,42 @@ function seek(t) {
         tear.visible = true;
       });
     }
+    // a messy face after eating: orange smears around the mouth
+    const messy = state.effects.find((f) => f.type === 'messy');
+    if (messy || rig.smears) {
+      if (!rig.smears) {
+        const smearMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#f28c28'), roughness: 0.75 });
+        const mp = rig.mouth?.group?.position || new THREE.Vector3(0, -0.05, 0.45);
+        const rnd = (k) => { const x = Math.sin(k * 12.9898 + (rig.seed || 0)) * 43758.5453; return x - Math.floor(x); };
+        rig.smears = [];
+        for (let i = 0; i < 11; i++) {
+          const b = new THREE.Mesh(new THREE.SphereGeometry(0.045 + rnd(i) * 0.05, 8, 6), smearMat);
+          b.position.set(mp.x + (rnd(i + 10) - 0.5) * 0.42, mp.y + (rnd(i + 20) - 0.5) * 0.3 + 0.03, mp.z - 0.03 + rnd(i + 30) * 0.04);
+          b.scale.set(1.3, 1, 0.5);
+          rig.inner.add(b);
+          rig.smears.push(b);
+        }
+      }
+      const k = messy ? Math.min(1, messy.age / 1.5, Math.max(0, (messy.t1 - t) / 1.5)) : 0;
+      rig.smears.forEach((b, i) => { b.visible = k > 0.02; b.scale.set(1.3 * k, k, 0.5 * k); });
+    }
     // particle effects in world space
     for (const fx of state.effects) {
+      if (fx.type === 'eat') {
+        // pulp and juice fly off while chewing and drift around the eater
+        const mp = rig.mouth?.group?.position || new THREE.Vector3(0, -0.05, 0.45);
+        rig.group.updateMatrixWorld(true);
+        const origin = mp.clone().applyMatrix4(rig.group.matrixWorld);
+        const n = 22, life = 4.0;
+        for (let i = 0; i < n; i++) {
+          const age = (fx.age + i * (life / n) * 1.3) % life;
+          if (fx.age < i * 0.12) continue;
+          const k = age / life;
+          const a = i * 2.399 + fx.side, r = (0.15 + k * 0.9) * sc;
+          const col = i % 3 === 0 ? [1, 0.75, 0.15] : i % 3 === 1 ? [0.95, 0.5, 0.1] : [1, 0.85, 0.35];
+          fxEmit(origin.x + Math.cos(a) * r, origin.y + (k * 0.5 - k * k * 0.3) * sc + Math.sin(age * 3 + i) * 0.05 * sc, origin.z + Math.sin(a) * r * 0.6 + 0.1 * sc, (0.05 + 0.04 * (i % 4)) * sc * (1 - k * 0.6), col[0], col[1], col[2]);
+        }
+      }
       if (fx.type === 'bubbles' || fx.type === 'cry' || fx.type === 'spout') {
         const n = fx.type === 'spout' ? 40 : fx.type === 'cry' ? 6 : 18;
         const local = fx.type === 'cry' ? (rig.eyePositions ? rig.eyePositions[1].clone() : new THREE.Vector3(0.14, 0.08, 0.36)) : fx.type === 'spout' ? (rig.blowhole || new THREE.Vector3(0, 0.3, 0.1)) : new THREE.Vector3(0, -0.05, 0.5);

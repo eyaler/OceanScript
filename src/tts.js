@@ -164,7 +164,7 @@ const VERB_GENDER_XOR = (1n << 21n) | (1n << 22n);
 const SUFFIX_GENDER_XOR = (1n << 39n) | (1n << 40n);
 const FEM_VERB_BIT = 1n << 22n;   // calibrated on מָצָאת / מָצָאתָ
 const FEM_SUFFIX_BIT = 1n << 40n;
-async function nakdanMorph(text, cacheDir) {
+export async function nakdanMorph(text, cacheDir) {
   const key = createHash('sha1').update('nakdan-morph|' + text).digest('hex').slice(0, 16);
   const file = path.join(cacheDir, `${key}.morph.json`);
   if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
@@ -207,12 +207,16 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
     // readings in Dicta's ranking order; only twins that include the best reading count
     const opts = (t.options || []).flatMap((o, rank) => (o[1] || []).map((m) => ({ form: o[0].replace(/\|/g, ''), code: BigInt(m[0]), lemma: m[1], rank })));
     let chosen = null;
+    let twinElsewhere = false;   // gender twins exist but the best reading is something else (לֵךְ "go!" vs לְךָ/לָךְ)
     const isSecondSuffix = (f) => /ך[\u05B8\u05B0]$/.test(f);   // ends in ךָ (masc) or ךְ (fem)
     outer: for (let i = 0; i < opts.length; i++) for (let j = 0; j < opts.length; j++) {
       const a = opts[i], b = opts[j];
       if (i === j || a.lemma !== b.lemma || a.form === b.form) continue;
-      if (Math.min(a.rank, b.rank) !== 0 || Math.max(a.rank, b.rank) > 3) continue;
       const x = a.code ^ b.code;
+      if (Math.min(a.rank, b.rank) !== 0 || Math.max(a.rank, b.rank) > 3) {
+        if ((x === SUFFIX_GENDER_XOR && isSecondSuffix(a.form) && isSecondSuffix(b.form)) || (x === VERB_GENDER_XOR && (hasAni || hasAta || /ת$/.test(word)))) twinElsewhere = true;
+        continue;
+      }
       let femBit = null, who = null;
       if (x === SUFFIX_GENDER_XOR) {
         if (!(isSecondSuffix(a.form) && isSecondSuffix(b.form))) continue;      // third-person suffixes are not ours to change
@@ -232,6 +236,10 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
       if (g === 'female' && /ת$/.test(chosen)) chosen += '\u05BC\u05B0';
       break outer;
     }
+    // The word is a gender homograph, but in this sentence Dicta reads it as a
+    // different word altogether (imperative לֵךְ rather than לְךָ): the engine
+    // would default to the wrong twin, so take Dicta's contextual reading.
+    if (chosen == null && twinElsewhere && opts.length && opts[0].rank === 0) chosen = opts[0].form;
     out += chosen ?? original;
   }
   out += text.slice(lastEnd ?? 0);

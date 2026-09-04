@@ -189,7 +189,9 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   asset-backed kinds: `sprite` (a 2D image cutout: `image "assets/cop.svg"`,
   billboarded and mirrored to face its heading) and `model` (a glTF/GLB file:
   `model "assets/boat.glb" animation "Rock"`, normalised to `size` and driven by
-  time).  Words such as `baby`, `small`, `big`, `huge` scale the default size.
+  time).  Two procedural props: `bike` (a bicycle whose wheels and pedals turn
+  with the distance it travels; `@caspion rides @bike`, then move the bike) and
+  `mango` (a fruit that `splits` and can be eaten).  Words such as `baby`, `small`, `big`, `huge` scale the default size.
 * **colour**: a colour name (`silver`, `gold`, `blue`, `navy`, `pink`, ...) or `#hex`.
 * **size**: body length in metres.  **speed**: metres per second for default move
   durations.
@@ -254,7 +256,7 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | hide / show | `@whale hides`, `@whale shows` |
 | move | `@caspion swims to (4, -2, 1) over 3s`, `swims toward @whale`, `swims near @whale`, `swims left 5`, `dives 4`, `dives to depth 6`, `surfaces`, `goes home` |
 | orbit | `@friends swims around @caspion 2 times over 8s`, `circles (0, -3, 0) radius 4` |
-| follow | `@caspion follows @whale beside` (`behind`, `front`, `above`, `below`) or with offset `follows @whale (0, 1, -2)`; ends at the actor's next move or `@caspion stops` |
+| follow | `@caspion follows @whale beside` (`behind`, `front`, `above`, `below`; behind, front and beside turn with the leader) or with offset `follows @whale (0, 1, -2)`; ends at the actor's next move or `@caspion stops` |
 | look | `@whale looks at @caspion`, `looks at the camera`, `faces left` |
 | wait | `@whale waits 2s` |
 | say | `@caspion says "Hello!"`, `@caspion: Hello!`, `**Caspion:** Hello!` |
@@ -268,6 +270,8 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | bubbles / cry / spout / glow | `@caspion blows bubbles for 2s`, `@whale cries for 3s` (tear drops fall from the eyes in the accent colour, with a sob sound), `@whale spouts`, `@jelly glows for 3s`.  Crying, bubbles, spouts and jumps play built-in sound effects (`sfx: off` in the front matter disables them) |
 | speed | `@shark speed 8` (metres per second for later default durations) |
 | carry / drop | `@jelly carries @caspion` ... `@jelly drops @caspion` (pelicans hold the passenger in the pouch, bubbles inside, whales on the back) |
+| ride / dismount | `@caspion rides @bike` (the same attachment seen from the rider: it sits on the saddle and faces where the bike goes; then `@bike moves right 4`, `@bike circles @gan`, `@bike wiggles` for a wobble) ... `@caspion dismounts` |
+| split / eat / clean | `@mango splits` (the halves drift apart), `@caspion eats @mango over 5s` (chews the half on its side in four bites; pulp floats off and the face stays smeared with juice until `@caspion cleans` or about 25 s pass); `eats` a creature means `swallows` |
 | swallow / spit | `@whale swallows @caspion` (attaches and hides), `@whale spits out @caspion` (reappears, tossed towards the camera) |
 | fly / walk | `@pelican flies to (10, 6, 0) over 3s`, `@gull soars left 8`, `@crab walks right 2` – synonyms of *move* for creatures above the water |
 | ease | add `linear`, `smooth`, `snap`, `bouncy` or `elastic` to any move |
@@ -292,7 +296,7 @@ identical frames in every language.
 | cut | `@camera cuts to (0, -2, 12) looking at (0, -3, 0)`, `cuts to @whale` |
 | move | `@camera moves to (5, -4, 10) over 4s`, `moves to @whale distance 9` |
 | look | `@camera looks at @shark over 1s` |
-| follow | `@camera follows @caspion from behind distance 3 height 1` (`side`, `front`, `above`) |
+| follow | `@camera follows @caspion from behind distance 3 height 1` (`side`, `front`, `above`; behind, side and front are relative to the actor's heading, so `side` is always a profile) |
 | orbit | `@camera orbits @whale distance 12 over 10s` |
 | shake | `@camera shakes for 1s strength 2` |
 | zoom | `@camera zooms to 30 over 2s` (field of view in degrees) |
