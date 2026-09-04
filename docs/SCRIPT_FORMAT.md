@@ -154,6 +154,13 @@ still override: `- מצאת [f]: מָצָאתְ` applies when the addressee is f
 `[m]` when male, `[speaker f]` / `[speaker m]` by the speaker's gender.
 `agreement: off` disables the automatic step.
 
+**Pinned pronunciation.** The `<script>.timing.json` written next to a script
+also stores the exact pointed text each Hebrew line was synthesised with, and
+every later render (a GitHub runner included) speaks those strings verbatim
+instead of consulting the morphology service again.  Regenerate the file after
+a text change (`rm` it and run `check --timing-file`), then run the voice check
+below.
+
 **Checking the voices.** `oceanscript voices script.md` synthesises every line
 (cached), transcribes each clip back with Whisper (`pip install faster-whisper`)
 and prints the lines whose transcript drifts from the text, lowest similarity
@@ -320,8 +327,11 @@ The camera is clamped just above the seabed and never sits exactly on the surfac
 It is also pushed out of every character's and prop's body (so a follow shot
 never passes through the teacher), and anything closer to the lens than its own
 half-size is hidden for those frames rather than sliced by the near plane.
-Sweeping follow shots through a crowded set still look bad: prefer static cuts
-or `frames` for dialogue.
+Seaweed blades that stand between the lens and what it looks at shrink away
+for those frames, so a follow shot is not blocked by vegetation; scripted
+actors and props are never touched, so an occlusion you want is still yours to
+stage.  Sweeping follow shots through a crowded set still look bad: prefer
+static cuts or `frames` for dialogue.
 
 ## Dialog and text
 

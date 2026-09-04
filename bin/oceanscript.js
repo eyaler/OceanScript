@@ -28,6 +28,7 @@ render options:
   --audio <file>          mux an audio file (or set audio: in front matter)
   --crf <n>               x264 quality (default 18)
   --lang <code>           language for subtitles, title cards and voice (default: script's lang)
+  --draft                 quick preview: 480x270, 12 fps, no antialiasing, fast encode, parallel chunks
   --burn-subtitles        draw subtitles into the frames instead of a soft subtitle track
   --no-voice              skip the text-to-speech voice track
   --tts <engine>          edge (default when installed), gtts, none

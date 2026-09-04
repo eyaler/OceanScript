@@ -71,7 +71,7 @@ export function mergeProfiles(profiles) {
 
 // A renderer page that can be re-created after a failure.
 class RenderPage {
-  constructor(url, width, height, headed) { Object.assign(this, { url, width, height, headed, browser: null, page: null }); }
+  constructor(url, width, height, headed, draft = false) { Object.assign(this, { url, width, height, headed, draft, browser: null, page: null }); }
   async open() {
     await this.close();
     this.browser = await launchBrowser({ headed: this.headed });
@@ -79,7 +79,7 @@ class RenderPage {
     this.page = await context.newPage();
     this.page.on('console', (msg) => { if (msg.type() === 'error' || msg.type() === 'warning') console.error('[page]', msg.text()); });
     this.page.on('pageerror', (err) => console.error('[page error]', err.message));
-    await this.page.goto(`${this.url}/?headless=1`);
+    await this.page.goto(`${this.url}/?headless=1${this.draft ? '&draft=1' : ''}`);
     await this.page.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     const gl = await this.page.evaluate(() => { const c = document.createElement('canvas'); const g = c.getContext('webgl2') || c.getContext('webgl'); if (!g) return null; const d = g.getExtension('WEBGL_debug_renderer_info'); return d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'webgl'; });
     if (!gl) throw new Error('WebGL is not available in the browser');
@@ -132,10 +132,20 @@ function runFfmpeg(ff, ffargs, { stdin = 'ignore' } = {}) {
 export async function render(file, args = {}) {
   const t0 = Date.now();
   const prof = newProfile();
+  // --draft: a quick low-resolution preview (a quarter of the pixels per side,
+  // 12 fps, no antialiasing, fast x264) for checking staging before a real render
+  if (args.draft) {
+    if (!args.scale) args.scale = 0.375;
+    if (!args.fps) args.fps = 12;
+    if (args.crf == null) args.crf = 30;
+    if (!args.preset) args.preset = 'ultrafast';
+    if (!args.jobs && args.raw !== true) { const os = await import('node:os'); args.jobs = Math.max(1, Math.min(4, os.cpus().length)); }
+  }
   const scale = args.scale ? Number(args.scale) : 1;
   let out = args.out;
   const ff = args.video === false ? null : findFfmpeg();
   if (args.video !== false && !ff) throw new Error('ffmpeg not found. Install ffmpeg, set $FFMPEG, or `pip install imageio-ffmpeg`.');
+  if (out) mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   const timingFile = args.timingFile ?? (out ? out.replace(/\.[^.]+$/, '.timing.json') : null);
   const timeline = await timed(prof, 'prepare (parse, voices, timing)', () => prepareTimeline(file, { fps: args.fps, width: args.width, height: args.height, lang: args.lang, burnSubtitles: args.burnSubtitles, tts: args.tts, timing: args.timing, ttsCache: args.ttsCache, timingFile }, args.quiet ? () => {} : console.error));
   if (scale !== 1) {
@@ -180,7 +190,7 @@ export async function render(file, args = {}) {
     }
     const tChunks = Date.now();
     await Promise.all(chunks.map((c) => new Promise((resolve, reject) => {
-      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--raw'];
+      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--raw', ...(args.draft ? ['--draft'] : [])];
       for (const k of ['fps', 'width', 'height', 'scale', 'crf', 'preset', 'lang', 'tts']) if (args[k] != null) cargs.push(`--${k}`, String(args[k]));
       if (args.burnSubtitles) cargs.push('--burn-subtitles');
       if (timeline.meta.lineDurations) cargs.push('--timing-file', out.replace(/\.[^.]+$/, '.timing.json'));
@@ -227,7 +237,7 @@ export async function render(file, args = {}) {
     dynamic: { '/timeline.json': () => ({ body: JSON.stringify(timeline) }) },
     extraRoots: { '/script/': timeline.meta.scriptDir, '/cache/': cacheDir },
   });
-  const rp = new RenderPage(url, width, height, !!args.headed);
+  const rp = new RenderPage(url, width, height, !!args.headed, !!args.draft);
   const gl = await timed(prof, 'browser (launch, preload, warm-up)', () => rp.open());
   if (!args.quiet) console.error(`webgl: ${gl}`);
 

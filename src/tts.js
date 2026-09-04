@@ -178,7 +178,13 @@ export async function nakdanMorph(text, cacheDir) {
 export async function agreeGender(text, { speakerGender = null, addresseeGender = null } = {}, cacheDir, log = () => {}) {
   if (!/[\u05D0-\u05EA]/.test(text)) return text;
   const tokens = await nakdanMorph(stripNikud(text), cacheDir);
-  if (!tokens) return text;
+  if (!tokens) {
+    // no morphology service: at least point "you" by the addressee, which is
+    // what every line in a conversation needs most
+    log('warning: the Dicta morphology service is unreachable; gender agreement is limited to לך');
+    if (addresseeGender) return text.replace(/(^|[^\p{L}\u0591-\u05C7])לך(?=[^\p{L}\u0591-\u05C7]|$)/gu, (m, pre) => pre + (addresseeGender === 'female' ? 'לָךְ' : 'לְךָ'));
+    return text;
+  }
   const hasAni = /(^|[^\p{L}])אני([^\p{L}]|$)/u.test(text);
   const hasAta = /(^|[^\p{L}])(אתה|את)([^\p{L}]|$)/u.test(text);
   if (/(^|[^\p{L}])אתה([^\p{L}]|$)/u.test(text) && addresseeGender === 'female') log('warning: the text says אתה (masculine "you") but the addressee is female');
@@ -325,11 +331,15 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
   for (const sub of spoken) {
     const v = pickVoice(engine, lang, sub, timeline.cast);
     let spokenText = (sub.texts && (sub.texts[`${lang}-tts`] || sub.texts[`${lang.split('-')[0]}-tts`])) || sub.text;
-    if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
-    const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
-    spokenText = applyGlossary(spokenText, glossary);
-    if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false && sub.kind === 'dialog') {
-      spokenText = await agreeGender(spokenText, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender }, cacheDir, (m) => log(`line ${sub.line}: ${m}`));
+    const pinnedSpoken = timeline.meta.pinnedSpoken?.[lang]?.[sub.key];
+    if (pinnedSpoken) spokenText = pinnedSpoken;   // verified pointing from the pinned timing file
+    else {
+      if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
+      const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
+      spokenText = applyGlossary(spokenText, glossary);
+      if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false && sub.kind === 'dialog') {
+        spokenText = await agreeGender(spokenText, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender }, cacheDir, (m) => log(`line ${sub.line}: ${m}`));
+      }
     }
     sub.spokenText = spokenText;
     const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);

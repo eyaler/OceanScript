@@ -562,7 +562,7 @@ export function compile(script, options = {}) {
           : ck === 'bubble' ? [0, 0, 0]
           : ck === 'jellyfish' ? [0, -cs * 0.25, 0]
           : ck === 'octopus' || ck === 'squid' ? [0, -cs * 0.3, cs * 0.3]
-          : ck === 'bike' ? [0, cs * 0.5, cs * 0.02]
+          : ck === 'bike' ? [0, cs * 0.56, -cs * 0.08]   // sits on the saddle, nose above the handlebar
           : [0, cs * 0.35, 0];
         const offset = st.target.offset ?? defOff;
         tr.segments.push({ type: 'follow', t0, t1: 1e9, actor: carrier, offset, frame: 'local', attached: true });

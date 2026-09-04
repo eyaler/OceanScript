@@ -178,6 +178,11 @@ A 35-minute film at 1080p in 12 chunks takes about two hours.
 Renders made inside a session are committed to the `renders` branch (files
 under 100 MB) and, when under 30 MB, attached to the chat.
 
+**Drafts.** `oceanscript render script.md --draft` renders a 480x270, 12 fps
+preview without antialiasing, in parallel chunks, in about real time on a
+four-core machine (an 8-minute film in 8 minutes); `--start`/`--end` narrow it
+to a scene.  Use it to check staging before a real render.
+
 **Where the time goes.** Every render prints a timing table at the end and
 writes it as `<out>.profile.json`: preparation (parse, voices, timing), asset
 transcoding, browser launch, and per frame the timeline evaluation, the

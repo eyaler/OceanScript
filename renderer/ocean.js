@@ -390,6 +390,7 @@ export class Ocean {
         }`,
     });
     this.weed = new THREE.InstancedMesh(geo, this.weedMat, MAX);
+    this.weed.frustumCulled = false;   // instances are re-placed per scene; a bounding sphere from the first frame would cull them later
     this.weed.frustumCulled = false;
     const phase = new Float32Array(MAX), tint = new Float32Array(MAX * 3);
     const m = new THREE.Matrix4();
@@ -415,6 +416,7 @@ export class Ocean {
     const MAXR = 160, MAXC = 220;
     this.rockMat = new THREE.MeshStandardMaterial({ color: 0x4f4a44, roughness: 1, metalness: 0, flatShading: true });
     this.rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), this.rockMat, MAXR);
+    this.rocks.frustumCulled = false;
     this.rockData = [];
     for (let i = 0; i < MAXR; i++) {
       const rad = 6 + Math.pow(r(), 0.8) * 90, ang = r() * Math.PI * 2;
@@ -423,6 +425,7 @@ export class Ocean {
     this.coralGeo = [new THREE.ConeGeometry(0.5, 1.6, 7), new THREE.SphereGeometry(0.7, 10, 8), new THREE.CylinderGeometry(0.15, 0.3, 1.4, 6), new THREE.TorusKnotGeometry(0.35, 0.12, 40, 6)];
     this.coralMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
     this.corals = this.coralGeo.map((g) => new THREE.InstancedMesh(g, this.coralMat, Math.ceil(MAXC / 4)));
+    for (const c of this.corals) c.frustumCulled = false;
     const palette = ['#ff6f61', '#ff9f43', '#f9e04b', '#c084fc', '#f472b6', '#34d399', '#fb7185', '#60a5fa'];
     this.coralData = [];
     for (let i = 0; i < MAXC; i++) {
@@ -616,8 +619,11 @@ export class Ocean {
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
     const decoScale = p.land >= 0.5 ? 0 : 1;
     const weedCount = Math.min(this.weedData.length, Math.round(this.weedData.length * Math.min(1, p.seaweed / 2) * decoScale));
-    if (this.weedCountApplied !== weedCount || this.floorYApplied !== p.floorY || this.beachApplied !== p.beach || this.landApplied !== p.land) {
-      this.landApplied = p.land;
+    const rockCount = Math.min(this.rockData.length, Math.round(this.rockData.length * Math.min(1, p.rocks / 2) * (p.land >= 0.5 ? 0.4 : 1)));
+    const coralCount = Math.min(this.coralData.length, Math.round(this.coralData.length * Math.min(1, p.coral / 2) * decoScale));
+    const decoKey = `${weedCount}|${rockCount}|${coralCount}|${p.floorY}|${p.beach}|${p.land}`;
+    if (this.decoKeyApplied !== decoKey) {
+      this.decoKeyApplied = decoKey;
       for (let i = 0; i < weedCount; i++) {
         const d = this.weedData[i];
         pos.set(d.x, p.floorY + this.floorHeight(d.x, d.z) + (p.beach ? Math.max(0, (d.x - 12) * 0.32) : 0) - 0.1, d.z);
@@ -628,7 +634,6 @@ export class Ocean {
       }
       this.weed.count = weedCount;
       this.weed.instanceMatrix.needsUpdate = true;
-      const rockCount = Math.min(this.rockData.length, Math.round(this.rockData.length * Math.min(1, p.rocks / 2) * (p.land >= 0.5 ? 0.4 : 1)));
       for (let i = 0; i < rockCount; i++) {
         const d = this.rockData[i];
         pos.set(d.x, p.floorY + this.floorHeight(d.x, d.z) + (p.beach ? Math.max(0, (d.x - 12) * 0.32) : 0) - d.s * 0.3, d.z);
@@ -639,7 +644,6 @@ export class Ocean {
       }
       this.rocks.count = rockCount;
       this.rocks.instanceMatrix.needsUpdate = true;
-      const coralCount = Math.min(this.coralData.length, Math.round(this.coralData.length * Math.min(1, p.coral / 2) * decoScale));
       const per = this.corals.map(() => 0);
       for (let i = 0; i < coralCount; i++) {
         const d = this.coralData[i];
@@ -654,7 +658,38 @@ export class Ocean {
         per[k]++;
       }
       this.corals.forEach((c, k) => { c.count = per[k]; c.instanceMatrix.needsUpdate = true; if (c.instanceColor) c.instanceColor.needsUpdate = true; });
-      this.weedCountApplied = weedCount; this.floorYApplied = p.floorY; this.beachApplied = p.beach;
+    }
+    // Nothing tall between the lens and what it looks at: blades close to the
+    // camera's line of sight shrink away (a pure function of camera and time,
+    // so every chunk agrees).  Anything the script places is left alone.
+    {
+      const dir = camera.getWorldDirection(new THREE.Vector3());
+      const cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+      const wc = this.weed.count;
+      const key = `${cx.toFixed(3)}|${cy.toFixed(3)}|${cz.toFixed(3)}|${dir.x.toFixed(4)}|${dir.z.toFixed(4)}|${wc}|${p.floorY}`;
+      if (this.occlusionKey !== key) {
+        this.occlusionKey = key;
+        for (let i = 0; i < wc; i++) {
+          const d = this.weedData[i];
+          const by = p.floorY + this.floorHeight(d.x, d.z) + (p.beach ? Math.max(0, (d.x - 12) * 0.32) : 0) - 0.1;
+          const vx = d.x - cx, vy = by + d.h * 0.5 - cy, vz = d.z - cz;
+          const along = vx * dir.x + vy * dir.y + vz * dir.z;
+          let k = 1;
+          if (along > -0.5 && along < 9) {
+            const px = vx - dir.x * along, py = vy - dir.y * along, pz = vz - dir.z * along;
+            const perp = Math.hypot(px, py, pz);
+            const clear = 0.7 + Math.max(0, along) * 0.12;         // a cone that widens with distance
+            k = perp >= clear ? 1 : Math.max(0, perp / clear);
+            k = k * k * (3 - 2 * k);
+          }
+          pos.set(d.x, by, d.z);
+          q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), d.rot);
+          s.set(d.w * Math.max(0.001, k), d.h * Math.max(0.001, k), 1);
+          m.compose(pos, q, s);
+          this.weed.setMatrixAt(i, m);
+        }
+        this.weed.instanceMatrix.needsUpdate = true;
+      }
     }
     this.weedMat.uniforms.uTime.value = t; v3(this.weedMat.uniforms.uFogColor, fogColor); this.weedMat.uniforms.uFogDensity.value = fogDensity; this.weedMat.uniforms.uSunI.value = p.sunI; this.weedMat.uniforms.uAmb.value = p.amb;
 

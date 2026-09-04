@@ -23,18 +23,21 @@ export async function resolveLineDurations(file, opts = {}, log = console.error)
   const base = loadTimeline(file, { ...opts, lineDurations: undefined, lang: undefined });
   const langs = availableLanguages(base);
   const lineDurations = {};
+  const spoken = {};
   let engine = 'none';
   for (const lang of langs) {
     const tl = loadTimeline(file, { ...opts, lineDurations: undefined, lang });
     const res = await synthesizeAll(tl, { engine: opts.tts ?? tl.meta.tts, cacheDir: opts.ttsCache, log });
     engine = res.engine;
     if (res.engine === 'none') break;
+    spoken[lang] = {};
     for (const c of res.clips) {
       const need = Math.max(MIN_SLOT, c.duration + PAD);
       lineDurations[c.sub.key] = Math.max(lineDurations[c.sub.key] ?? 0, need);
+      if (c.sub.spokenText && c.sub.spokenText !== c.sub.text) spoken[lang][c.sub.key] = c.sub.spokenText;
     }
   }
-  return { lineDurations, languages: langs, engine };
+  return { lineDurations, spoken, languages: langs, engine };
 }
 
 /**
@@ -45,21 +48,25 @@ export async function resolveLineDurations(file, opts = {}, log = console.error)
 export async function prepareTimeline(file, opts = {}, log = console.error) {
   let timeline = loadTimeline(file, opts);
   if (timeline.meta.timing !== 'audio') return timeline;
-  let lineDurations = null;
-  // A committed `<script>.timing.json` next to the script pins the timing for every render.
+  let lineDurations = null, spoken = null;
+  // A committed `<script>.timing.json` next to the script pins the timing for
+  // every render, and the exact pointed text each line was verified with, so a
+  // runner without the morphology service still says the same thing.
   const pinned = file.replace(/\.md$/i, '.timing.json');
   if (!opts.timingFile && existsSync(pinned)) opts = { ...opts, timingFile: pinned };
   if (opts.timingFile && existsSync(opts.timingFile)) {
-    lineDurations = JSON.parse(readFileSync(opts.timingFile, 'utf8')).lineDurations;
-    log(`timing: using ${opts.timingFile}`);
+    const j = JSON.parse(readFileSync(opts.timingFile, 'utf8'));
+    lineDurations = j.lineDurations; spoken = j.spoken || null;
+    log(`timing: using ${opts.timingFile}${spoken ? ' (with pinned pronunciation)' : ''}`);
   } else {
     const res = await resolveLineDurations(file, opts, log);
-    lineDurations = res.lineDurations;
+    lineDurations = res.lineDurations; spoken = res.spoken;
     if (res.engine === 'none') { log('timing: audio requested but no TTS engine is available; using text timing'); return timeline; }
     log(`timing: audio, ${Object.keys(lineDurations).length} spoken lines sized by the longest clip across ${res.languages.join(', ')}`);
-    if (opts.timingFile) writeFileSync(opts.timingFile, JSON.stringify({ languages: res.languages, lineDurations }, null, 2));
+    if (opts.timingFile) writeFileSync(opts.timingFile, JSON.stringify({ languages: res.languages, lineDurations, spoken }, null, 2));
   }
   timeline = loadTimeline(file, { ...opts, lineDurations });
   timeline.meta.lineDurations = lineDurations;
+  timeline.meta.pinnedSpoken = spoken;
   return timeline;
 }

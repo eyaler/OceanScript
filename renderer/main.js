@@ -25,7 +25,7 @@ let fxPool = null;
 let width = 1280, height = 720;
 
 function setupRenderer() {
-  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ antialias: params.get('draft') !== '1', preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
