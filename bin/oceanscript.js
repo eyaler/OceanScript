@@ -12,6 +12,7 @@ usage:
   oceanscript preview <script.md> [--port N]             live preview in a browser
   oceanscript check   <script.md>                        validate and list warnings
   oceanscript voices  <script.md> [--lang he] [--phonetic]  synthesise the voices, transcribe them back with Whisper and flag lines that do not read as written
+  oceanscript subtitles <script.md> [--lang he] [--speakers] [-o base]  write <base>.srt and .vtt from the script (no video needed)
   oceanscript mux     <script.md> --video <file> [--lang he] [-o out]
                                                          add voice + subtitles in another language to an
                                                          existing render (frames are identical, so no re-render)
@@ -83,6 +84,17 @@ async function main() {
   if (cmd === 'render') {
     const { render } = await import('../src/render.js');
     await render(file, { ...opts, ...args });
+    return;
+  }
+  if (cmd === 'subtitles') {
+    const { prepareTimeline } = await import('../src/timing.js');
+    const { toSrt, toVtt } = await import('../src/subtitles.js');
+    const timeline = await prepareTimeline(file, { ...opts, timingFile: args.timingFile }, (m) => console.error(m));
+    const base = (args.out ? String(args.out) : file.replace(/\.md$/, '') + `.${timeline.meta.lang}`).replace(/\.(srt|vtt)$/, '');
+    const subOpts = { speakers: args.speakers != null ? !!args.speakers : undefined };
+    writeFileSync(`${base}.srt`, toSrt(timeline, null, subOpts));
+    writeFileSync(`${base}.vtt`, toVtt(timeline, null, subOpts));
+    console.error(`wrote ${base}.srt, ${base}.vtt (${timeline.subtitles.length} cues, speakers ${subOpts.speakers ?? timeline.meta.subtitleSpeakers ? 'on' : 'off'})`);
     return;
   }
   if (cmd === 'voices') {

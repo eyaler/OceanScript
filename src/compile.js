@@ -72,6 +72,7 @@ export function compile(script, options = {}) {
     nikud: script.meta.nikud === true || script.meta.nikud === 'auto' || script.meta.nikud === 'on',
     lipsync: script.meta.lipsync !== false && script.meta.lipsync !== 'off' && script.meta.lip_sync !== false,
     pronunciation: script.pronunciation || {},
+    subtitleSpeakers: script.meta.subtitle_speakers ?? script.meta.subtitleSpeakers ?? false,
     timing: options.timing ?? script.meta.timing ?? 'text',
     music: script.meta.music ?? null,
     musicVolume: Number(script.meta.music_volume ?? 0.25),

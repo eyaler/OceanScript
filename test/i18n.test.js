@@ -51,7 +51,8 @@ test('translations attach to lines and cast, source language sets the timing', (
 test('srt and vtt output', () => {
   const he = compile(parseScript(SRC), { lang: 'he' });
   const srt = toSrt(he);
-  assert.match(srt, /^1\n00:00:02,000 --> 00:00:0\d,\d{3}\nכספיון: שלום לכולם!\n/);
+  assert.match(srt, /^1\n00:00:02,000 --> 00:00:0\d,\d{3}\nשלום לכולם!\n/);   // no speaker prefix by default
+  assert.match(toSrt(he, null, { speakers: true }), /\nכספיון: שלום לכולם!\n/);
   assert.match(srt, /\nהיה היה\.\n/);
   const vtt = toVtt(he);
   assert.ok(vtt.startsWith('WEBVTT'));

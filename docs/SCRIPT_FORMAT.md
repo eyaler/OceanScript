@@ -55,6 +55,7 @@ starts at the same time.
 | `tts` | voice engine: `edge`, `gtts`, `none`, `auto` | auto |
 | `timing` | `text` (dialog length estimated from the text) or `audio` (each spoken line lasts as long as its longest voice clip across all languages, plus padding) – both give identical frames in every language | text |
 | `subtitles` | `burn` draws subtitles into the frames; otherwise they are a soft track | soft |
+| `subtitle_speakers` | `on` prefixes dialog cues in the SRT/VTT with the speaker's label (`--speakers` on the command line does the same) | off |
 | `music` | background music file (relative to the script), looped under the voices | |
 | `ambience` | `on` (or a gain such as `0.06`) adds a soft, slow underwater wash under everything | off |
 | `sfx` | `off` disables the built-in effect sounds (sobs, bubbles, spouts, splashes) | on |
@@ -87,8 +88,11 @@ handled automatically.
 Subtitles are written as `<out>.srt` and `<out>.vtt` and muxed into the
 video as a **soft subtitle track** (selectable in the player, off by default).
 Pass `--burn-subtitles` (or `subtitles: burn`) to draw them into the frames.
-Dialog cues are prefixed with the speaker's (localised) label; narration and
-captions are not.
+Cues carry the plain text (what YouTube expects); `subtitle_speakers: on` or
+`--speakers` prefixes dialog with the speaker's localised label.
+`oceanscript subtitles script.md --lang he` writes the SRT and VTT from the
+script alone, reusing the pinned timing, so a subtitle change never needs a
+re-render.
 
 Voices are generated per line with a text-to-speech engine and placed at the
 line's start.  With `timing: audio` (recommended when voices are on) the line's

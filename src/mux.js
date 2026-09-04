@@ -17,8 +17,9 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
   // subtitles
   const range = args.range || null;
   const srt = `${base}.srt`, vtt = `${base}.vtt`;
-  writeFileSync(srt, toSrt(timeline, range));
-  writeFileSync(vtt, toVtt(timeline, range));
+  const subOpts = { speakers: args.speakers != null ? args.speakers : undefined };
+  writeFileSync(srt, toSrt(timeline, range, subOpts));
+  writeFileSync(vtt, toVtt(timeline, range, subOpts));
   log(`subtitles: ${srt}, ${vtt}`);
 
   // audio: voice + music
