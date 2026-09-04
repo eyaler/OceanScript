@@ -75,6 +75,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
+      - run: echo "JOB_START=$(date +%s)" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
@@ -87,15 +88,35 @@ jobs:
         continue-on-error: true
       - name: Render frames ${{ matrix.chunk.a }}-${{ matrix.chunk.b }}
         run: |
+          SETUP=$(( $(date +%s) - JOB_START ))
           TF=$(ls out/*.timing.json 2>/dev/null | head -1)
+          CHUNK=out/chunks/chunk_$(printf %02d ${{ matrix.chunk.i }})
+          T0=$(date +%s)
           node bin/oceanscript.js render "${{ inputs.script }}" --lang "${{ inputs.lang }}" \
             --width ${{ inputs.width }} --height ${{ inputs.height }} --crf ${{ inputs.crf }} \
             --start-frame ${{ matrix.chunk.a }} --end-frame ${{ matrix.chunk.b }} --raw \
-            ${TF:+--timing-file $TF} -o out/chunks/chunk_$(printf %02d ${{ matrix.chunk.i }}).mp4
+            ${TF:+--timing-file $TF} -o $CHUNK.mp4
+          # record the runner setup time (checkout, npm ci, playwright, apt) next to the render profile
+          python3 - "$CHUNK.profile.json" "$SETUP" "$(( $(date +%s) - T0 ))" "${{ matrix.chunk.i }}" <<'PY'
+          import json, sys
+          f, setup, wall, i = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
+          p = json.load(open(f)); p['setup'] = setup; p['wall'] = wall; p['chunk'] = i
+          json.dump(p, open(f, 'w'), indent=1)
+          rows = sorted(p['phases'].items(), key=lambda kv: -kv[1])
+          out = [f"### chunk {i}: setup {setup}s, render {wall}s, {p['frames']} frames ({p['frames']/max(wall,1):.2f} fps)", '', '| phase | s | % |', '|---|---:|---:|']
+          out += [f"| {k} | {v:.0f} | {100*v/max(p['total'],1e-6):.0f} |" for k, v in rows]
+          fr = max(p['frames'], 1)
+          out += ['', f"per frame: evaluate {p['page']['evalMs']/fr:.0f} ms, draw {p['page']['drawMs']/fr:.0f} ms, screenshot {p['phases'].get('frames.screenshot',0)*1000/fr:.0f} ms, encoder wait {p['phases'].get('frames.encode-wait',0)*1000/fr:.0f} ms"]
+          open('summary.md', 'w').write('\n'.join(out) + '\n')
+          PY
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+          cat summary.md
       - uses: actions/upload-artifact@v4
         with:
           name: chunk-${{ matrix.chunk.i }}
-          path: out/chunks/*.mp4
+          path: |
+            out/chunks/*.mp4
+            out/chunks/*.profile.json
 
   publish:
     needs: [plan, render]
@@ -103,6 +124,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - run: echo "JOB_START=$(date +%s)" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
@@ -116,13 +138,42 @@ jobs:
         continue-on-error: true
       - name: Concatenate, add voices and subtitles
         run: |
+          SETUP=$(( $(date +%s) - JOB_START ))
           NAME=$(basename "${{ inputs.script }}" .md)
           ls out/chunks
           for f in $(ls out/chunks/*.mp4 | sort); do echo "file '$PWD/$f'"; done > out/list.txt
+          T0=$(date +%s)
           ffmpeg -y -f concat -safe 0 -i out/list.txt -c copy out/$NAME.${{ inputs.lang }}.video.mp4
+          T1=$(date +%s)
           TF=$(ls out/*.timing.json 2>/dev/null | head -1)
           node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$NAME.${{ inputs.lang }}.video.mp4 --lang "${{ inputs.lang }}" ${TF:+--timing-file $TF} -o out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
+          T2=$(date +%s)
           ls -la out
+          echo "PUBLISH_SETUP=$SETUP" >> "$GITHUB_ENV"; echo "CONCAT_S=$((T1-T0))" >> "$GITHUB_ENV"; echo "MUX_S=$((T2-T1))" >> "$GITHUB_ENV"
+      - name: Timing report
+        run: |
+          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json, glob, os
+          ps = [json.load(open(f)) for f in sorted(glob.glob('out/chunks/*.profile.json'))]
+          print('## Where the time went')
+          print()
+          if ps:
+              walls = [p.get('wall', p['total']) for p in ps]; setups = [p.get('setup', 0) for p in ps]
+              frames = sum(p['frames'] for p in ps)
+              print(f"{len(ps)} render chunks, {frames} frames.  Per chunk: runner setup {min(setups)}-{max(setups)}s, render {min(walls)}-{max(walls)}s (the slowest chunk gates the run).")
+              print()
+              tot = {}
+              for p in ps:
+                  for k, v in p['phases'].items(): tot[k] = tot.get(k, 0) + v
+              cpu = sum(tot.values())
+              print('| phase (summed over chunks) | cpu-s | % |'); print('|---|---:|---:|')
+              for k, v in sorted(tot.items(), key=lambda kv: -kv[1]): print(f"| {k} | {v:.0f} | {100*v/max(cpu,1e-6):.0f} |")
+              ev = sum(p['page']['evalMs'] for p in ps) / max(frames, 1); dr = sum(p['page']['drawMs'] for p in ps) / max(frames, 1)
+              ss = tot.get('frames.screenshot', 0) * 1000 / max(frames, 1); ew = tot.get('frames.encode-wait', 0) * 1000 / max(frames, 1)
+              print(); print(f"Per frame: timeline evaluation {ev:.0f} ms, draw (SwiftShader) {dr:.0f} ms, PNG readback {ss:.0f} ms, waiting for x264 {ew:.0f} ms.")
+              print()
+          print(f"Publish job: runner setup {os.environ.get('PUBLISH_SETUP','?')}s, concat {os.environ.get('CONCAT_S','?')}s, voices + subtitles mux {os.environ.get('MUX_S','?')}s.")
+          PY
       - name: Upload to the release
         env:
           GH_TOKEN: ${{ github.token }}

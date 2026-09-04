@@ -178,6 +178,16 @@ A 35-minute film at 1080p in 12 chunks takes about two hours.
 Renders made inside a session are committed to the `renders` branch (files
 under 100 MB) and, when under 30 MB, attached to the chat.
 
+**Where the time goes.** Every render prints a timing table at the end and
+writes it as `<out>.profile.json`: preparation (parse, voices, timing), asset
+transcoding, browser launch, and per frame the timeline evaluation, the
+SwiftShader draw, the PNG readback and the wait for the x264 encoder, then the
+concat and the final mux.  The workflow adds a *Where the time went* section to
+each run's summary page: per chunk the runner setup versus render time, the
+phases summed over chunks, and the publish job's concat and mux.  On a
+GitHub runner a 1080p frame is roughly 0.6 s of draw and 0.4 s of readback, so
+the draw and the number of chunks decide the wall time.
+
 ## Tests
 
 ```bash

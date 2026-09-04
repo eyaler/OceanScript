@@ -1,6 +1,6 @@
 // Finalises a rendered (video-only) file: writes SRT/VTT sidecars, builds the
 // voice track and muxes audio + a soft subtitle track into the output.
-import { existsSync, mkdirSync, writeFileSync, renameSync, rmSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, renameSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { findFfmpeg } from './ffmpeg.js';
@@ -47,14 +47,15 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
   // mux
   const ffargs = ['-y', '-hide_banner', '-loglevel', 'error', '-i', videoFile];
   if (audio) ffargs.push('-i', audio);
-  const subIn = ffargs.length / 2 - 1;
-  if (!args.noSubTrack) ffargs.push('-i', srt);
+  // an empty subtitle file (a partial render with no dialog in range) cannot be muxed
+  const withSubs = !args.noSubTrack && existsSync(srt) && /\S/.test(readFileSync(srt, 'utf8'));
+  if (withSubs) ffargs.push('-i', srt);
   ffargs.push('-map', '0:v:0');
   if (audio) ffargs.push('-map', '1:a:0');
-  if (!args.noSubTrack) ffargs.push('-map', `${audio ? 2 : 1}:s:0`);
+  if (withSubs) ffargs.push('-map', `${audio ? 2 : 1}:s:0`);
   ffargs.push('-c:v', 'copy');
   if (audio) ffargs.push('-c:a', isMp4 ? 'aac' : 'libopus', '-b:a', '160k', `-metadata:s:a:0`, `language=${langCode3(lang)}`);
-  if (!args.noSubTrack) ffargs.push('-c:s', isMp4 ? 'mov_text' : 'webvtt', `-metadata:s:s:0`, `language=${langCode3(lang)}`, `-metadata:s:s:0`, `title=${lang}`);
+  if (withSubs) ffargs.push('-c:s', isMp4 ? 'mov_text' : 'webvtt', `-metadata:s:s:0`, `language=${langCode3(lang)}`, `-metadata:s:s:0`, `title=${lang}`);
   if (isMp4) ffargs.push('-movflags', '+faststart');
   const tmp = `${base}.muxing${path.extname(out)}`;
   ffargs.push(tmp);

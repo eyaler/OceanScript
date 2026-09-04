@@ -154,6 +154,7 @@ const tmpV = new THREE.Vector3(), tmpM = new THREE.Matrix4(), tmpQ = new THREE.Q
 
 function seek(t) {
   if (!ev) return;
+  const __t0 = performance.now();
   ev.beginFrame();
   // camera
   const cp0 = ev.cameraPos(t), cl = ev.cameraLook(t), sh = ev.cameraShake(t);
@@ -423,7 +424,12 @@ function seek(t) {
     $title.querySelector('.sub').textContent = title.subtitle || '';
   } else $title.style.opacity = 0;
 
+  const __t1 = performance.now();
   renderer.render(scene, camera);
+  // WebGL queues the draw; a 1x1 readPixels forces the rasteriser to finish
+  // here, so the draw bucket is honest and the screenshot bucket is readback + PNG
+  try { const gl = renderer.getContext(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, window.__px || (window.__px = new Uint8Array(4))); } catch { /* ignore */ }
+  window.__seekProfile = { evalMs: __t1 - __t0, drawMs: performance.now() - __t1 };
   return clipReady;
 }
 // Deterministic video frame selection: seek and wait for the frame to be decoded.
@@ -495,7 +501,7 @@ async function main() {
   if (HEADLESS) {
     window.__load = (tl) => { loadTimeline(tl); return true; };
     // subtitles are muxed as a soft track unless burn-in was requested
-    window.__seek = async (t) => { await seek(t); return true; };
+    window.__seek = async (t) => { await seek(t); return window.__seekProfile || true; };
     window.__debug = (hide) => {
       const names = String(hide).split(',').filter(Boolean);
       for (const n of names) { if (ocean[n]) ocean[n].visible = false; }
