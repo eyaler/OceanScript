@@ -56,6 +56,8 @@ export async function finalize(timeline, videoFile, out, args = {}, log = consol
   if (withSubs) ffargs.push('-map', `${audio ? 2 : 1}:s:0`);
   ffargs.push('-c:v', 'copy');
   if (audio) ffargs.push('-c:a', isMp4 ? 'aac' : 'libopus', '-b:a', '160k', `-metadata:s:a:0`, `language=${langCode3(lang)}`);
+  // mov_text needs the frame height to place its text box at the bottom of the picture
+  if (withSubs && isMp4) ffargs.push('-height', String(timeline.meta.height || 720));
   if (withSubs) ffargs.push('-c:s', isMp4 ? 'mov_text' : 'webvtt', `-metadata:s:s:0`, `language=${langCode3(lang)}`, `-metadata:s:s:0`, `title=${lang}`);
   if (isMp4) ffargs.push('-movflags', '+faststart');
   const tmp = `${base}.muxing${path.extname(out)}`;
