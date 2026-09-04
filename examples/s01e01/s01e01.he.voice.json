@@ -1,0 +1,872 @@
+[
+  {
+    "t0": 0,
+    "slot": 6.59,
+    "duration": 6.14,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "היום הוא יום מיוחד מאוד. היום הראשון של כספיון בגן!",
+    "spoken": "היום הוא יום מיוחד מאוד. היום הראשון של קַסְפִּיוֹן בַּגַן!",
+    "clip": "out/.tts-cache/fa78c3656527fa92.mp3"
+  },
+  {
+    "t0": 6.59,
+    "slot": 8.39,
+    "duration": 7.94,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "כספיון שחה לאט לאט. הסנפירים שלו רעדו קצת, כי הוא לא הכיר שם אף אחד.",
+    "spoken": "קַסְפִּיוֹן שָׂחָה לאט לאט. הסנפירים שלו רעדו קצת, כי הוא לא הכיר שם אף אחד.",
+    "clip": "out/.tts-cache/9753aa1a653072dd.mp3"
+  },
+  {
+    "t0": 14.98,
+    "slot": 7.41,
+    "duration": 6.96,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "הו... כל כך הרבה דגים שאני לא מכיר. אולי עדיף שאחזור הביתה?",
+    "spoken": "הו... כל כך הרבה דגים שאני לא מכיר. אולי עדיף שאחזור הביתה?",
+    "clip": "out/.tts-cache/7ced58ebaedd9a65.mp3"
+  },
+  {
+    "t0": 25.39,
+    "slot": 9.739999999999995,
+    "duration": 9.29,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "בוקר טוב, כספיון! ברוך הבא לגן הים. אני הגננת, ואלה כל החברים שלך.",
+    "spoken": "בוקר טוב, קַסְפִּיוֹן! בָּרוּךְ הבא לַגַן הים. אני הַגַנֶנֶט, ואלה כל החברים שֶׁלְּךָ.",
+    "clip": "out/.tts-cache/210ca3d6157764cb.mp3"
+  },
+  {
+    "t0": 35.129999999999995,
+    "slot": 4.549999999999997,
+    "duration": 4.1,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בוקר טוב... אני קצת מתבייש.",
+    "spoken": "בוקר טוב... אני קְצָת מתבייש.",
+    "clip": "out/.tts-cache/09e07614591758e8.mp3"
+  },
+  {
+    "t0": 39.67999999999999,
+    "slot": 8.009999999999998,
+    "duration": 7.56,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "זה בסדר להתבייש ביום הראשון. לך לשחק, ותראה שעוד רגע יש לך חברים.",
+    "spoken": "זה בסדר להתבייש ביום הראשון. לֵךְ לשחק, ותראה שעוד רגע יש לְךָ חברים.",
+    "clip": "out/.tts-cache/5d582bf6282fac6d.mp3"
+  },
+  {
+    "t0": 51.68999999999999,
+    "slot": 6.640000000000001,
+    "duration": 6.19,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "הילדים שיחקו ושחו וצחקו, וכספיון נשאר בצד, לבד.",
+    "spoken": "הילדים שיחקו ושָׂחוּ וצחקו, וקַסְפִּיוֹן נשאר בצד, לבד.",
+    "clip": "out/.tts-cache/69b5d8567bdfa334.mp3"
+  },
+  {
+    "t0": 59.32999999999999,
+    "slot": 13.82,
+    "duration": 13.37,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "ואז, מתוך הצבעים של השונית, הופיע דג שכספיון מעולם לא ראה כמוהו. דג צבעוני ויפה, עם עיניים ענקיות ומהפנטות, ובלורית מתולתלת על הראש.",
+    "spoken": "ואז, מתוך הצבעים של השונית, הופיע דג שקַסְפִּיוֹן מעולם לא ראה כמוהו. דג צבעוני ויפה, עם עיניים ענקיות ומְהַפְּנְטוֹת, ובלורית מתולתלת על הראש.",
+    "clip": "out/.tts-cache/469595ac4c94809f.mp3"
+  },
+  {
+    "t0": 79.94999999999999,
+    "slot": 6.640000000000001,
+    "duration": 6.19,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "היי! אני דותן. אתה חדש פה, נכון?",
+    "spoken": "היי! אני דותן. אתה חדש פה, נכון?",
+    "clip": "out/.tts-cache/cf6558a4abc74146.mp3"
+  },
+  {
+    "t0": 86.58999999999999,
+    "slot": 7.150000000000006,
+    "duration": 6.7,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כן... אני כספיון. זה היום הראשון שלי, ואני לא מכיר פה אף אחד.",
+    "spoken": "כן... אני קַסְפִּיוֹן. זה היום הראשון שלי, ואני לא מכיר פה אף אחד.",
+    "clip": "out/.tts-cache/90d4e79db2e7ef06.mp3"
+  },
+  {
+    "t0": 93.74,
+    "slot": 6.859999999999999,
+    "duration": 6.41,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "עכשיו אתה מכיר אותי! בוא, אני אראה לך את הגן. פה כולם חברים.",
+    "spoken": "עכשיו אתה מכיר אותי! בוא, אני אראה לְךָ את הַגַן. פה כולם חֲבֵרִים.",
+    "clip": "out/.tts-cache/05ce6d2fd94405f8.mp3"
+  },
+  {
+    "t0": 100.6,
+    "slot": 4.650000000000006,
+    "duration": 4.2,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "באמת? תודה, דותן!",
+    "spoken": "באמת? תודה, דותן!",
+    "clip": "out/.tts-cache/7619d77e4171ce4d.mp3"
+  },
+  {
+    "t0": 105.25,
+    "slot": 5.180000000000007,
+    "duration": 4.73,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "וכך, ביחד, יצאו השניים לסייר בגן.",
+    "spoken": "וכך, ביחד, יצאו השניים לסייר בַּגַן.",
+    "clip": "out/.tts-cache/fc6b8f55f90ede56.mp3"
+  },
+  {
+    "t0": 116.43,
+    "slot": 9.11,
+    "duration": 8.66,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "בחצר הגן חיכו האופניים. כל הילדים ידעו לרכוב עליהם... חוץ מכספיון.",
+    "spoken": "בחצר הַגַן חיכו האופניים. כל הילדים ידעו לרכוב עליהם... חוץ מקַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/592f3d6cecf92816.mp3"
+  },
+  {
+    "t0": 125.54,
+    "slot": 4.549999999999997,
+    "duration": 4.1,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אופניים! גם אני רוצה לרכוב!",
+    "spoken": "אופניים! גם אני רוֹצֶה לרכוב!",
+    "clip": "out/.tts-cache/5f1924a383761ebe.mp3"
+  },
+  {
+    "t0": 132.09,
+    "slot": 5.539999999999992,
+    "duration": 5.09,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "כספיון עלה על האופניים, לחץ על הפדלים, ו...",
+    "spoken": "קַסְפִּיוֹן עלה על האופניים, לחץ על הפֶּדָלִים, ו...",
+    "clip": "out/.tts-cache/f231b5d436c38736.mp3"
+  },
+  {
+    "t0": 141.03,
+    "slot": 5.27000000000001,
+    "duration": 4.82,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אאוץ'! זה הרבה יותר קשה ממה שחשבתי.",
+    "spoken": "אאוץ'! זה הרבה יותר קשה ממה שחשבתי.",
+    "clip": "out/.tts-cache/245c8c431f54d781.mp3"
+  },
+  {
+    "t0": 146.3,
+    "slot": 2.5600000000000023,
+    "duration": 2.11,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "הוא ניסה שוב.",
+    "spoken": "הוא ניסה שוב.",
+    "clip": "out/.tts-cache/b47d724a77605347.mp3"
+  },
+  {
+    "t0": 153.26000000000002,
+    "slot": 5.72999999999999,
+    "duration": 5.28,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אני לא מצליח! אני אף פעם לא אדע לרכוב על אופניים.",
+    "spoken": "אני לא מצליח! אני אף פעם לא אדע לרכוב על אופניים.",
+    "clip": "out/.tts-cache/0ca7f6386375d3fb.mp3"
+  },
+  {
+    "t0": 161.99,
+    "slot": 6.8300000000000125,
+    "duration": 6.38,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "רגע, רגע! אל תוותר. אני אעזור לך.",
+    "spoken": "רגע, רגע! אל תוותר. אני אעזור לְךָ.",
+    "clip": "out/.tts-cache/4fbf939d2ee8df59.mp3"
+  },
+  {
+    "t0": 168.82000000000002,
+    "slot": 4.460000000000008,
+    "duration": 4.01,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אבל איך? כל פעם אני נופל.",
+    "spoken": "אבל אֵיךְ? כל פעם אני נופל.",
+    "clip": "out/.tts-cache/8a7593f292f4175c.mp3"
+  },
+  {
+    "t0": 173.28000000000003,
+    "slot": 8.370000000000005,
+    "duration": 7.92,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "הסוד באופניים הוא להסתכל קדימה, ולא למטה. תחזיק חזק, ותתחיל לאט לאט.",
+    "spoken": "הסוד באופניים הוא להסתכל קדימה, ולא למטה. תחזיק חזק, ותתחיל לאט לאט.",
+    "clip": "out/.tts-cache/cf6dcb52ca30c6af.mp3"
+  },
+  {
+    "t0": 181.65000000000003,
+    "slot": 5.490000000000009,
+    "duration": 5.04,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "ואל תדאג. אני שוחה לידך כל הדרך.",
+    "spoken": "ואל תדאג. אני שׂוֹחֶה לְיָדְךָ כל הַדֶּרֶךְ.",
+    "clip": "out/.tts-cache/8fb629061487c708.mp3"
+  },
+  {
+    "t0": 187.14000000000004,
+    "slot": 6.930000000000007,
+    "duration": 6.48,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מסתכלים קדימה... מתחילים לאט... טוב, אני מנסה!",
+    "spoken": "מסתכלים קדימה... מתחילים לאט... טוב, אני מְנַסֶּה!",
+    "clip": "out/.tts-cache/cbbd2f13ee250ebf.mp3"
+  },
+  {
+    "t0": 195.57000000000005,
+    "slot": 11.419999999999987,
+    "duration": 10.97,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "הפעם כספיון הסתכל קדימה. הגלגלים הסתובבו, לאט... ואז מהר יותר... ומהר יותר!",
+    "spoken": "הפעם קַסְפִּיוֹן הסתכל קדימה. הגלגלים הסתובבו, לאט... ואז מהר יותר... ומהר יותר!",
+    "clip": "out/.tts-cache/3fedc1a963cd0bc3.mp3"
+  },
+  {
+    "t0": 206.99000000000004,
+    "slot": 5.710000000000008,
+    "duration": 5.26,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "הוא לא נפל! כספיון רכב סביב כל הגן!",
+    "spoken": "הוא לא נפל! קַסְפִּיוֹן רָכַב סביב כל הַגַן!",
+    "clip": "out/.tts-cache/bb96b31b96647e48.mp3"
+  },
+  {
+    "t0": 215.70000000000005,
+    "slot": 5.8700000000000045,
+    "duration": 5.42,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אני רוכב! דותן, תראה, אני רוכב!",
+    "spoken": "אני רוכב! דותן, תראה, אני רוכב!",
+    "clip": "out/.tts-cache/728688dbdfb0b487.mp3"
+  },
+  {
+    "t0": 221.57000000000005,
+    "slot": 5.560000000000002,
+    "duration": 5.11,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "ידעתי שתצליח! עכשיו אתה רוכב כמו אלוף.",
+    "spoken": "ידעתי שתצליח! עכשיו אתה רוכב כמו אלוף.",
+    "clip": "out/.tts-cache/ab5600f381430469.mp3"
+  },
+  {
+    "t0": 230.13000000000005,
+    "slot": 5.72999999999999,
+    "duration": 5.28,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "תודה, דותן! בלעדיך לא הייתי מצליח.",
+    "spoken": "תודה, דותן! בִּלְעָדֶיךָ לא הייתי מצליח.",
+    "clip": "out/.tts-cache/cc72ba10f7a16a39.mp3"
+  },
+  {
+    "t0": 238.86000000000004,
+    "slot": 8.849999999999994,
+    "duration": 8.4,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "אחרי המשחקים בחצר הגיעה שעת האוכל. כל הילדים הוציאו את הסנדוויצ'ים שלהם מהתיקים.",
+    "spoken": "אחרי המשחקים בחצר הגיעה שעת האוכל. כל הילדים הוציאו את הסנדוויצ'ים שלהם מהתיקים.",
+    "clip": "out/.tts-cache/ab429d220d618029.mp3"
+  },
+  {
+    "t0": 250.61000000000004,
+    "slot": 4.960000000000008,
+    "duration": 4.51,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אוי לא! שכחתי את הסנדוויץ' שלי בבית!",
+    "spoken": "אוי לא! שכחתי את הסֶנְדְוִיץ' שלי בבית!",
+    "clip": "out/.tts-cache/b1207591be16f859.mp3"
+  },
+  {
+    "t0": 255.57000000000005,
+    "slot": 3.5,
+    "duration": 3.05,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "עכשיו אני אשאר רעב כל היום...",
+    "spoken": "עכשיו אני אשאר רָעֵב כל היום...",
+    "clip": "out/.tts-cache/25f065553e5c617b.mp3"
+  },
+  {
+    "t0": 264.07000000000005,
+    "slot": 5.6299999999999955,
+    "duration": 5.18,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אל תדאג, כספיון. יש לי משהו הרבה יותר טוב מסנדוויץ'.",
+    "spoken": "אל תדאג, קַסְפִּיוֹן. יש לי משהו הרבה יותר טוב מסֶנְדְוִיץ'.",
+    "clip": "out/.tts-cache/80a0ec50bdfad2f0.mp3"
+  },
+  {
+    "t0": 271.20000000000005,
+    "slot": 8.70999999999998,
+    "duration": 8.26,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "מנגו! מתוק, עסיסי וצהוב כמו השמש. חצי לך, וחצי לי.",
+    "spoken": "מנגו! מתוק, עסיסי וצהוב כמו השמש. חצי לְךָ, וחצי לי.",
+    "clip": "out/.tts-cache/015e24c9fbb63584.mp3"
+  },
+  {
+    "t0": 292.21000000000004,
+    "slot": 5.6299999999999955,
+    "duration": 5.18,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מממ... זה המנגו הכי טעים שאכלתי בחיים שלי!",
+    "spoken": "מממ... זה המנגו הכי טעים שאכלתי בחיים שלי!",
+    "clip": "out/.tts-cache/3eb83149d0d63f57.mp3"
+  },
+  {
+    "t0": 297.84000000000003,
+    "slot": 6.2099999999999795,
+    "duration": 5.76,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אמרתי לך! עם חבר, גם מנגו אחד מספיק לשניים.",
+    "spoken": "אמרתי לֵךְ! עם חבר, גם מנגו אחד מספיק לשניים.",
+    "clip": "out/.tts-cache/fa35fc5e9c999758.mp3"
+  },
+  {
+    "t0": 304.05,
+    "slot": 6.310000000000002,
+    "duration": 5.86,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "תודה, דותן. מחר אני מביא לך חצי מהסנדוויץ' שלי.",
+    "spoken": "תודה, דותן. מחר אני מביא לְךָ חצי מהסֶנְדְוִיץ' שלי.",
+    "clip": "out/.tts-cache/73aaf618053eaf77.mp3"
+  },
+  {
+    "t0": 312.86,
+    "slot": 10.430000000000007,
+    "duration": 9.98,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "אחרי האוכל הגיע זמן המשחקים. בגן היו צעצועים בכל הצבעים, וכספיון רצה לשחק בכולם בבת אחת.",
+    "spoken": "אחרי האוכל הגיע זמן המשחקים. בַּגַן היו צעצועים בכל הצבעים, וקַסְפִּיוֹן רצה לשחק בכולם בבת אחת.",
+    "clip": "out/.tts-cache/570d0d31aa25653f.mp3"
+  },
+  {
+    "t0": 325.29,
+    "slot": 8.779999999999973,
+    "duration": 8.33,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כדור! קוביות! סירה! ודובי! איזה כיף!",
+    "spoken": "כדור! קוביות! סירה! ודובי! איזה כיף!",
+    "clip": "out/.tts-cache/61eb87ec9f537bdd.mp3"
+  },
+  {
+    "t0": 335.57,
+    "slot": 11.490000000000009,
+    "duration": 11.04,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "הכדור התגלגל לכאן, הקוביות עפו לשם, הסירה והדובי צללו לרצפה... ותוך רגע, כל הגן היה בלאגן אחד גדול.",
+    "spoken": "הכדור התגלגל לכאן, הקוביות עפו לשם, הסירה והדובי צללו לרצפה... ותוך רגע, כל הַגַן היה בלאגן אחד גדול.",
+    "clip": "out/.tts-cache/1d758335252ce016.mp3"
+  },
+  {
+    "t0": 350.06,
+    "slot": 7.4599999999999795,
+    "duration": 7.01,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "כספיון! מה הבלאגן הזה?! כל הצעצועים על הרצפה!",
+    "spoken": "קַסְפִּיוֹן! מה הבלאגן הזה?! כל הצעצועים על הרצפה!",
+    "clip": "out/.tts-cache/b651cb7b21fd8042.mp3"
+  },
+  {
+    "t0": 357.52,
+    "slot": 4.220000000000027,
+    "duration": 3.77,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "סליחה הגננת, רק רציתי לשחק.",
+    "spoken": "סליחה הַגַנֶנֶט, רק רציתי לשחק.",
+    "clip": "out/.tts-cache/fa0877c35f9c95f3.mp3"
+  },
+  {
+    "t0": 361.74,
+    "slot": 7.819999999999993,
+    "duration": 7.37,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "מי שמשחק, גם מסדר. עכשיו צריך להחזיר כל צעצוע למקום שלו, לפני שנקרא סיפור.",
+    "spoken": "מי שמשחק, גם מְסַדֵר. עכשיו צָרִיךְ להחזיר כל צעצוע למקום שלו, לפני שנקרא סיפור.",
+    "clip": "out/.tts-cache/41d6f83e4ba3fd99.mp3"
+  },
+  {
+    "t0": 369.56,
+    "slot": 5.199999999999989,
+    "duration": 4.75,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כל כך הרבה צעצועים... זה ייקח לי שנה שלמה!",
+    "spoken": "כל כך הרבה צעצועים... זה ייקח לי שנה שלמה!",
+    "clip": "out/.tts-cache/519ee0ea0a7f6372.mp3"
+  },
+  {
+    "t0": 376.76,
+    "slot": 7.550000000000011,
+    "duration": 7.1,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "לא אם עושים את זה ביחד! אתה אוסף את הכדור והקוביות, ואני את הסירה והדובי.",
+    "spoken": "לא אם עוֹשִׂים את זה ביחד! אתה אוסף את הכדור והקוביות, ואני את הסירה והדובי.",
+    "clip": "out/.tts-cache/eaa54509f8876546.mp3"
+  },
+  {
+    "t0": 384.31,
+    "slot": 3.589999999999975,
+    "duration": 3.14,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "מוכן? צא!",
+    "spoken": "מוכן? צא!",
+    "clip": "out/.tts-cache/a22b104e07db2e4c.mp3"
+  },
+  {
+    "t0": 393.09999999999997,
+    "slot": 7.75,
+    "duration": 7.3,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "וחיש מהר, כדור אחרי קובייה, סירה אחרי דובי, הגן היה מסודר כמו חדש.",
+    "spoken": "וחיש מהר, כדור אחרי קובייה, סירה אחרי דובי, הַגַן היה מְסֻדָר כמו חדש.",
+    "clip": "out/.tts-cache/52807a6afc4aa662.mp3"
+  },
+  {
+    "t0": 404.84999999999997,
+    "slot": 6.7900000000000205,
+    "duration": 6.34,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "כל הכבוד, שניכם! זה הסידור הכי מהיר שראיתי בגן.",
+    "spoken": "כל הכבוד, שניכם! זה הסִדוּר הכי מהיר שראיתי בַּגַן.",
+    "clip": "out/.tts-cache/edb59273aff0382a.mp3"
+  },
+  {
+    "t0": 411.64,
+    "slot": 4.240000000000009,
+    "duration": 3.79,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "תודה הגננת, ודותן עזר לי בכול!",
+    "spoken": "תודה הַגַנֶנֶט, ודותן עזר לי בכול!",
+    "clip": "out/.tts-cache/a3772fd82f3c0fe8.mp3"
+  },
+  {
+    "t0": 416.88,
+    "slot": 4.6299999999999955,
+    "duration": 4.18,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "ועכשיו, כולם למעגל, לסיפור!",
+    "spoken": "ועכשיו, כולם למעגל, לסיפור!",
+    "clip": "out/.tts-cache/f1643a5996d321ba.mp3"
+  },
+  {
+    "t0": 430.51,
+    "slot": 9.160000000000025,
+    "duration": 8.71,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "היום הראשון בגן עמד להסתיים. השמש ירדה לאט אל הים, וההורים התחילו לאסוף את הילדים.",
+    "spoken": "היום הראשון בַּגַן עמד להסתיים. השמש ירדה לאט אל הים, וההורים התחילו לאסוף את הילדים.",
+    "clip": "out/.tts-cache/cbfe7c239736e8e7.mp3"
+  },
+  {
+    "t0": 439.67,
+    "slot": 8.70999999999998,
+    "duration": 8.26,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דותן, אתה חבר ממש טוב. אתה יודע לפתור כל בעיה! איך אתה יודע כל כך הרבה?",
+    "spoken": "דותן, אתה חבר ממש טוב. אתה יודע לפתור כל בעיה! אֵיךְ אתה יודע כל כך הַרְבֵּה?",
+    "clip": "out/.tts-cache/69108d4fb418f29f.mp3"
+  },
+  {
+    "t0": 448.38,
+    "slot": 6.689999999999998,
+    "duration": 6.24,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "למדתי את זה מדודו איל. הוא הדוד הכי טוב בעולם, והוא יודע לפתור את כל הבעיות.",
+    "spoken": "למדתי את זה מדוֹדוֹ אֱיָל. הוא הדֹד הכי טוב בעולם, והוא יודע לפתור את כל הבעיות.",
+    "clip": "out/.tts-cache/81e4cfce580748c0.mp3"
+  },
+  {
+    "t0": 455.07,
+    "slot": 4.699999999999989,
+    "duration": 4.25,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דודו איל? הוא נשמע כמו דוד נהדר.",
+    "spoken": "דוֹדוֹ אֱיָל? הוא נשמע כמו דֹד נהדר.",
+    "clip": "out/.tts-cache/869c79478038f923.mp3"
+  },
+  {
+    "t0": 459.77,
+    "slot": 5.490000000000009,
+    "duration": 5.04,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "הוא תמיד אומר: כל בעיה נפתרת, אם יש חבר לצידך.",
+    "spoken": "הוא תמיד אומר: כל בעיה נִפְתֶּרֶת, אם יש חבר לְצִדְךָ.",
+    "clip": "out/.tts-cache/20784b6881687a69.mp3"
+  },
+  {
+    "t0": 466.26,
+    "slot": 4.4599999999999795,
+    "duration": 4.01,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אז מחר... נשחק שוב ביחד?",
+    "spoken": "אז מחר... נשחק שוב ביחד?",
+    "clip": "out/.tts-cache/f96d668cd880aba1.mp3"
+  },
+  {
+    "t0": 470.71999999999997,
+    "slot": 5.25,
+    "duration": 4.8,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "בטח! אני אחכה לך ליד האופניים.",
+    "spoken": "בטח! אני אחכה לְךָ ליד האופניים.",
+    "clip": "out/.tts-cache/36af18cad8663712.mp3"
+  },
+  {
+    "t0": 478.46999999999997,
+    "slot": 6.350000000000023,
+    "duration": 5.9,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "להתראות, דותן! אני כבר מחכה לבוא שוב לגן מחר!",
+    "spoken": "להתראות, דותן! אני כבר מְחַכֶּה לבוא שוב לַגַן מחר!",
+    "clip": "out/.tts-cache/ae24aa49f0812784.mp3"
+  }
+]

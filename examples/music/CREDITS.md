@@ -7,3 +7,8 @@ All recordings are in the public domain in the United States: they were publishe
 - `mountain-king.ogg`: Grieg, Peer Gynt, "In the Hall of the Mountain King" — Band of H.M. Scots Guards (1922). Source: https://archive.org/details/78_peer-gynt-suite-no-4-in-the-hall-of-the-mountain-king_the-band-of-h-m-scots-guar_gbia0122889b (`PEER GYNT SUITE No. 4 In  - The Band of H. M. Scots Guards.mp3`).
 - `barcarolle.ogg`: Offenbach, "Barcarolle" (Tales of Hoffmann) — Cherniavsky Trio (1918). Source: https://archive.org/details/78_barcarolle_cherniavsky-trio-offenbach_gbia0192107b (`BARCAROLLE - CHERNIAVSKY TRIO - Offenbach.mp3`).
 - `solveig.ogg`: Grieg, "Solveig's Song" (Peer Gynt) — Eddy Brown, violin; Josef Bonime, piano (Columbia A3449, 1921). Source: https://archive.org/details/solveigs-song (`Solveig's Song.mp3`).
+
+All files are cleaned from the 78 rpm transfers with ffmpeg (`adeclick`,
+`afftdn` noise reduction, a steep 3 kHz low-pass, loudness normalised to
+-23 LUFS): acoustic-era records carry little above 3 kHz, and the surface
+hiss there reads as "water noise" under the voices.

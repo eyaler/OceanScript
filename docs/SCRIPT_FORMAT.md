@@ -150,6 +150,15 @@ still override: `- מצאת [f]: מָצָאתְ` applies when the addressee is f
 `[m]` when male, `[speaker f]` / `[speaker m]` by the speaker's gender.
 `agreement: off` disables the automatic step.
 
+**Checking the voices.** `oceanscript voices script.md` synthesises every line
+(cached), transcribes each clip back with Whisper (`pip install faster-whisper`)
+and prints the lines whose transcript drifts from the text, lowest similarity
+first; `--phonetic` adds an English-forced reading ("matzata" vs "matzat") for
+judging vowels.  Use it after every text change: the Edge voices have quirks
+(a dagesh in ג/ד/ת, a vowel appended to a sentence-final ת, so `הגננת` is
+spoken as `הַגַנֶנֶט`), and this is how to catch them without listening to
+every line.
+
 A `he-tts:` line under a `he:` line replaces the spoken text of that one line
 (phonetic respelling, or a fully pointed sentence).  `nikud: auto` in the
 front matter points every Hebrew line with Dicta's Nakdan service instead
@@ -178,9 +187,9 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   film's signature whale: `- whale: whale, black, size 10, accent purple, baleen`.
 * **pattern** for fish: `spots`, `stripes` or `bands` in the accent colour, e.g.
   `- puffer: fish, magenta, spots, accent yellow`.
-* **eyes** `eyes 2` (or `big eyes`) scales a fish's eyes, and **forelock** (or
-  `curly`) gives it a curly forelock in the accent colour: `- dothan: fish,
-  orange, bands, accent cyan, eyes 2, forelock`.
+* **eyes** `eyes 1.5` (or `big eyes`) scales a fish's eyes, and **forelock** (or
+  `curly`) gives it a quiff on the forehead striped in the body and accent
+  colours: `- dothan: fish, orange, bands, accent cyan, eyes 1.5, forelock`.
 * **gender**: `male` or `female` (guessed from names like *mother* otherwise).
   It drives gender-dependent pronunciation (below) and default voices.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
@@ -297,12 +306,18 @@ identical frames in every language.
 | move | `@camera moves to (5, -4, 10) over 4s`, `moves to @whale distance 9` |
 | look | `@camera looks at @shark over 1s` |
 | follow | `@camera follows @caspion from behind distance 3 height 1` (`side`, `front`, `above`; behind, side and front are relative to the actor's heading, so `side` is always a profile) |
+| frame | `@camera frames @caspion and @dothan` (a two-shot: from the side of the line between them, far enough to hold both, a little above; `distance 3` overrides, `over 2s` moves there instead of cutting; one actor gives a close-up) |
 | orbit | `@camera orbits @whale distance 12 over 10s` |
 | shake | `@camera shakes for 1s strength 2` |
 | zoom | `@camera zooms to 30 over 2s` (field of view in degrees) |
 | stop | `@camera stops` (freezes where it is) |
 
 The camera is clamped just above the seabed and never sits exactly on the surface.
+It is also pushed out of every character's and prop's body (so a follow shot
+never passes through the teacher), and anything closer to the lens than its own
+half-size is hidden for those frames rather than sliced by the near plane.
+Sweeping follow shots through a crowded set still look bad: prefer static cuts
+or `frames` for dialogue.
 
 ## Dialog and text
 

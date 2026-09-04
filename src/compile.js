@@ -662,6 +662,42 @@ export function compile(script, options = {}) {
         advance(t0, dur, st.nonBlocking);
         break;
       }
+      case 'frame': {
+        // a shot that holds every named actor: from the side of their line, at a
+        // distance set by their spread and size, a little above them
+        const names = st.targets.filter((n) => cast[n]);
+        if (!names.length) { warn(st.line, 'frame: no known actors'); break; }
+        const ps = names.map((n) => estPos(n));
+        const mid = ps.reduce((a, b) => vadd(a, b), [0, 0, 0]).map((v) => v / ps.length);
+        const big = Math.max(...names.map((n) => sizeOf(n)));
+        let spread = 0;
+        for (const a of ps) for (const b of ps) spread = Math.max(spread, vdist(a, b));
+        let n;
+        if (ps.length >= 2) {
+          const d = [ps[1][0] - ps[0][0], 0, ps[1][2] - ps[0][2]];
+          const l = Math.hypot(d[0], d[2]) || 1;
+          n = [-d[2] / l, 0, d[0] / l];
+          const toCam = [camEst[0] - mid[0], 0, camEst[2] - mid[2]];
+          if (n[0] * toCam[0] + n[2] * toCam[2] < 0) n = [-n[0], 0, -n[2]];
+        } else {
+          const toCam = [camEst[0] - mid[0], 0, camEst[2] - mid[2]];
+          const l = Math.hypot(toCam[0], toCam[2]) || 1;
+          n = [toCam[0] / l, 0, toCam[2] / l];
+        }
+        const dist = st.distance ?? Math.max(spread * 1.1 + big * 2.2, big * 3, 1.5);
+        const pos = [mid[0] + n[0] * dist, mid[1] + big * 0.35 + 0.25, mid[2] + n[2] * dist];
+        const lookAt = [mid[0], mid[1] + big * 0.05, mid[2]];
+        if (st.duration) {
+          camera.segments.push({ type: 'to', t0, t1: t0 + st.duration, target: { pos }, ease });
+          camera.looks.push({ t0, t1: t0 + st.duration, target: { pos: lookAt } });
+          advance(t0, st.duration, st.nonBlocking);
+        } else {
+          camera.segments.push({ type: 'place', t0, t1: t0, pos });
+          camera.looks.push({ t0, t1: t0, target: { pos: lookAt } });
+        }
+        camEst = pos;
+        break;
+      }
       case 'look': {
         const dur = st.duration ?? 1;
         camera.looks.push({ t0, t1: t0 + dur, target: st.target ?? { dir: DIRECTIONS[st.direction] } });

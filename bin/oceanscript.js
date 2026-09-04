@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadTimeline } from '../src/load.js';
 
 const HELP = `oceanscript – render 3D ocean animations from a markdown screenplay
@@ -10,6 +11,7 @@ usage:
   oceanscript render  <script.md> [options]              render to a video
   oceanscript preview <script.md> [--port N]             live preview in a browser
   oceanscript check   <script.md>                        validate and list warnings
+  oceanscript voices  <script.md> [--lang he] [--phonetic]  synthesise the voices, transcribe them back with Whisper and flag lines that do not read as written
   oceanscript mux     <script.md> --video <file> [--lang he] [-o out]
                                                          add voice + subtitles in another language to an
                                                          existing render (frames are identical, so no re-render)
@@ -82,6 +84,19 @@ async function main() {
     const { render } = await import('../src/render.js');
     await render(file, { ...opts, ...args });
     return;
+  }
+  if (cmd === 'voices') {
+    const { prepareTimeline } = await import('../src/timing.js');
+    const { synthesizeAll, writeManifest } = await import('../src/tts.js');
+    const { spawnSync } = await import('node:child_process');
+    const timeline = await prepareTimeline(file, { ...opts, timingFile: args.timingFile }, (m) => console.error(m));
+    const res = await synthesizeAll(timeline, { engine: opts.tts ?? timeline.meta.tts, cacheDir: args.ttsCache, log: (m) => console.error(m) });
+    const manifest = file.replace(/\.md$/, '') + `.${timeline.meta.lang}.voice.json`;
+    writeManifest(res.clips, manifest);
+    console.error(`wrote ${manifest} (${res.clips.length} clips)`);
+    const script = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'check-voices.py');
+    const r = spawnSync('python3', [script, manifest, '--lang', timeline.meta.lang, ...(args.phonetic ? ['--phonetic'] : []), ...(args.model ? ['--model', String(args.model)] : [])], { stdio: 'inherit' });
+    process.exit(r.status ?? 1);
   }
   if (cmd === 'mux') {
     const { muxCommand } = await import('../src/mux.js');

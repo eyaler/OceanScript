@@ -278,6 +278,21 @@ export class TimelineEvaluator {
     return e.emotion;
   }
 
+  // The emotion a moment ago and how far the change has progressed (0..1 over
+  // 0.6 s), so rigs can blend between the two instead of snapping
+  emotionBlend(name, t) {
+    const tr = this.tracks(name);
+    if (!tr) return { from: 'neutral', u: 1 };
+    const transient = { scared: 10, surprised: 4, excited: 8, crying: 6 };
+    let changeT = -Infinity;
+    for (const x of tr.emotes) {
+      if (x.t <= t + 1e-9) { changeT = Math.max(changeT, x.t); if (transient[x.emotion] && x.t + transient[x.emotion] <= t) changeT = Math.max(changeT, x.t + transient[x.emotion]); }
+      else break;
+    }
+    if (!Number.isFinite(changeT) || t - changeT >= 0.6) return { from: this.emotion(name, t), u: 1 };
+    return { from: this.emotion(name, changeT - 1e-3), u: (t - changeT) / 0.6 };
+  }
+
   // Facial state: { smile: -1..1, mouthOpen: 0..1, teeth, blink: 0..1, wink: 0..1 }
   face(name, t) {
     const key = `f|${name}|${t.toFixed(5)}`;

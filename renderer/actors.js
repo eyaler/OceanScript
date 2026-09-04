@@ -127,8 +127,8 @@ const EMO = {
   sad:       { wag: 0.45, pitch: -0.35, bounce: 0,  tremble: 0, eye: 1,   eyeY: 0.7, roll: 0 },
   lonely:    { wag: 0.5, pitch: -0.25, bounce: 0,   tremble: 0, eye: 1,   eyeY: 0.75, roll: 0 },
   crying:    { wag: 0.4, pitch: -0.4,  bounce: 0,   tremble: 0.3, eye: 1, eyeY: 0.5, roll: 0 },
-  scared:    { wag: 1.2, pitch: -0.1,  bounce: 0,   tremble: 1, eye: 1.35, eyeY: 1.2, roll: 0 },
-  surprised: { wag: 0.6, pitch: 0.1,   bounce: 0,   tremble: 0, eye: 1.5, eyeY: 1.4, roll: 0 },
+  scared:    { wag: 1.2, pitch: -0.1,  bounce: 0,   tremble: 1, eye: 1.25, eyeY: 1.15, roll: 0 },
+  surprised: { wag: 0.6, pitch: 0.1,   bounce: 0,   tremble: 0, eye: 1.3, eyeY: 1.3, roll: 0 },
   sleepy:    { wag: 0.3, pitch: -0.15, bounce: 0,   tremble: 0, eye: 1,   eyeY: 0.25, roll: 0.1 },
   angry:     { wag: 1.3, pitch: -0.15, bounce: 0,   tremble: 0.2, eye: 0.9, eyeY: 0.6, roll: 0 },
   calm:      { wag: 0.7, pitch: 0,     bounce: 0,   tremble: 0, eye: 1,   eyeY: 0.9, roll: 0 },
@@ -137,7 +137,11 @@ const EMO = {
 
 // Shared animation driver: applies emotion + effects to an inner pivot.
 function animateCommon(rig, t, state) {
-  const emo = EMO[state.emotion] || EMO.neutral;
+  // emotions blend over a moment instead of snapping (eye size, posture, bounce)
+  const emoTo = EMO[state.emotion] || EMO.neutral;
+  const emoFrom = EMO[state.emotionFrom] || emoTo;
+  const bu = state.emotionU == null ? 1 : Math.max(0, Math.min(1, state.emotionU));
+  const emo = bu >= 1 ? emoTo : Object.fromEntries(Object.keys(emoTo).map((k) => [k, emoFrom[k] + (emoTo[k] - emoFrom[k]) * smoother(bu)]));
   const inner = rig.inner;
   const seed = rig.seed;
   const size = rig.size;
@@ -249,19 +253,27 @@ function buildFish(color, { detail = 'high', shape = 'fish', pattern = null, acc
     else mouthRig = makeMouth(inner, { z: 0.45, y: -0.07, w: 0.06, h: 0.035, teethCount: 1, teethSize: 0.006 });
   }
   if (forelock) {
-    // a curly forelock in the body colour, tumbling over the forehead (the
-    // head is the front of the body, the dorsal fin sits further back)
-    const curlMat = mat(color, { roughness: 0.55 });
-    const curls = new THREE.Group();
-    for (let i = 0; i < 7; i++) {
-      const a = (i / 7) * Math.PI * 2, rr = 0.028 + 0.012 * ((i * 5) % 3);
-      const c = new THREE.Mesh(new THREE.TorusGeometry(rr, rr * 0.5, 8, 14), curlMat);
-      const ang = -0.35 + (i / 6) * 0.7;                      // spread across the brow
-      c.position.set(Math.sin(ang) * 0.16, 0.27 + Math.cos(a * 1.3) * 0.04, 0.3 + Math.cos(ang) * 0.1);
-      c.rotation.set(Math.sin(a * 2) * 0.9, a, Math.cos(a) * 0.6);
-      curls.add(c);
+    // a forelock: one smooth quiff rising from the forehead and curling forward,
+    // striped in the body and accent colours like the rest of the fish
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.22, 0.34), new THREE.Vector3(0, 0.36, 0.4), new THREE.Vector3(0, 0.5, 0.36),
+      new THREE.Vector3(0, 0.56, 0.24), new THREE.Vector3(0, 0.5, 0.14), new THREE.Vector3(0.02, 0.44, 0.2),
+    ]);
+    const geo = new THREE.TubeGeometry(curve, 40, 0.05, 10, false);
+    // taper towards the tip and paint stripes along the length
+    const pos = geo.attributes.position, uv = geo.attributes.uv, col = new Float32Array(pos.count * 3);
+    const a = new THREE.Color(color), b = new THREE.Color(accent || darken(color, 0.4));
+    for (let i = 0; i < pos.count; i++) {
+      const u = uv.getX(i);
+      const pt = curve.getPointAt(u), v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+      v.sub(pt).multiplyScalar(1 - u * 0.6).add(pt);
+      pos.setXYZ(i, v.x, v.y, v.z);
+      const c = Math.floor(u * 7) % 2 === 0 ? a : b;
+      col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
     }
-    inner.add(curls);
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.computeVertexNormals();
+    inner.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5 })));
   }
   const rig = { group: g, inner, tail, pecs, eyeMeshes, mouthMesh, mouth: mouthRig, kind: 'fish' };
   rig.animate = (t, state) => {
@@ -1002,10 +1014,10 @@ function buildBike(color) {
     inner.position.set(0, 0, 0);
     const worldR = R * (rig.size || 1);
     const ang = (state.dist || 0) / Math.max(1e-3, worldR);
-    for (const w of wheels) w.rotation.x = -ang;
-    crank.rotation.x = -ang * 0.45;
+    for (const w of wheels) w.rotation.x = ang;      // rolling forward: the top of the wheel moves +z
+    crank.rotation.x = ang * 0.45;
     // pedals stay level
-    crank.children.forEach((c) => { if (c.userData.sx) c.rotation.x = ang * 0.45; });
+    crank.children.forEach((c) => { if (c.userData.sx) c.rotation.x = -ang * 0.45; });
     for (const fx of state.effects) {
       if (fx.type === 'wiggle') inner.rotation.z += Math.sin(t * 18) * 0.3 * Math.sin(Math.PI * fx.u);
     }

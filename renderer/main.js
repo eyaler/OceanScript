@@ -156,7 +156,24 @@ function seek(t) {
   if (!ev) return;
   ev.beginFrame();
   // camera
-  const cp = ev.cameraPos(t), cl = ev.cameraLook(t), sh = ev.cameraShake(t);
+  const cp0 = ev.cameraPos(t), cl = ev.cameraLook(t), sh = ev.cameraShake(t);
+  // Camera clearance: never sit inside a character or prop.  Pushed out of
+  // each actor's bounding sphere along the line from the actor; it is a pure
+  // function of the timeline, so chunks and re-renders agree.
+  const cp = [cp0[0], cp0[1], cp0[2]];
+  for (const [name, tr] of Object.entries(timeline.actors)) {
+    const c = timeline.cast[name];
+    if (!c || c.kind === 'narrator' || c.kind === 'voice' || !ev.visible(name, t)) continue;
+    const ap = ev.pos(name, t);
+    const r = (c.kind === 'school' ? c.size * 1.2 : c.size * 0.55) + 0.35;
+    const d = [cp[0] - ap[0], cp[1] - ap[1], cp[2] - ap[2]];
+    const l = Math.hypot(d[0], d[1], d[2]);
+    if (l < r) {
+      const n = l > 1e-4 ? [d[0] / l, d[1] / l, d[2] / l] : [cp[0] - cl[0], 0.2, cp[2] - cl[2]];
+      const nl = Math.hypot(n[0], n[1], n[2]) || 1;
+      cp[0] = ap[0] + n[0] / nl * r; cp[1] = ap[1] + n[1] / nl * r; cp[2] = ap[2] + n[2] / nl * r;
+    }
+  }
   camera.position.set(cp[0] + sh[0], cp[1] + sh[1], cp[2] + sh[2]);
   // keep the camera off the seabed / just off the surface plane
   const es = ev.envState(t);
@@ -179,6 +196,9 @@ function seek(t) {
     const h = ev.heading(name, t);
     const m = ev.motion(name, t);
     const sc = ev.scale(name, t) * rig.size;
+    // anything closer to the lens than its own half-size would be sliced by the
+    // near plane (floating eyes and mouths): hide it instead
+    if (Math.hypot(pos[0] - camera.position.x, pos[1] - camera.position.y, pos[2] - camera.position.z) < sc * 0.5 + 0.25) { rig.group.visible = false; continue; }
     rig.group.scale.setScalar(sc);
     // idle drift (not part of the track so cameras can follow smoothly)
     const idle = rig.kind === 'school' ? 0.4 : 0.12;
@@ -212,6 +232,8 @@ function seek(t) {
     rig.altitude = pos[1];
     const carrying = Object.values(timeline.actors).some((tr) => tr.segments.some((sg) => sg.type === 'follow' && sg.attached && sg.actor === name && sg.t0 <= t && t < sg.t1));
     const state = { speed: m.speed, emotion: ev.emotion(name, t), effects: ev.effects(name, t), face: ev.face(name, t), t, carrying };
+    const eb = ev.emotionBlend(name, t);
+    state.emotionFrom = eb.from; state.emotionU = eb.u;
     if (rig.wantsDistance) state.dist = ev.distance(name, t);
     rig.animate(t, state);
     // tear drops (cartoon: they grow at the eye and fall)
@@ -253,11 +275,12 @@ function seek(t) {
         tear.visible = true;
       });
     }
+    if (rig.juice && !state.effects.some((f) => f.type === 'eat')) for (const m of rig.juice) m.visible = false;
     // a messy face after eating: orange smears around the mouth
     const messy = state.effects.find((f) => f.type === 'messy');
     if (messy || rig.smears) {
       if (!rig.smears) {
-        const smearMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#f28c28'), roughness: 0.75 });
+        const smearMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#e0741c'), roughness: 0.85 });
         const mp = rig.mouth?.group?.position || new THREE.Vector3(0, -0.05, 0.45);
         const rnd = (k) => { const x = Math.sin(k * 12.9898 + (rig.seed || 0)) * 43758.5453; return x - Math.floor(x); };
         rig.smears = [];
@@ -275,18 +298,43 @@ function seek(t) {
     // particle effects in world space
     for (const fx of state.effects) {
       if (fx.type === 'eat') {
-        // pulp and juice fly off while chewing and drift around the eater
+        // juice clouds the water around the eater: a soft orange murk that
+        // swells while chewing and thins out afterwards, plus fine pulp specks
         const mp = rig.mouth?.group?.position || new THREE.Vector3(0, -0.05, 0.45);
         rig.group.updateMatrixWorld(true);
         const origin = mp.clone().applyMatrix4(rig.group.matrixWorld);
-        const n = 22, life = 4.0;
+        if (!rig.juice) {
+          // soft radial blobs (sprites) so the murk has no hard edge
+          if (!window.__juiceTex) {
+            const c = document.createElement('canvas'); c.width = c.height = 128;
+            const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+            gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.45, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+            window.__juiceTex = new THREE.CanvasTexture(c);
+          }
+          rig.juice = [0, 1, 2, 3].map((i) => {
+            const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: window.__juiceTex, color: new THREE.Color(i % 2 ? '#f7b733' : '#ef8a2a'), transparent: true, opacity: 0.35, depthWrite: false }));
+            scene.add(m);
+            return m;
+          });
+        }
+        const u = fx.u, swell = Math.min(1, fx.age / 2.5), fadeOut = u > 0.7 ? 1 - (u - 0.7) / 0.3 : 1;
+        rig.juice.forEach((m, i) => {
+          const drift = fx.age * 0.1 * sc;
+          m.position.set(origin.x + Math.sin(fx.age * 0.7 + i * 2.1) * 0.3 * sc + (i - 1.5) * 0.3 * sc * swell, origin.y + drift * (0.4 + i * 0.25) - 0.05 * sc, origin.z + Math.cos(fx.age * 0.5 + i) * 0.2 * sc + 0.4 * sc);
+          const d = sc * (0.6 + (1.6 + i * 0.5) * swell);
+          m.scale.set(d, d, 1);
+          m.material.opacity = (0.4 - i * 0.06) * fadeOut;
+          m.visible = true;
+        });
+        const n = 60, life = 5.0;
         for (let i = 0; i < n; i++) {
-          const age = (fx.age + i * (life / n) * 1.3) % life;
-          if (fx.age < i * 0.12) continue;
+          const age = (fx.age + i * (life / n) * 1.7) % life;
+          if (fx.age < i * 0.05) continue;
           const k = age / life;
-          const a = i * 2.399 + fx.side, r = (0.15 + k * 0.9) * sc;
-          const col = i % 3 === 0 ? [1, 0.75, 0.15] : i % 3 === 1 ? [0.95, 0.5, 0.1] : [1, 0.85, 0.35];
-          fxEmit(origin.x + Math.cos(a) * r, origin.y + (k * 0.5 - k * k * 0.3) * sc + Math.sin(age * 3 + i) * 0.05 * sc, origin.z + Math.sin(a) * r * 0.6 + 0.1 * sc, (0.05 + 0.04 * (i % 4)) * sc * (1 - k * 0.6), col[0], col[1], col[2]);
+          const a = i * 2.399 + fx.side, r = (0.1 + k * 1.4) * sc;
+          const col = i % 3 === 0 ? [1, 0.72, 0.2] : i % 3 === 1 ? [0.95, 0.55, 0.12] : [1, 0.82, 0.4];
+          fxEmit(origin.x + Math.cos(a) * r, origin.y + (k * 0.7 - k * k * 0.2) * sc + Math.sin(age * 3 + i) * 0.06 * sc, origin.z + Math.sin(a) * r * 0.7 + 0.15 * sc, (0.012 + 0.014 * (i % 3)) * sc, col[0], col[1], col[2]);
         }
       }
       if (fx.type === 'bubbles' || fx.type === 'cry' || fx.type === 'spout') {

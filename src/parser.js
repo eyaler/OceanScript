@@ -180,6 +180,7 @@ const CAMERA_VERBS = [
   [/^(?:looks?|points?|aims?|turns?|faces?|watches?)\b/, 'look'],
   [/^(?:follows?|tracks?|stays? (?:on|with)|locks? (?:on|onto))\b/, 'follow'],
   [/^(?:orbits?|circles?|revolves?|swings? around)\b/, 'orbit'],
+  [/^(?:frames?|two[- ]?shots?|shows?|features?|covers?)\b/, 'frame'],
   [/^(?:shakes?|rumbles?|trembles?|quakes?)\b/, 'shake'],
   [/^(?:zooms?|fov|sets? fov)\b/, 'zoom'],
   [/^(?:stops?|holds?|freezes?|stays?|waits?)\b/, 'stop'],
@@ -429,6 +430,17 @@ export function parseActorAction(name, text, line) {
       if (!t.target) throw new ParseError('orbit needs a center: `@actor` or `(x, y, z)`', line, raw);
       action.target = t.target;
       if (/\b(?:counter|anti)[- ]?clockwise|ccw\b/i.test(tail)) action.clockwise = false;
+      break;
+    }
+    case 'frame': {
+      // `@camera frames @caspion and @dothan [distance 3] [over 2s]`
+      const refs = [];
+      let r = takeRef(tail);
+      while (r.ref) { refs.push(r.ref); tail = r.rest; r = takeRef(tail); }
+      if (!refs.length) throw new ParseError('frame needs one or more `@actor`s', line, raw);
+      action.targets = refs;
+      const dm = tail.match(/\bdistance\s*[:=]?\s*(\d+(?:\.\d+)?)/i);
+      if (dm) { action.distance = Number(dm[1]); tail = tail.replace(dm[0], ' '); }
       break;
     }
     case 'follow': {

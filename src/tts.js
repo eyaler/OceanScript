@@ -68,7 +68,7 @@ export async function addNikud(text, cacheDir) {
 const HEB_PREFIX = '[וּהבכלמש]{0,3}';
 // Second-person Hebrew homographs whose pointing depends on the addressee's gender.
 export const HEBREW_DEFAULT_GLOSSARY = {
-  'לך|to:m': 'לְךָ', 'לך|to:f': 'לָךְ',
+  // לך is handled in agreeGender (it may be the imperative לֵךְ "go!")
   'אותך|to:m': 'אוֹתְךָ', 'אותך|to:f': 'אוֹתָךְ',
   'שלך|to:m': 'שֶׁלְּךָ', 'שלך|to:f': 'שֶׁלָּךְ',
   'איתך|to:m': 'אִתְּךָ', 'איתך|to:f': 'אִתָּךְ',
@@ -207,16 +207,24 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
     // readings in Dicta's ranking order; only twins that include the best reading count
     const opts = (t.options || []).flatMap((o, rank) => (o[1] || []).map((m) => ({ form: o[0].replace(/\|/g, ''), code: BigInt(m[0]), lemma: m[1], rank })));
     let chosen = null;
-    let twinElsewhere = false;   // gender twins exist but the best reading is something else (לֵךְ "go!" vs לְךָ/לָךְ)
+    // לך: the imperative לֵךְ ("go!") when it opens a clause and Dicta reads it as
+    // the verb הלך, otherwise "to you" by the addressee's gender
+    if (word === 'לך') {
+      const before = plain.slice(0, at).replace(/\s+$/, '');
+      const clauseStart = before === '' || /[.!?,:;\u05C3"]$/.test(before);
+      const top = opts.find((o) => o.rank === 0);
+      if (clauseStart && top && top.lemma === 'הלך') chosen = 'לֵךְ';
+      else if (addresseeGender) chosen = addresseeGender === 'female' ? 'לָךְ' : 'לְךָ';
+      else warnOnce('warning: "לך" depends on the addressee\'s gender, which is unknown');
+      out += chosen ?? original;
+      continue;
+    }
     const isSecondSuffix = (f) => /ך[\u05B8\u05B0]$/.test(f);   // ends in ךָ (masc) or ךְ (fem)
     outer: for (let i = 0; i < opts.length; i++) for (let j = 0; j < opts.length; j++) {
       const a = opts[i], b = opts[j];
       if (i === j || a.lemma !== b.lemma || a.form === b.form) continue;
       const x = a.code ^ b.code;
-      if (Math.min(a.rank, b.rank) !== 0 || Math.max(a.rank, b.rank) > 3) {
-        if ((x === SUFFIX_GENDER_XOR && isSecondSuffix(a.form) && isSecondSuffix(b.form)) || (x === VERB_GENDER_XOR && (hasAni || hasAta || /ת$/.test(word)))) twinElsewhere = true;
-        continue;
-      }
+      if (Math.min(a.rank, b.rank) !== 0 || Math.max(a.rank, b.rank) > 3) continue;
       let femBit = null, who = null;
       if (x === SUFFIX_GENDER_XOR) {
         if (!(isSecondSuffix(a.form) && isSecondSuffix(b.form))) continue;      // third-person suffixes are not ours to change
@@ -236,10 +244,6 @@ export async function agreeGender(text, { speakerGender = null, addresseeGender 
       if (g === 'female' && /ת$/.test(chosen)) chosen += '\u05BC\u05B0';
       break outer;
     }
-    // The word is a gender homograph, but in this sentence Dicta reads it as a
-    // different word altogether (imperative לֵךְ rather than לְךָ): the engine
-    // would default to the wrong twin, so take Dicta's contextual reading.
-    if (chosen == null && twinElsewhere && opts.length && opts[0].rank === 0) chosen = opts[0].form;
     out += chosen ?? original;
   }
   out += text.slice(lastEnd ?? 0);
