@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" width="520" height="320">
+  <g stroke="#1b2a4a" stroke-width="6" stroke-linejoin="round">
+    <rect x="60" y="120" width="400" height="190" fill="#c9b8a8"/>
+    <rect x="30" y="60" width="90" height="250" fill="#b8a394"/><rect x="400" y="60" width="90" height="250" fill="#b8a394"/>
+    <rect x="215" y="30" width="90" height="280" fill="#d7c8b8"/>
+    <path d="M30 60 L30 35 L52 35 L52 55 L75 55 L75 35 L97 35 L97 55 L120 55 L120 60 Z" fill="#b8a394"/>
+    <path d="M400 60 L400 35 L422 35 L422 55 L445 55 L445 35 L467 35 L467 55 L490 55 L490 60 Z" fill="#b8a394"/>
+    <path d="M215 30 L215 5 L240 5 L240 22 L260 22 L260 5 L283 5 L283 22 L305 22 L305 30 Z" fill="#d7c8b8"/>
+    <path d="M230 310 L230 220 Q260 185 290 220 L290 310 Z" fill="#5a3a1a"/>
+    <rect x="130" y="160" width="40" height="55" rx="18" fill="#8ec5ff"/><rect x="350" y="160" width="40" height="55" rx="18" fill="#8ec5ff"/>
+    <rect x="245" y="70" width="30" height="45" rx="14" fill="#8ec5ff"/>
+    <path d="M260 5 L260 -20 L300 -8 L260 4" fill="#d63a2f"/>
+  </g>
+  <path d="M55 120 q15 -12 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke="#2f7dd8" stroke-width="4"/>
+</svg>

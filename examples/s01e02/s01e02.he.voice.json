@@ -1,0 +1,1067 @@
+[
+  {
+    "t0": 0,
+    "slot": 8.489999999999998,
+    "duration": 8.04,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "בגן הים היה יום מרגש. הגננת אספה את כל הילדים, כי היה לה סוד גדול.",
+    "spoken": "בַּגַן הים היה יום מרגש. הַגַנֶנֶט אספה את כל הילדים, כי היה לה סוד גדול.",
+    "clip": "out/.tts-cache/ce779adf7e135284.mp3"
+  },
+  {
+    "t0": 8.489999999999998,
+    "slot": 8.8,
+    "duration": 8.35,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "ילדים, השבוע אנחנו מעלים הצגה! והשנה בחרתי מחזה מיוחד מאוד: מקבת.",
+    "spoken": "ילדים, השבוע אנחנו מעלים הַצָגָה! והשנה בחרתי מחזה מיוחד מאוד: מַקְבֶּת.",
+    "clip": "out/.tts-cache/ce84140cc2b90026.mp3"
+  },
+  {
+    "t0": 17.29,
+    "slot": 4,
+    "duration": 3.55,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מקבת? מי זה מקבת?",
+    "spoken": "מַקְבֶּת? מי זה מַקְבֶּת?",
+    "clip": "out/.tts-cache/59aea0a43a8a8600.mp3"
+  },
+  {
+    "t0": 21.29,
+    "slot": 13.049999999999997,
+    "duration": 12.6,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "מקבת היה שר צבא אמיץ. אבל הוא רצה להיות מלך כל כך, שהוא שכח מה חשוב באמת. בהצגה שלנו הוא יהיה דג, וקוראים לו מק-כספיון.",
+    "spoken": "מַקְבֶּת היה שר צבא אמיץ. אבל הוא רצה להיות מֶלֶךְ כל כך, שהוא שכח מה חשוב באמת. בהַצָגָה שלנו הוא יהיה דג, וקוראים לו מַק-קַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/29d5daf3508754e9.mp3"
+  },
+  {
+    "t0": 35.239999999999995,
+    "slot": 5.390000000000001,
+    "duration": 4.94,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מק-כספיון? זה... זה אני?",
+    "spoken": "מַק-קַסְפִּיוֹן? זה... זה אני?",
+    "clip": "out/.tts-cache/626aae4706c23942.mp3"
+  },
+  {
+    "t0": 40.629999999999995,
+    "slot": 6.590000000000003,
+    "duration": 6.14,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "זה אתה. דותן יהיה בנקו, החבר הכי טוב של מק-כספיון.",
+    "spoken": "זה אתה. דותן יהיה בַּנְקוֹ, החבר הכי טוב של מַק-קַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/5c2373ddd759110f.mp3"
+  },
+  {
+    "t0": 48.22,
+    "slot": 3.740000000000002,
+    "duration": 3.29,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "יש! בנקו!",
+    "spoken": "יש! בַּנְקוֹ!",
+    "clip": "out/.tts-cache/7279141c18ca4ae0.mp3"
+  },
+  {
+    "t0": 51.96,
+    "slot": 8.490000000000002,
+    "duration": 8.04,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "נועה תהיה הליידי, אורי הלווייתן יהיה המלך, צביקה יהיה מק-דף, ושלוש המדוזות יהיו המכשפות.",
+    "spoken": "נוֹעָה תהיה הלֵיידִי, אוֹרִי הלווייתן יהיה הַמֶלֶךְ, צְבִיקָה יהיה מַק-דַף, ושלוש המדוזות יהיו המכשפות.",
+    "clip": "out/.tts-cache/30641f123e302cad.mp3"
+  },
+  {
+    "t0": 61.45,
+    "slot": 4.459999999999994,
+    "duration": 4.01,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "ליידי! סוף סוף תפקיד עם כתר.",
+    "spoken": "לֵיידִי! סוף סוף תפקיד עם כֶּתֶר.",
+    "clip": "out/.tts-cache/296fdeb57b02d61e.mp3"
+  },
+  {
+    "t0": 66.91,
+    "slot": 6.930000000000007,
+    "duration": 6.48,
+    "speaker": "צביקה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": -3
+    },
+    "text": "ואני אביא את הכתר בחזרה. זה בסדר, אני איטי אבל בטוח.",
+    "spoken": "ואני אביא את הַכֶּתֶר בחזרה. זה בסדר, אני איטי אבל בטוח.",
+    "clip": "out/.tts-cache/20af1804e0018270.mp3"
+  },
+  {
+    "t0": 73.84,
+    "slot": 4.290000000000006,
+    "duration": 3.84,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דותן, אני לא בטוח שאני יודע להיות רע.",
+    "spoken": "דותן, אני לא בטוח שאני יודע להיות רע.",
+    "clip": "out/.tts-cache/e7d117dfee84ed02.mp3"
+  },
+  {
+    "t0": 78.13000000000001,
+    "slot": 7.049999999999997,
+    "duration": 6.6,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אתה לא צריך להיות רע. אתה רק צריך לרצות כתר. ואני אהיה לידך על הבמה.",
+    "spoken": "אתה לא צריך להיות רע. אתה רק צריך לרצות כֶּתֶר. ואני אהיה לְיָדְךָ על הבמה.",
+    "clip": "out/.tts-cache/b7f1e7931f2aef65.mp3"
+  },
+  {
+    "t0": 85.18,
+    "slot": 7.510000000000005,
+    "duration": 7.06,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "נהדר. חזרה אחרונה, ואז... שהמסך יעלה!",
+    "spoken": "נהדר. חזרה אחרונה, ואז... שהמָסָךְ יעלה!",
+    "clip": "out/.tts-cache/2f5d24e038a979ed.mp3"
+  },
+  {
+    "t0": 93.69000000000001,
+    "slot": 12.069999999999993,
+    "duration": 11.62,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "ומיד, הגן הפך לסלע אפל בים העמוק. מק-כספיון ובנקו חזרו מנצחים מהקרב... ושלוש מדוזות חיכו להם.",
+    "spoken": "ומיד, הַגַן הפך לסלע אפל בים העמוק. מַק-קַסְפִּיוֹן ובַּנְקוֹ חזרו מנצחים מהקרב... ושלוש מדוזות חיכו להם.",
+    "clip": "out/.tts-cache/e340e377ccd1b9d3.mp3"
+  },
+  {
+    "t0": 109.76,
+    "slot": 4.340000000000003,
+    "duration": 3.89,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בנקו... אתה רואה מה שאני רואה?",
+    "spoken": "בַּנְקוֹ... אתה רוֹאֶה מה שאני רוֹאֶה?",
+    "clip": "out/.tts-cache/7afa2ebd96c8ff8a.mp3"
+  },
+  {
+    "t0": 114.10000000000001,
+    "slot": 5.540000000000006,
+    "duration": 5.09,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "שלוש מדוזות זוהרות. ובכל זאת אני פוחד.",
+    "spoken": "שלוש מדוזות זוהרות. ובכל זאת אני פוחד.",
+    "clip": "out/.tts-cache/c21802210296768f.mp3"
+  },
+  {
+    "t0": 122.64000000000001,
+    "slot": 11.389999999999986,
+    "duration": 10.94,
+    "speaker": "המדוזות",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -10,
+      "rate": -8
+    },
+    "text": "שלום לך, מק-כספיון! שלום, שר הצבא! שלום לך, מי שיהיה... מלך!",
+    "spoken": "שלום לְךָ, מַק-קַסְפִּיוֹן! שלום, שר הצבא! שלום לְךָ, מי שיהיה... מֶלֶךְ!",
+    "clip": "out/.tts-cache/cf22bb233ea4d428.mp3"
+  },
+  {
+    "t0": 134.93,
+    "slot": 3.569999999999993,
+    "duration": 3.12,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מלך? אני?",
+    "spoken": "מֶלֶךְ? אני?",
+    "clip": "out/.tts-cache/a9d5b78a994d866c.mp3"
+  },
+  {
+    "t0": 138.5,
+    "slot": 11.969999999999999,
+    "duration": 11.52,
+    "speaker": "המדוזות",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -10,
+      "rate": -8
+    },
+    "text": "ולך, בנקו, לא כתר, אבל החברים שלך ימלכו אחריך. ומק-כספיון לא ינוצח, עד שיער האצות יזוז ממקומו!",
+    "spoken": "וּלְךָ, בַּנְקוֹ, לא כֶּתֶר, אבל החברים שֶׁלְּךָ ימלכו אַחֲרֶיךָ. ומַק-קַסְפִּיוֹן לא ינוצח, עד שיַעַר הָאַצוֹת יזוז ממקומו!",
+    "clip": "out/.tts-cache/c5a9d58f3826ea00.mp3"
+  },
+  {
+    "t0": 150.47,
+    "slot": 4.530000000000001,
+    "duration": 4.08,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "וכמו שבאו, המדוזות נעלמו בחושך.",
+    "spoken": "וכמו שבאו, המדוזות נעלמו בחושך.",
+    "clip": "out/.tts-cache/676e88c63058542c.mp3"
+  },
+  {
+    "t0": 155,
+    "slot": 7.77000000000001,
+    "duration": 7.32,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "יער שזז! שמעת פעם דבר כזה? אצות לא הולכות לשום מקום.",
+    "spoken": "יַעַר שזז! שָׁמַעְתָּ פעם דבר כזה? אַצוֹת לא הולכות לשום מקום.",
+    "clip": "out/.tts-cache/f3bb3074843c54a7.mp3"
+  },
+  {
+    "t0": 162.77,
+    "slot": 6.210000000000008,
+    "duration": 5.76,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מלך... זה נשמע יפה. מלך מק-כספיון.",
+    "spoken": "מֶלֶךְ... זה נשמע יפה. מֶלֶךְ מַק-קַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/4f23019d132e153c.mp3"
+  },
+  {
+    "t0": 168.98000000000002,
+    "slot": 6.110000000000014,
+    "duration": 5.66,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "כספיון? מק-כספיון? אתה בסדר?",
+    "spoken": "קַסְפִּיוֹן? מַק-קַסְפִּיוֹן? אתה בסדר?",
+    "clip": "out/.tts-cache/dee29a644811996b.mp3"
+  },
+  {
+    "t0": 175.09000000000003,
+    "slot": 6.710000000000008,
+    "duration": 6.26,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כן, כן. רק חשבתי. בוא נספר לליידי.",
+    "spoken": "כן, כן. רק חשבתי. בוא נספר ללֵיידִי.",
+    "clip": "out/.tts-cache/49d64b0628019266.mp3"
+  },
+  {
+    "t0": 182.80000000000004,
+    "slot": 10.030000000000001,
+    "duration": 9.58,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "בארמון, המלך דונקן ישן שינה עמוקה, והכתר שלו נח לידו. הליידי כבר חיכתה למק-כספיון.",
+    "spoken": "בארמון, הַמֶלֶךְ דַנְקָן ישן שינה עמוקה, והַכֶּתֶר שלו נח לידו. הלֵיידִי כבר חיכתה למַק-קַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/dfcef3fcc1957aa9.mp3"
+  },
+  {
+    "t0": 192.83000000000004,
+    "slot": 8.72999999999999,
+    "duration": 8.28,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "מק-כספיון! שמעתי על הנבואה. המלך ישן, והכתר ממש כאן. קח אותו הלילה!",
+    "spoken": "מַק-קַסְפִּיוֹן! שמעתי על הנְבוּאָה. הַמֶלֶךְ ישן, והַכֶּתֶר ממש כאן. קח אותו הלילה!",
+    "clip": "out/.tts-cache/4785335486a4431c.mp3"
+  },
+  {
+    "t0": 201.56000000000003,
+    "slot": 7.650000000000006,
+    "duration": 7.2,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "לקחת את הכתר של המלך? אבל הוא מלך טוב, וזה... זה לא שלי.",
+    "spoken": "לקחת את הַכֶּתֶר של הַמֶלֶךְ? אבל הוא מֶלֶךְ טוב, וזה... זה לא שלי.",
+    "clip": "out/.tts-cache/d12fc5e2a382eda0.mp3"
+  },
+  {
+    "t0": 209.21000000000004,
+    "slot": 7.289999999999992,
+    "duration": 6.84,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "אתה רוצה להיות מלך או לא? זה רק כתר. תיקח, ובבוקר תגיד שמצאת אותו.",
+    "spoken": "אתה רוֹצֶה להיות מֶלֶךְ או לא? זה רק כֶּתֶר. תיקח, ובבוקר תגיד שמָצָאתָ אותו.",
+    "clip": "out/.tts-cache/fdc4ca8aa878acbb.mp3"
+  },
+  {
+    "t0": 219.50000000000003,
+    "slot": 5.539999999999992,
+    "duration": 5.09,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "האם זה פגיון שאני רואה לפניי? ידית אל סנפירי?",
+    "spoken": "האם זה פִּגְיוֹן שאני רואה לפניי? יָדִיתְּ אל סנפירי?",
+    "clip": "out/.tts-cache/632dfaeebfd7f049.mp3"
+  },
+  {
+    "t0": 227.94000000000003,
+    "slot": 9.710000000000008,
+    "duration": 9.26,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "לא... לא! אין פגיונות בהצגה שלנו. זה בטח... סנדוויץ'!",
+    "spoken": "לא... לא! אין פגיונות בהַצָגָה שלנו. זה בטח... סנדוויץ'!",
+    "clip": "out/.tts-cache/87d3493ea6c3f860.mp3"
+  },
+  {
+    "t0": 237.65000000000003,
+    "slot": 5.590000000000003,
+    "duration": 5.14,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "מק-כספיון! תתרכז! הכתר!",
+    "spoken": "מַק-קַסְפִּיוֹן! תתרכז! הַכֶּתֶר!",
+    "clip": "out/.tts-cache/c51b463a93a3fc4c.mp3"
+  },
+  {
+    "t0": 246.24000000000004,
+    "slot": 7.530000000000001,
+    "duration": 7.08,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "מק-כספיון הסתכל על הכתר. ואז על המלך הישן. ואז שוב על הכתר.",
+    "spoken": "מַק-קַסְפִּיוֹן הסתכל על הַכֶּתֶר. ואז על הַמֶלֶךְ הישן. ואז שוב על הַכֶּתֶר.",
+    "clip": "out/.tts-cache/88c73b0dac6d4ea4.mp3"
+  },
+  {
+    "t0": 253.77000000000004,
+    "slot": 6.110000000000014,
+    "duration": 5.66,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "סליחה, המלך דונקן. אני מחזיר אותו מחר. אולי.",
+    "spoken": "סליחה, הַמֶלֶךְ דַנְקָן. אני מחזיר אותו מחר. אולי.",
+    "clip": "out/.tts-cache/a18c8809812e9ebd.mp3"
+  },
+  {
+    "t0": 265.38000000000005,
+    "slot": 5.350000000000023,
+    "duration": 4.9,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "וכך, בלי שהמלך התעורר, הכתר עבר ראש.",
+    "spoken": "וכך, בלי שהַמֶלֶךְ התעורר, הַכֶּתֶר עבר ראש.",
+    "clip": "out/.tts-cache/62eed783501cd34b.mp3"
+  },
+  {
+    "t0": 270.7300000000001,
+    "slot": 5.779999999999973,
+    "duration": 5.33,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "יש לך את הכתר! עכשיו אתה המלך, ואני המלכה!",
+    "spoken": "יש לְךָ את הַכֶּתֶר! עכשיו אתה הַמֶלֶךְ, ואני המלכה!",
+    "clip": "out/.tts-cache/c1866ce7df6c0e7f.mp3"
+  },
+  {
+    "t0": 276.51000000000005,
+    "slot": 5.319999999999993,
+    "duration": 4.87,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "יש לי את הכתר... אז למה אני מרגיש כל כך לא טוב?",
+    "spoken": "יש לי את הַכֶּתֶר... אז למה אני מרגיש כל כך לא טוב?",
+    "clip": "out/.tts-cache/e52e74153f9fa3d1.mp3"
+  },
+  {
+    "t0": 282.73,
+    "slot": 7.649999999999977,
+    "duration": 7.2,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "רגע... מה זה על הסנפיר שלי? כתם! כתם דיו שחור!",
+    "spoken": "רגע... מה זה על הסנפיר שלי? כתם! כתם דְיוֹ שחור!",
+    "clip": "out/.tts-cache/a60ec970c6e35885.mp3"
+  },
+  {
+    "t0": 290.38,
+    "slot": 9.350000000000023,
+    "duration": 8.9,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "צא, כתם ארור! צא, אמרתי! הו, כל המים של הים לא ישטפו את הסנפיר הקטן הזה!",
+    "spoken": "צא, כתם אָרוּר! צא, אמרתי! הו, כל המים של הים לא יִשְׁטְפוּ את הסנפיר הקטן הזה!",
+    "clip": "out/.tts-cache/b178405470f276fc.mp3"
+  },
+  {
+    "t0": 299.73,
+    "slot": 4.220000000000027,
+    "duration": 3.77,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "ליידי, זה רק דיו מהמכחול של ההצגה.",
+    "spoken": "לֵיידִי, זה רק דְיוֹ מהמכחול של הַהַצָגָה.",
+    "clip": "out/.tts-cache/cfcbde8e5355d0d4.mp3"
+  },
+  {
+    "t0": 303.95000000000005,
+    "slot": 6.7900000000000205,
+    "duration": 6.34,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "אני יודעת! אבל זה מה שהליידי אומרת. תישאר בדמות!",
+    "spoken": "אני יודעת! אבל זה מה שהלֵיידִי אומרת. תישאר בדמות!",
+    "clip": "out/.tts-cache/7c0dd8acef8653ad.mp3"
+  },
+  {
+    "t0": 311.74000000000007,
+    "slot": 9.550000000000011,
+    "duration": 9.1,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "למחרת, המלך החדש ערך משתה גדול. כולם באו. כולם, חוץ מבנקו.",
+    "spoken": "למחרת, הַמֶלֶךְ החדש ערך מִשְׁתֶה גדול. כולם באו. כולם, חוץ מבַּנְקוֹ.",
+    "clip": "out/.tts-cache/9deaa2dfb10e59b9.mp3"
+  },
+  {
+    "t0": 321.2900000000001,
+    "slot": 9.310000000000002,
+    "duration": 8.86,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "חברים יקרים! ברוכים הבאים למשתה של המלך מק-כספיון! אכלו, שתו, שחו!",
+    "spoken": "חברים יקרים! ברוכים הבאים למִשְׁתֶה של הַמֶלֶךְ מַק-קַסְפִּיוֹן! אכלו, שתו, שחו!",
+    "clip": "out/.tts-cache/bb18fec2489e8a35.mp3"
+  },
+  {
+    "t0": 330.6000000000001,
+    "slot": 7,
+    "duration": 6.55,
+    "speaker": "צביקה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": -3
+    },
+    "text": "מלך מק-כספיון, איפה בנקו? הוא אף פעם לא מפספס ארוחה.",
+    "spoken": "מֶלֶךְ מַק-קַסְפִּיוֹן, איפה בַּנְקוֹ? הוא אף פעם לא מפספס ארוחה.",
+    "clip": "out/.tts-cache/cb2b3fd82a5efeb4.mp3"
+  },
+  {
+    "t0": 337.6000000000001,
+    "slot": 8.490000000000009,
+    "duration": 8.04,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בנקו? אה... בנקו... הוא בטח יגיע. בואו נאכל!",
+    "spoken": "בַּנְקוֹ? אה... בַּנְקוֹ... הוא בטח יגיע. בואו נאכל!",
+    "clip": "out/.tts-cache/38088abef30cec72.mp3"
+  },
+  {
+    "t0": 350.99000000000007,
+    "slot": 5.970000000000027,
+    "duration": 5.52,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אה! רוח! רוח רפאים בשולחן שלי!",
+    "spoken": "אה! רוּחַ! רוּחַ רפאים בשולחן שלי!",
+    "clip": "out/.tts-cache/967b5fd34765772f.mp3"
+  },
+  {
+    "t0": 356.9600000000001,
+    "slot": 5.389999999999986,
+    "duration": 4.94,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "מק-כספיון, על מה אתה מדבר? אין שם כלום.",
+    "spoken": "מַק-קַסְפִּיוֹן, על מה אתה מדבר? אין שם כלום.",
+    "clip": "out/.tts-cache/7647596fe2d397ce.mp3"
+  },
+  {
+    "t0": 362.3500000000001,
+    "slot": 7.839999999999975,
+    "duration": 7.39,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "את לא רואה?! סדין לבן! עיניים! זה בנקו!",
+    "spoken": "את לא רוֹאָה?! סדין לבן! עיניים! זה בַּנְקוֹ!",
+    "clip": "out/.tts-cache/ef71363eacf7fdbf.mp3"
+  },
+  {
+    "t0": 370.19000000000005,
+    "slot": 6.910000000000025,
+    "duration": 6.46,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "בוווו... מק-כספיון... למה לא הזמנת אותי למשתה?",
+    "spoken": "בוווו... מַק-קַסְפִּיוֹן... למה לא הִזְמַנְתָּ אותי למִשְׁתֶה?",
+    "clip": "out/.tts-cache/4a4466cfadc03f03.mp3"
+  },
+  {
+    "t0": 379.1000000000001,
+    "slot": 8.370000000000005,
+    "duration": 7.92,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כי... כי הייתי עסוק! עם הכתר! לך מפה, בנקו!",
+    "spoken": "כי... כי הייתי עסוק! עם הַכֶּתֶר! לֵךְ מפה, בַּנְקוֹ!",
+    "clip": "out/.tts-cache/04700da66a369cbc.mp3"
+  },
+  {
+    "t0": 387.4700000000001,
+    "slot": 4,
+    "duration": 3.55,
+    "speaker": "צביקה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": -3
+    },
+    "text": "ליידי, המלך מדבר עם המים.",
+    "spoken": "לֵיידִי, הַמֶלֶךְ מדבר עם המים.",
+    "clip": "out/.tts-cache/0a3316de69a9ead9.mp3"
+  },
+  {
+    "t0": 391.4700000000001,
+    "slot": 7.050000000000011,
+    "duration": 6.6,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "זה כלום. הוא תמיד ככה כשהוא רעב. אכלו, אכלו.",
+    "spoken": "זה כלום. הוא תמיד ככה כשהוא רעב. אכלו, אכלו.",
+    "clip": "out/.tts-cache/2f29d5d83bd5702a.mp3"
+  },
+  {
+    "t0": 401.5200000000001,
+    "slot": 4.339999999999975,
+    "duration": 3.89,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כתר... בשביל זה איבדתי חבר?",
+    "spoken": "כֶּתֶר... בשביל זה איבדתי חבר?",
+    "clip": "out/.tts-cache/5d7fc81343bfea20.mp3"
+  },
+  {
+    "t0": 406.86000000000007,
+    "slot": 8.870000000000005,
+    "duration": 8.42,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "ואז, מרחוק, קרה הדבר שאף אחד לא האמין שיקרה. יער האצות התחיל לזוז.",
+    "spoken": "ואז, מרחוק, קרה הדבר שאף אחד לא האמין שיקרה. יַעַר הָאַצוֹת התחיל לזוז.",
+    "clip": "out/.tts-cache/c5901a17de2ec52f.mp3"
+  },
+  {
+    "t0": 415.7300000000001,
+    "slot": 7.699999999999989,
+    "duration": 7.25,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מה זה? האצות... האצות הולכות! היער זז!",
+    "spoken": "מה זה? הָאַצוֹת... הָאַצוֹת הולכות! היַעַר זז!",
+    "clip": "out/.tts-cache/add7c18191a75af1.mp3"
+  },
+  {
+    "t0": 429.43000000000006,
+    "slot": 6.910000000000025,
+    "duration": 6.46,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "המדוזות אמרו: לא אנוצח עד שיער האצות יזוז. והנה הוא זז!",
+    "spoken": "המדוזות אמרו: לא אנוצח עד שיַעַר הָאַצוֹת יזוז. והנה הוא זז!",
+    "clip": "out/.tts-cache/7ce8757aa7381429.mp3"
+  },
+  {
+    "t0": 439.3400000000001,
+    "slot": 8.870000000000005,
+    "duration": 8.42,
+    "speaker": "צביקה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": -3
+    },
+    "text": "זה לא יער, מק-כספיון. אלה החברים שלך עם אצות ביד. באנו לקחת את הכתר בחזרה.",
+    "spoken": "זה לא יַעַר, מַק-קַסְפִּיוֹן. אלה החברים שֶׁלְּךָ עם אַצוֹת ביד. באנו לקחת את הַכֶּתֶר בחזרה.",
+    "clip": "out/.tts-cache/cbcd60fab69cbc79.mp3"
+  },
+  {
+    "t0": 448.2100000000001,
+    "slot": 6.069999999999993,
+    "duration": 5.62,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בשביל להחזיר אותו אתה לא צריך צבא, מק-דף. אני רוצה להחזיר אותו בעצמי.",
+    "spoken": "בשביל להחזיר אותו אתה לא צריך צבא, מַק-דַף. אני רוֹצֶה להחזיר אותו בעצמי.",
+    "clip": "out/.tts-cache/367a0b262e26c477.mp3"
+  },
+  {
+    "t0": 456.2800000000001,
+    "slot": 3.230000000000018,
+    "duration": 2.78,
+    "speaker": "צביקה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": -3
+    },
+    "text": "אז בוא נחזיר אותו ביחד.",
+    "spoken": "אז בוא נחזיר אותו ביחד.",
+    "clip": "out/.tts-cache/f40be31cf71d73d1.mp3"
+  },
+  {
+    "t0": 462.0100000000001,
+    "slot": 9.379999999999995,
+    "duration": 8.93,
+    "speaker": "אורי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -8
+    },
+    "text": "מממ... מה קרה? ישנתי טוב כל כך. איפה הכתר שלי?",
+    "spoken": "מממ... מה קרה? ישנתי טוב כל כך. איפה הַכֶּתֶר שלי?",
+    "clip": "out/.tts-cache/478fabbda9d728f0.mp3"
+  },
+  {
+    "t0": 479.3900000000001,
+    "slot": 10.389999999999986,
+    "duration": 9.94,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "המלך דונקן... אני לקחתי אותו. רציתי כל כך להיות מלך, ששכחתי להיות חבר. סליחה.",
+    "spoken": "הַמֶלֶךְ דַנְקָן... אני לקחתי אותו. רציתי כל כך להיות מֶלֶךְ, ששכחתי להיות חבר. סליחה.",
+    "clip": "out/.tts-cache/c76a519b81d75496.mp3"
+  },
+  {
+    "t0": 489.7800000000001,
+    "slot": 8.949999999999989,
+    "duration": 8.5,
+    "speaker": "אורי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -8
+    },
+    "text": "מק-כספיון, כתר זה רק כובע נוצץ. אבל חבר שמבקש סליחה, זה אוצר.",
+    "spoken": "מַק-קַסְפִּיוֹן, כֶּתֶר זה רק כובע נוצץ. אבל חבר שמבקש סליחה, זה אוצר.",
+    "clip": "out/.tts-cache/dc605f354225c89f.mp3"
+  },
+  {
+    "t0": 501.7300000000001,
+    "slot": 6.759999999999991,
+    "duration": 6.31,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "ובנקו סולח לך. בתנאי שבמשתה הבא אני יושב ליד המלך.",
+    "spoken": "ובַּנְקוֹ סולח לְךָ. בתנאי שבמִשְׁתֶה הבא אני יושב ליד הַמֶלֶךְ.",
+    "clip": "out/.tts-cache/cb99cf1d7cb9cc89.mp3"
+  },
+  {
+    "t0": 510.49000000000007,
+    "slot": 4.749999999999943,
+    "duration": 4.3,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בנקו! אתה יושב איפה שאתה רוצה!",
+    "spoken": "בַּנְקוֹ! אתה יושב איפה שאתה רוֹצֶה!",
+    "clip": "out/.tts-cache/9be44848d2408543.mp3"
+  },
+  {
+    "t0": 516.74,
+    "slot": 4.669999999999959,
+    "duration": 4.22,
+    "speaker": null,
+    "kind": "narration",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 0,
+      "rate": -3
+    },
+    "text": "המסך ירד, וכל הגן מחא סנפיריים.",
+    "spoken": "המָסָךְ ירד, וכל הַגַן מחא סנפיריים.",
+    "clip": "out/.tts-cache/bfe1c5096c1cca51.mp3"
+  },
+  {
+    "t0": 522.41,
+    "slot": 7.769999999999982,
+    "duration": 7.32,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "שחקנים יקרים, הייתם נפלאים! וכספיון, מה למדת ממק-כספיון?",
+    "spoken": "שַׂחְקָנִים יקרים, הייתם נפלאים! וקַסְפִּיוֹן, מה למדת ממַק-קַסְפִּיוֹן?",
+    "clip": "out/.tts-cache/31da6074db85985e.mp3"
+  },
+  {
+    "t0": 530.18,
+    "slot": 5.850000000000023,
+    "duration": 5.4,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "שכתר לא שווה חבר. ושפגיון זה בעצם סנדוויץ'.",
+    "spoken": "שכֶּתֶר לא שווה חבר. ושפִּגְיוֹן זה בעצם סנדוויץ'.",
+    "clip": "out/.tts-cache/d97726af635424c6.mp3"
+  },
+  {
+    "t0": 536.03,
+    "slot": 3.7899999999999636,
+    "duration": 3.34,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "ושרוח רפאים לא צריכה הזמנה!",
+    "spoken": "ושרוּחַ רפאים לא צריכה הזמנה!",
+    "clip": "out/.tts-cache/a831df69d3286bcb.mp3"
+  },
+  {
+    "t0": 539.8199999999999,
+    "slot": 4.909999999999968,
+    "duration": 4.46,
+    "speaker": "נועה",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -2,
+      "rate": 3
+    },
+    "text": "ושכתם דיו יורד עם קצת סבון. בסוף.",
+    "spoken": "ושכתם דְיוֹ יורד עם קצת סבון. בסוף.",
+    "clip": "out/.tts-cache/112d486f67c092f0.mp3"
+  },
+  {
+    "t0": 544.7299999999999,
+    "slot": 4.7000000000000455,
+    "duration": 4.25,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -5,
+      "rate": -4
+    },
+    "text": "ובשנה הבאה... רומיאו ויוליה!",
+    "spoken": "ובשנה הבאה... רומיאו ויוליה!",
+    "clip": "out/.tts-cache/98d9cfa027486556.mp3"
+  },
+  {
+    "t0": 551.43,
+    "slot": 3.3999999999999773,
+    "duration": 2.95,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דותן, אתה תהיה רומיאו?",
+    "spoken": "דותן, אתה תהיה רומיאו?",
+    "clip": "out/.tts-cache/d3f05c7f600c027c.mp3"
+  },
+  {
+    "t0": 554.8299999999999,
+    "slot": 2.659999999999968,
+    "duration": 2.21,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "רק אם אתה יוליה!",
+    "spoken": "רק אם אתה יוליה!",
+    "clip": "out/.tts-cache/2a8622d234f70eed.mp3"
+  }
+]
