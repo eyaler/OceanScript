@@ -164,6 +164,15 @@ the example: Offenbach's Barcarolle, Solveig's Song, In the Hall of the
 Mountain King, The Swan and Morning Mood.  Scene music is
 ducked automatically under the voices.
 
+## Fixing voices, music or subtitles without re-rendering
+
+The frames do not depend on the audio, and each film's `.timing.json` pins the
+line slots, so an audio fix is a mux, not a render: the **Remux audio and
+subtitles** workflow (`.github/workflows/remux.yml`) downloads the published
+video from the release, puts the new voices, music, effects and subtitle track
+on the same frames and re-uploads it in a few minutes.  Locally:
+`oceanscript mux films/s01e03/s01e03.md --video s01e03.he.1080p.mp4 --lang he -o fixed.mp4`.
+
 ## Rendering long or high-resolution films on GitHub
 
 The container behind a Claude session renders at roughly one 720p frame per

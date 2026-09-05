@@ -161,6 +161,19 @@ instead of consulting the morphology service again.  Regenerate the file after
 a text change (`rm` it and run `check --timing-file`), then run the voice check
 below.
 
+**Fixing audio without re-rendering.** The frames never depend on the audio
+(except lip-sync, which follows the clip envelope; a changed clip only moves
+the mouth a little), and the line timing is pinned in the `.timing.json`, so
+a pronunciation, voice, music, effects or subtitle fix is a mux, not a render:
+`oceanscript mux films/s01e03/s01e03.md --video s01e03.he.1080p.mp4 --lang he -o fixed.mp4`
+drops the old audio track, synthesises the changed lines (the rest come from
+the cache), and copies the video stream untouched.  The *Remux audio and
+subtitles* workflow does the same in the cloud: it downloads the published
+render from the release, muxes and re-uploads it in a few minutes.  Keep the
+pinned timing file unless a line's text changed enough that its clip no longer
+fits its slot (the mux warns and speeds the clip up to 1.45x); only then
+regenerate the timing and re-render.
+
 **Checking the voices.** `oceanscript voices script.md` synthesises every line
 (cached), transcribes each clip back with Whisper (`pip install faster-whisper`)
 and prints the lines whose transcript drifts from the text, lowest similarity

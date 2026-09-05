@@ -1,0 +1,55 @@
+# Replaces the audio (voices, music, effects) and the subtitle track of a film
+# already published on the release, without re-rendering a single frame: the
+# frames are deterministic and the line timing is pinned in the script's
+# `.timing.json`, so a pronunciation, voice, music or subtitle fix is a
+# few-minute job.  Takes 3-5 minutes instead of 30.
+name: Remux audio and subtitles
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Script file (relative to the repo)
+        default: films/s01e03/s01e03.md
+      lang:
+        description: Language code (voices, subtitles)
+        default: he
+      height:
+        description: Height of the published render (names the asset, <name>.<lang>.<height>p.mp4)
+        default: "1080"
+      release:
+        description: Release tag holding the video
+        default: renders
+
+jobs:
+  remux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install edge-tts
+      - name: Download the published video
+        run: |
+          NAME=$(basename "${{ inputs.script }}" .md)
+          ASSET=$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
+          mkdir -p out
+          gh release download "${{ inputs.release }}" --pattern "$ASSET" --output out/$ASSET.orig.mp4
+          ls -la out
+      - name: Mux the new voices, music and subtitles onto the same frames
+        run: |
+          NAME=$(basename "${{ inputs.script }}" .md)
+          ASSET=$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
+          node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$ASSET.orig.mp4 --lang "${{ inputs.lang }}" -o out/$ASSET
+          ls -la out
+      - name: Upload to the release
+        run: |
+          NAME=$(basename "${{ inputs.script }}" .md)
+          ASSET=$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
+          gh release upload "${{ inputs.release }}" out/$ASSET out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.srt out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.vtt --clobber
