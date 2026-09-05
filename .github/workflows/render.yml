@@ -12,7 +12,7 @@ on:
     inputs:
       script:
         description: Script file (relative to the repo)
-        default: examples/caspion.md
+        default: films/pilot/caspion.md
       lang:
         description: Language code (subtitles, title cards, voices)
         default: en

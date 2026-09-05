@@ -1,0 +1,26 @@
+name: Release cleanup
+# Delete superseded assets from the renders release (the session token cannot).
+on:
+  workflow_dispatch:
+    inputs:
+      assets:
+        description: Comma-separated asset names to delete
+        required: true
+      release:
+        description: Release tag
+        default: renders
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          IFS=',' read -ra NAMES <<< "${{ inputs.assets }}"
+          for n in "${NAMES[@]}"; do
+            n=$(echo "$n" | xargs)
+            [ -n "$n" ] && gh release delete-asset "${{ inputs.release }}" "$n" --repo "$GITHUB_REPOSITORY" --yes && echo "deleted $n" || echo "skip $n"
+          done
+          gh release view "${{ inputs.release }}" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name'

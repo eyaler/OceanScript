@@ -4,7 +4,7 @@ Render 3D underwater animations – in the spirit of the 2004 Israeli film
 *Caspion the Little Fish* – from a plain markdown screenplay.
 
 ```
-examples/caspion.md  ──parse──▶  timeline.json  ──render──▶  caspion.mp4
+films/pilot/caspion.md  ──parse──▶  timeline.json  ──render──▶  caspion.mp4
    (markdown script)              (keyframed tracks)          (headless Three.js + ffmpeg)
 ```
 
@@ -38,7 +38,7 @@ frames: `--lang he` gives Hebrew title cards, subtitles and voices on the same
 video.
 
 The full language is described in [docs/SCRIPT_FORMAT.md](docs/SCRIPT_FORMAT.md).
-Two examples ship with the repo: `examples/caspion.md` (a five-scene retelling,
+The films live under `films/` (see `films/README.md`): `films/pilot/caspion.md` (a five-scene retelling,
 English and Hebrew) and `examples/great-journey/great-journey.md` (every asset
 type: 2D backdrops and sprites, glTF models, illustration cards, video clips,
 music, sound effects, custom fonts, credits, a pelican flight and a whale
@@ -59,28 +59,28 @@ with SwiftShader when there is no hardware acceleration.
 
 ```bash
 # validate the script and print the scene timings
-node bin/oceanscript.js check examples/caspion.md
+node bin/oceanscript.js check films/pilot/caspion.md
 
 # live preview in a browser (recompiles when you save the script)
-node bin/oceanscript.js preview examples/caspion.md      # http://127.0.0.1:8765/
+node bin/oceanscript.js preview films/pilot/caspion.md      # http://127.0.0.1:8765/
 
 # render the video (soft subtitles + voice track in the script's language)
-node bin/oceanscript.js render examples/caspion.md --jobs 3 -o out/caspion.mp4
+node bin/oceanscript.js render films/pilot/caspion.md --jobs 3 -o out/caspion.mp4
 
 # the same frames with Hebrew title card, subtitles and voices
-node bin/oceanscript.js render examples/caspion.md --jobs 3 --lang he -o out/caspion.he.mp4
+node bin/oceanscript.js render films/pilot/caspion.md --jobs 3 --lang he -o out/caspion.he.mp4
 # ...or without re-rendering, reusing the frames of an existing render
 # (title cards, image captions and credits stay in the rendered language)
-node bin/oceanscript.js mux examples/caspion.md --video out/caspion.mp4 --lang he -o out/caspion.he.mp4
+node bin/oceanscript.js mux films/pilot/caspion.md --video out/caspion.mp4 --lang he -o out/caspion.he.mp4
 
 # prove two renders share the same frames (per-frame PSNR; "inf" = identical)
 scripts/compare-renders.sh out/caspion.en.mp4 out/caspion.he.mp4
 
 # quick low-res render of one part
-node bin/oceanscript.js render examples/caspion.md --scale 0.5 --start 20 --end 30
+node bin/oceanscript.js render films/pilot/caspion.md --scale 0.5 --start 20 --end 30
 
 # dump the compiled timeline
-node bin/oceanscript.js parse examples/caspion.md -o out/caspion.json
+node bin/oceanscript.js parse films/pilot/caspion.md -o out/caspion.json
 ```
 
 Render options: `--fps`, `--width/--height`, `--scale`, `--start/--end` (seconds),
@@ -158,8 +158,8 @@ Set `$FFMPEG` to use a specific ffmpeg binary.
 
 ## Music
 
-`examples/music/` holds six public-domain recordings (pre-1923 78 rpm
-transfers from the Internet Archive, see `examples/music/CREDITS.md`) used by
+`music/` holds six public-domain recordings (pre-1923 78 rpm
+transfers from the Internet Archive, see `music/CREDITS.md`) used by
 the example: Offenbach's Barcarolle, Solveig's Song, In the Hall of the
 Mountain King, The Swan and Morning Mood.  Scene music is
 ducked automatically under the voices.
