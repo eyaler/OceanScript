@@ -186,7 +186,7 @@ jobs:
               for k, v in sorted(tot.items(), key=lambda kv: -kv[1]): print(f"| {k} | {v:.0f} | {100*v/max(cpu,1e-6):.0f} |")
               ev = sum(p['page']['evalMs'] for p in ps) / max(frames, 1); dr = sum(p['page']['drawMs'] for p in ps) / max(frames, 1)
               ss = tot.get('frames.screenshot', 0) * 1000 / max(frames, 1); ew = tot.get('frames.encode-wait', 0) * 1000 / max(frames, 1)
-              print(); print(f"Per frame: timeline evaluation {ev:.0f} ms, draw (SwiftShader) {dr:.0f} ms, PNG readback {ss:.0f} ms, waiting for x264 {ew:.0f} ms.")
+              print(); print(f"Per frame: timeline evaluation {ev:.0f} ms, draw (SwiftShader) {dr:.0f} ms, frame readback {ss:.0f} ms, waiting for x264 {ew:.0f} ms.")
               print()
           print(f"Publish job: runner setup {os.environ.get('PUBLISH_SETUP','?')}s, concat {os.environ.get('CONCAT_S','?')}s, voices + subtitles mux {os.environ.get('MUX_S','?')}s.")
           PY

@@ -55,7 +55,7 @@ export function profileSummary(prof, totalS) {
   for (const [k, v] of rows) lines.push(`  ${k.padEnd(w)}  ${fmt(v).padStart(7)}  ${(100 * v / Math.max(totalS, 1e-6)).toFixed(0).padStart(3)}%`);
   if (prof.frames) {
     const per = (k) => (((prof.phases[k] ?? prof.phases[`chunks: ${k}`]) || 0) * 1000 / prof.frames).toFixed(0);
-    lines.push(`  per frame: evaluate ${(prof.page.evalMs / prof.frames).toFixed(0)} ms, draw ${(prof.page.drawMs / prof.frames).toFixed(0)} ms, seek round-trip ${per('frames.seek')} ms, screenshot (PNG readback) ${per('frames.screenshot')} ms, encoder wait ${per('frames.encode-wait')} ms`);
+    lines.push(`  per frame: evaluate ${(prof.page.evalMs / prof.frames).toFixed(0)} ms, draw ${(prof.page.drawMs / prof.frames).toFixed(0)} ms, seek round-trip ${per('frames.seek')} ms, screenshot (frame readback) ${per('frames.screenshot')} ms, encoder wait ${per('frames.encode-wait')} ms`);
   }
   return lines.join('\n');
 }
