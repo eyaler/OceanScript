@@ -50,7 +50,7 @@ export async function addNikud(text, cacheDir) {
   const key = createHash('sha1').update('nakdan|' + text).digest('hex').slice(0, 16);
   const file = path.join(cacheDir, `${key}.nikud.json`);
   if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8')).pointed;
-  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: false, keepmetagim: false, keepqq: false, nodageshdefmem: false, patachma: false });
+  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: false, keepmetagim: false, keepqq: true, nodageshdefmem: false, patachma: false });
   const r = spawnSync('curl', ['-sS', '-m', '40', '-H', 'Content-Type: application/json', '-d', body, NAKDAN_URL], { encoding: 'utf8', env: { ...process.env, SSL_CERT_FILE: process.env.SSL_CERT_FILE || '/root/.ccr/ca-bundle.crt' } });
   let pointed = text;
   try {
@@ -70,6 +70,22 @@ export async function addNikud(text, cacheDir) {
 export function softenNikud(word) {
   let w = word.replace(/([א-ת])([\u05B0-\u05BB\u05C7]*)\u05BC/g, (m, l, v) => ('בכפו'.includes(l) ? m : l + v));
   w = w.replace(/\u05C7/g, '\u05B9').replace(/[\u05BD\u05BF]/g, '');
+  // shin/sin dots right after the letter, so the rules below see the vowel last
+  w = w.replace(/([א-ת])([\u05B0-\u05BC]*)([\u05C1\u05C2])/g, '$1$3$2');
+  // the voices misread a qubbuts (יְנֻצַח -> "yenutsakha"): spell the vowel u with a shuruq instead
+  w = w.replace(/([א-ת][\u05BC\u05C1\u05C2]*)\u05BB/g, '$1\u05D5\u05BC');
+  // a shva inside a word is mostly silent, but the voices voice it ("shulekhan",
+  // "mekebet"): keep it where it is vocal (under the first letter, under the
+  // letter after a vowelled prefix, the second of two shvas) and drop it elsewhere
+  const groups = w.match(/[א-ת][\u0591-\u05C7]*|[^א-ת]+/g) || [];
+  const hadShva = groups.map((g) => /\u05B0/.test(g));
+  const out = groups.map((g, i) => {
+    if (i === 0 || !/^[א-ת]/.test(g) || !/\u05B0/.test(g)) return g;
+    const prevPrefix = i === 1 && /^[הובכלמש][\u05B1-\u05BB\u05C7]/.test(groups[0].replace(/[\u05BC\u05C1\u05C2]/g, ''));
+    if (prevPrefix || hadShva[i - 1]) return g;
+    return g.replace(/\u05B0/g, '');
+  });
+  w = out.join('');
   // a conjunction ו is read וְ (colloquial "ve-"), and the בכפ after it keeps its hard sound
   w = w.replace(/^ו\u05BC?(?=[א-ת])/, 'ו\u05B0').replace(/^ו\u05B0([בכפ])(?![\u05B0-\u05BB]*\u05BC)/, (m, l) => 'ו\u05B0' + l + '\u05BC');
   return w;
@@ -202,7 +218,7 @@ export async function nakdanMorph(text, cacheDir) {
   const key = createHash('sha1').update('nakdan-morph|' + text).digest('hex').slice(0, 16);
   const file = path.join(cacheDir, `${key}.morph.json`);
   if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
-  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: true, keepmetagim: false, keepqq: false, nodageshdefmem: false, patachma: false });
+  const body = JSON.stringify({ task: 'nakdan', data: text, genre: 'modern', addmorph: true, keepmetagim: false, keepqq: true, nodageshdefmem: false, patachma: false });
   const r = spawnSync('curl', ['-sS', '-m', '40', '-H', 'Content-Type: application/json', '-d', body, NAKDAN_URL], { encoding: 'utf8', env: { ...process.env, SSL_CERT_FILE: process.env.SSL_CERT_FILE || '/root/.ccr/ca-bundle.crt' } });
   let tokens;
   try { tokens = JSON.parse(r.stdout); } catch { return null; }

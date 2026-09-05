@@ -183,6 +183,12 @@ preview without antialiasing, in parallel chunks, in about real time on a
 four-core machine (an 8-minute film in 8 minutes); `--start`/`--end` narrow it
 to a scene.  Use it to check staging before a real render.
 
+**Faster frames.** `--capture jpeg` grabs each frame as a quality-95 JPEG
+instead of a PNG (readback 80 ms instead of 390 ms per 1080p frame here, and
+invisible after x264 at CRF 17); the workflow uses it by default.  `--no-aa`
+turns off antialiasing, which cuts the SwiftShader draw by about 40% at the
+cost of jagged edges, so it suits drafts and previews.
+
 **Where the time goes.** Every render prints a timing table at the end and
 writes it as `<out>.profile.json`: preparation (parse, voices, timing), asset
 transcoding, browser launch, and per frame the timeline evaluation, the

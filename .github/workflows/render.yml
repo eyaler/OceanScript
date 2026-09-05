@@ -31,6 +31,12 @@ on:
       release:
         description: Release tag to upload to
         default: renders
+      capture:
+        description: Frame capture (jpeg is 5x faster to read back at quality 95; png is lossless)
+        default: jpeg
+      aa:
+        description: Antialiasing (off renders ~40% faster with jagged edges)
+        default: "on"
 
 jobs:
   plan:
@@ -80,7 +86,16 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm ci
+      - name: Cache the Playwright browser
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+      - run: npx playwright install-deps chromium
+        if: steps.pw-cache.outputs.cache-hit == 'true'
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pip install edge-tts
       - uses: actions/download-artifact@v4
@@ -95,6 +110,7 @@ jobs:
           node bin/oceanscript.js render "${{ inputs.script }}" --lang "${{ inputs.lang }}" \
             --width ${{ inputs.width }} --height ${{ inputs.height }} --crf ${{ inputs.crf }} \
             --start-frame ${{ matrix.chunk.a }} --end-frame ${{ matrix.chunk.b }} --raw \
+            --capture ${{ inputs.capture }} $([ "${{ inputs.aa }}" = "off" ] && echo --no-aa) \
             ${TF:+--timing-file $TF} -o $CHUNK.mp4
           # record the runner setup time (checkout, npm ci, playwright, apt) next to the render profile
           python3 - "$CHUNK.profile.json" "$SETUP" "$(( $(date +%s) - T0 ))" "${{ matrix.chunk.i }}" <<'PY'

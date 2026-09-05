@@ -71,7 +71,7 @@ export function mergeProfiles(profiles) {
 
 // A renderer page that can be re-created after a failure.
 class RenderPage {
-  constructor(url, width, height, headed, draft = false) { Object.assign(this, { url, width, height, headed, draft, browser: null, page: null }); }
+  constructor(url, width, height, headed, draft = false, noAA = false, jpeg = false) { Object.assign(this, { url, width, height, headed, draft, noAA, jpeg, browser: null, page: null }); }
   async open() {
     await this.close();
     this.browser = await launchBrowser({ headed: this.headed });
@@ -79,7 +79,7 @@ class RenderPage {
     this.page = await context.newPage();
     this.page.on('console', (msg) => { if (msg.type() === 'error' || msg.type() === 'warning') console.error('[page]', msg.text()); });
     this.page.on('pageerror', (err) => console.error('[page error]', err.message));
-    await this.page.goto(`${this.url}/?headless=1${this.draft ? '&draft=1' : ''}`);
+    await this.page.goto(`${this.url}/?headless=1${this.draft ? '&draft=1' : ''}${this.noAA ? '&aa=0' : ''}`);
     await this.page.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     const gl = await this.page.evaluate(() => { const c = document.createElement('canvas'); const g = c.getContext('webgl2') || c.getContext('webgl'); if (!g) return null; const d = g.getExtension('WEBGL_debug_renderer_info'); return d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'webgl'; });
     if (!gl) throw new Error('WebGL is not available in the browser');
@@ -89,7 +89,7 @@ class RenderPage {
     const t0 = Date.now();
     const sp = await this.page.evaluate((tt) => window.__seek(tt), t);
     const t1 = Date.now();
-    const png = await this.page.screenshot({ type: 'png', animations: 'disabled', caret: 'hide', timeout: SCREENSHOT_TIMEOUT });
+    const png = await this.page.screenshot(this.jpeg ? { type: 'jpeg', quality: 95, animations: 'disabled', caret: 'hide', timeout: SCREENSHOT_TIMEOUT } : { type: 'png', animations: 'disabled', caret: 'hide', timeout: SCREENSHOT_TIMEOUT });
     if (prof) {
       prof.add('frames.seek', t1 - t0); prof.add('frames.screenshot', Date.now() - t1);
       if (sp && typeof sp === 'object') { prof.page.evalMs += sp.evalMs || 0; prof.page.drawMs += sp.drawMs || 0; }
@@ -190,7 +190,7 @@ export async function render(file, args = {}) {
     }
     const tChunks = Date.now();
     await Promise.all(chunks.map((c) => new Promise((resolve, reject) => {
-      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--raw', ...(args.draft ? ['--draft'] : [])];
+      const cargs = [cli, 'render', file, '--start-frame', String(c.a), '--end-frame', String(c.b), '-o', c.file, '--quiet', '--jobs', '1', '--raw', ...(args.draft ? ['--draft'] : []), ...((args.aa === false || args.noAa === true) ? ['--no-aa'] : []), ...(args.capture ? ['--capture', String(args.capture)] : [])];
       for (const k of ['fps', 'width', 'height', 'scale', 'crf', 'preset', 'lang', 'tts']) if (args[k] != null) cargs.push(`--${k}`, String(args[k]));
       if (args.burnSubtitles) cargs.push('--burn-subtitles');
       if (timeline.meta.lineDurations) cargs.push('--timing-file', out.replace(/\.[^.]+$/, '.timing.json'));
@@ -237,7 +237,7 @@ export async function render(file, args = {}) {
     dynamic: { '/timeline.json': () => ({ body: JSON.stringify(timeline) }) },
     extraRoots: { '/script/': timeline.meta.scriptDir, '/cache/': cacheDir },
   });
-  const rp = new RenderPage(url, width, height, !!args.headed, !!args.draft);
+  const rp = new RenderPage(url, width, height, !!args.headed, !!args.draft, args.aa === false || args.noAa === true, String(args.capture || '').toLowerCase() === 'jpeg');
   const gl = await timed(prof, 'browser (launch, preload, warm-up)', () => rp.open());
   if (!args.quiet) console.error(`webgl: ${gl}`);
 
@@ -254,7 +254,7 @@ export async function render(file, args = {}) {
   try {
     for (let i = startFrame; i < endFrame; i++) {
       const png = await rp.captureWithRetry(i / fps, prof);
-      if (framesDir) { const tw = Date.now(); writeFileSync(path.join(framesDir, `frame_${String(i).padStart(6, '0')}.png`), png); prof.add('frames.png-files', Date.now() - tw); }
+      if (framesDir) { const tw = Date.now(); writeFileSync(path.join(framesDir, `frame_${String(i).padStart(6, '0')}.${rp.jpeg ? 'jpg' : 'png'}`), png); prof.add('frames.png-files', Date.now() - tw); }
       const te = Date.now();
       await write(png);
       prof.add('frames.encode-wait', Date.now() - te);

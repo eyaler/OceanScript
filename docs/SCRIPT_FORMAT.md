@@ -174,8 +174,13 @@ A `he-tts:` line under a `he:` line replaces the spoken text of that one line
 (phonetic respelling, or a fully pointed sentence).  Every Hebrew line is
 otherwise pointed in full before synthesis: first the glossary and the gender
 agreement, then Dicta's Nakdan for every word still unpointed, softened for
-the neural voices (a dagesh only where it changes the sound, בּ כּ פּ and וּ; a
-bare conjunction ו read as וְ; qamats qatan as holam).  Dicta reads by context
+the neural voices: a dagesh only where it changes the sound (בּ כּ פּ and וּ), a
+bare conjunction ו read as וְ, qamats qatan as holam (כֹּל, not "kal"), qubbuts
+spelled as shuruq (the voices read יְנֻצַח as "yenutsakha"), and a shva kept
+only where it is vocal (the voices say "shulekhan" for שֻׁלְחָן).  Foreign names
+are best given to the glossary in a spelling the voice reads right, tested with
+`oceanscript voices --phonetic`: `מקבת: מֶק-בֶּת`, `ליידי: לֵדִי`; Latin
+letters also work (`Lady`).  Dicta reads by context
 and is right most of the time; when it is not (הַיָשָׁן for הַיָשֵׁן, שֵׂעָר for
 שֶׁיַעַר) a glossary entry wins.  `nikud: off` disables the automatic pointing.
 The text actually spoken is written to `<out>.voice.json` for checking.
