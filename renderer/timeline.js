@@ -302,18 +302,27 @@ export class TimelineEvaluator {
       const base = FACE_BY_EMOTION[emo] || FACE_BY_EMOTION.neutral;
       const f = { smile: base.smile, mouthOpen: base.mouthOpen, teeth: base.teeth, blink: 0, wink: 0, eyesWide: base.eyesWide || 0 };
       if (!tr) return f;
-      let smileSet = null, teethSet = null, mouthSet = null;
+      let smileSet = null, teethSet = null, mouthSet = null, asleep = false;
       for (const x of tr.face || []) {
         if (x.t > t + 1e-9) break;
         if (x.smile != null) smileSet = x.smile;
         if (x.teeth != null) teethSet = x.teeth;
         if (x.mouth != null) mouthSet = x.mouth;
+        if (x.asleep != null) asleep = x.asleep;
       }
       if (smileSet != null) f.smile = smileSet;
       if (teethSet != null) f.teeth = teethSet;
       if (mouthSet != null) f.mouthOpen = Math.max(f.mouthOpen, mouthSet);
+      if (asleep) { f.blink = 1; f.asleep = true; f.mouthOpen = Math.max(f.mouthOpen, 0.12 + 0.08 * Math.sin(t * 1.3)); }
       for (const e of this.effects(name, t)) {
         const u = e.u;
+        if (e.type === 'sneeze') {
+          // two "ah"s, a big inhale, the burst at 60 %, then a sniff
+          const b = 0.6;
+          if (u < b) { const k = u / b; f.mouthOpen = Math.max(f.mouthOpen, 0.25 + 0.35 * Math.abs(Math.sin(k * Math.PI * 2.5)) + 0.4 * k); f.eyesWide = 0.4 * k; f.blink = Math.max(f.blink, Math.max(0, (k - 0.7) / 0.3)); }
+          else if (u < b + 0.12) { f.mouthOpen = 1; f.blink = 1; }
+          else { const k = (u - b - 0.12) / (1 - b - 0.12); f.mouthOpen = Math.max(f.mouthOpen, 0.5 * (1 - k)); f.blink = Math.max(f.blink, 1 - Math.min(1, k * 3)); }
+        }
         if (e.type === 'mouth') f.mouthOpen = Math.max(f.mouthOpen, (e.value ?? 0.7) * Math.sin(Math.PI * Math.min(1, u * 4)));
         if (e.type === 'yawn') { f.mouthOpen = Math.max(f.mouthOpen, Math.sin(Math.PI * u) * 0.9); f.blink = Math.max(f.blink, Math.sin(Math.PI * u) * 0.8); }
         if (e.type === 'gasp') { f.mouthOpen = Math.max(f.mouthOpen, 0.8 * (1 - u * 0.3)); f.eyesWide = 0.5; }

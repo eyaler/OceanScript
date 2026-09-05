@@ -210,7 +210,16 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
 * **eyes** `eyes 1.5` (or `big eyes`) scales a fish's eyes, and **forelock** (or
   `curly`) gives it a quiff on the forehead striped in the body and accent
   colours: `- dothan: fish, orange, bands, accent cyan, eyes 1.5, forelock`.
+* **accessories**: `helmet` (a steel helmet; `helmet olive` colours it), `cap` (an
+  officer's peaked cap with a visor and a gold cockade; `cap navy`), `moustache`
+  (a small toothbrush moustache under the nose), `badge "assets/insignia.svg"` (the
+  image as a decal on both flanks) and `armband "assets/band.svg"` (a red band
+  around the body, or the right foreleg of a deer, carrying the image on both
+  sides).  They sit on anchors every built-in creature defines, so a helmeted
+  fish, a capped deer and a shark with insignia all work:
+  `- fishi: fish, silver, steel helmet`, `- shark1: shark, gray, badge "assets/ss.svg", armband "assets/armband.svg"`.
 * **gender**: `male` or `female` (guessed from names like *mother* otherwise).
+  Deer stags carry antlers, does do not; a female ibex has short horns.
   It drives gender-dependent pronunciation (below) and default voices.
 * **kind**: `fish`, `shark`, `whale`, `dolphin`, `octopus`, `squid`, `jellyfish`,
   `turtle`, `crab`, `ray`, `eel`, `seahorse`, `starfish`, `school` (a shoal of
@@ -218,7 +227,11 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   asset-backed kinds: `sprite` (a 2D image cutout: `image "assets/cop.svg"`,
   billboarded and mirrored to face its heading) and `model` (a glTF/GLB file:
   `model "assets/boat.glb" animation "Rock"`, normalised to `size` and driven by
-  time).  Two procedural props: `bike` (a bicycle whose wheels and pedals turn
+  time).  Two land animals that live on the seabed: `deer` (`stag`, `doe`,
+  `reindeer`) and `ibex` (`goat`, `nubian ibex`) stand on the bottom on four
+  legs, trot when they move along it and paddle when they swim up (`@eyal walks
+  right 4`, `@yael swims to (0, -10, 0)`); they can `charge` with their antlers
+  and horns (below).  Two procedural props: `bike` (a bicycle whose wheels and pedals turn
   with the distance it travels; `@caspion rides @bike`, then move the bike) and
   `mango` (a fruit that `splits` and can be eaten).  Words such as `baby`, `small`, `big`, `huge` scale the default size.
 * **colour**: a colour name (`silver`, `gold`, `blue`, `navy`, `pink`, ...) or `#hex`.
@@ -257,6 +270,7 @@ Environment settings are blockquotes with `key: value` pairs:
 | `clouds` | `off`, `low`, `on`, `many` – drifting clouds when the camera is above the water |
 | `fog` | a fog density number to override `visibility` |
 | `interior` | `whale` – inside the whale: a dark cavern with baleen bars around the camera (`none` to leave) |
+| `look` | `sepia` (or `old film`, `dream`) – an old-film look: sepia tone, film grain, a vignette, flicker, hairline scratches and dust; `noir` – the same in black and white; `normal` to clear.  `grain`, `vignette`, `flicker` and `scratches` take `off`, `low`, `on`, `many` or a number to tune the look separately.  Cross-fades with `transition` like everything else, so a dream can drift in |
 | `visibility` | fog distance in metres (default 40) |
 | `caustics`, `rays`, `bubbles`, `plankton`, `seaweed`, `coral`, `rocks` | `off`, `low`, `on`, `many` or a number |
 | `transition` | seconds to cross-fade into these settings (default 2 mid-scene, 0 at a scene start) |
@@ -302,6 +316,10 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | ride / dismount | `@caspion rides @bike` (the same attachment seen from the rider: it sits on the saddle and faces where the bike goes; then `@bike moves right 4`, `@bike circles @gan`, `@bike wiggles` for a wobble) ... `@caspion dismounts` |
 | split / eat / clean | `@mango splits` (the halves drift apart), `@caspion eats @mango over 5s` (chews the half on its side in four bites; pulp floats off and the face stays smeared with juice until `@caspion cleans` or about 25 s pass); `eats` a creature means `swallows` |
 | swallow / spit | `@whale swallows @caspion` (attaches and hides), `@whale spits out @caspion` (reappears, tossed towards the camera) |
+| sneeze | `@fishi sneezes` (`for 3s`): the head tips back through two "ah"s with the mouth opening, then snaps forward at 60 % with a burst of bubbles from the mouth and a built-in sneeze sound, eyes shut; then a sniff.  Every creature can sneeze |
+| salute | `@shark salutes` (`for 3s`): the right fin (a deer's or ibex's right foreleg, a whale's flipper) rises to the brow and holds |
+| charge / knocked | `@eyal charges @shark1` (`rams`, `butts`, `head-butts`): a head-down lunge that stops just short of the target, a bonk, and the target is knocked back and tumbles; `@shark is knocked back` (`left 3`, `reels`, `staggers`) tumbles an actor on its own |
+| sleep / wake | `@caspion falls asleep` (`dozes off`): the eyes close and stay closed, the mouth slackens, until `@caspion wakes up` (a gasp, eyes wide) |
 | fly / walk | `@pelican flies to (10, 6, 0) over 3s`, `@gull soars left 8`, `@crab walks right 2` – synonyms of *move* for creatures above the water |
 | ease | add `linear`, `smooth`, `snap`, `bouncy` or `elastic` to any move |
 

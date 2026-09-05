@@ -11,7 +11,8 @@ const MIN_SLOT = 1.2;
 
 export function availableLanguages(timeline) {
   const langs = new Set([timeline.meta.sourceLang]);
-  for (const s of timeline.subtitles) for (const l of Object.keys(s.texts || {})) langs.add(l);
+  // `<lang>-tts` entries are spoken-text overrides for a language, not languages
+  for (const s of timeline.subtitles) for (const l of Object.keys(s.texts || {})) if (!/-tts$/i.test(l)) langs.add(l);
   return [...langs];
 }
 

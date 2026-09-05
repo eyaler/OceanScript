@@ -73,7 +73,7 @@ async function main() {
     const timeline = args.noTiming ? loadTimeline(file, opts) : await prepareTimeline(file, { ...opts, timingFile: args.timingFile }, (m) => console.error(m));
     for (const w of timeline.warnings) console.error('warning:', w);
     if (cmd === 'check') {
-      console.log(`ok: ${timeline.meta.duration.toFixed(2)}s, ${timeline.meta.frames} frames @ ${timeline.meta.fps}fps, ${Object.keys(timeline.actors).length} actors, ${timeline.subtitles.length} subtitles, ${timeline.markers.filter((m) => m.kind === 'scene').length} scenes, lang ${timeline.meta.lang} (available: ${[...new Set(timeline.subtitles.flatMap((s) => Object.keys(s.texts || {})))].join(', ')})`);
+      console.log(`ok: ${timeline.meta.duration.toFixed(2)}s, ${timeline.meta.frames} frames @ ${timeline.meta.fps}fps, ${Object.keys(timeline.actors).length} actors, ${timeline.subtitles.length} subtitles, ${timeline.markers.filter((m) => m.kind === 'scene').length} scenes, lang ${timeline.meta.lang} (available: ${[...new Set(timeline.subtitles.flatMap((s) => Object.keys(s.texts || {})))].filter((l) => !/-tts$/i.test(l)).join(', ')})`);
       for (const m of timeline.markers) if (m.kind === 'scene') console.log(`  ${m.t.toFixed(2).padStart(8)}s  ${m.label}`);
       return;
     }

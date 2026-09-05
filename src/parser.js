@@ -7,6 +7,7 @@ export const ENV_KEYS = new Set([
   'time', 'water', 'waves', 'depth', 'floor', 'visibility', 'caustics',
   'bubbles', 'rays', 'seaweed', 'coral', 'rocks', 'transition', 'sun', 'plankton',
   'backdrop', 'style', 'clouds', 'sky', 'fog', 'interior',
+  'look', 'film', 'grain', 'vignette', 'flicker', 'scratches',
 ]);
 
 export const DIRECTIONS = {
@@ -130,6 +131,7 @@ function words(text) {
 // Each entry: [regex on the lower-cased action text, canonical verb]
 // The regex is anchored to the start of the action text (after `@name`).
 const ACTOR_VERBS = [
+  [/^(?:is|gets?) (?:knocked|hit|struck|thrown)(?: back| away| over)?\b|^(?:reels?|staggers?|tumbles? (?:back|away|over)|is thrown|flies back)\b/, 'knocked'],
   [/^(?:feels?|is|becomes?|gets?|looks?|seems?|acts?)\s+(?:very\s+|a bit\s+|so\s+|really\s+)?(happy|sad|scared|afraid|excited|sleepy|tired|angry|calm|curious|surprised|neutral|proud|lonely|crying)\b/, 'emote'],
   [/^(?:appears?|is|starts?|begins?|spawns?|pops? up)\b/, 'place'],
   [/^(?:enters?|comes? in|arrives?|swims? in|shows? up)\b/, 'enter'],
@@ -154,11 +156,16 @@ const ACTOR_VERBS = [
   [/^(?:eats?|bites?|munches?|nibbles?|chews?)\b/, 'eat'],
   [/^(?:cleans?(?: up)?|wipes?|washes?)\b/, 'clean'],
   [/^(?:swallows?|gulps?(?: down)?|devours?|engulfs?)\b/, 'swallow'],
+  [/^(?:sneezes?|achoo|atchoo)\b/, 'sneeze'],
+  [/^(?:salutes?|gives? a salute|raises? (?:a |its |his |her )?(?:fin|hoof|arm) in salute)\b/, 'salute'],
+  [/^(?:charges?(?: at| into)?|rams?(?: into)?|butts?|head-?butts?|gores?|bonks?|tackles?|attacks?|strikes?|hits?)\b/, 'charge'],
+  [/^(?:falls? asleep|dozes? off|nods? off|sleeps?|goes? to sleep|snoozes?)\b/, 'sleep'],
+  [/^(?:wakes?(?: up)?|awakes?|awakens?|comes? to)\b/, 'wake'],
   [/^(?:spits?(?: out)?|coughs? up|lets? out|frees?|sets? free)\b/, 'spit'],
   [/^(?:swims?|moves?|goes?|glides?|drifts?|floats?|travels?|heads?|rushes?|darts?|dashes?|flees?|hurries?|sinks?|rises?|dives?|surfaces?|approaches?|chases?|flies|fly|flys?|soars?|walks?|runs?|crawls?|scuttles?|lands?|takes? off)\b/, 'move'],
   [/^(?:stops? following|stops?|halts?|pauses?|freezes?)\b/, 'stop'],
   [/^(?:looks?|faces?|turns? (?:to|toward|towards)|watches?|stares?|glances?)\b/, 'look'],
-  [/^(?:waits?|idles?|rests?|hovers?|lingers?|sleeps?|stays?)\b/, 'wait'],
+  [/^(?:waits?|idles?|rests?|hovers?|lingers?|stays?)\b/, 'wait'],
   [/^(?:says?|speaks?|shouts?|whispers?|asks?|answers?|replies?|calls?|cries? out|sings?|tells?|exclaims?)\b/, 'say'],
   [/^(?:spins?|twirls?|rolls?|somersaults?|flips?|tumbles?)\b/, 'spin'],
   [/^(?:wiggles?|wobbles?|dances?|shakes?|shivers?|trembles?|jiggles?)\b/, 'wiggle'],
@@ -219,7 +226,7 @@ function matchVerb(list, text) {
 const KINDS = new Set([
   'fish', 'whale', 'shark', 'octopus', 'jellyfish', 'turtle', 'crab', 'school',
   'dolphin', 'seahorse', 'starfish', 'ray', 'eel', 'squid', 'narrator', 'voice',
-  'bird', 'pelican', 'bubble', 'sprite', 'model', 'bike', 'mango',
+  'bird', 'pelican', 'bubble', 'sprite', 'model', 'bike', 'mango', 'deer', 'ibex',
 ]);
 const KIND_ALIASES = {
   bicycle: 'bike', bikes: 'bike', bicycles: 'bike', mangoes: 'mango', mangos: 'mango', fruit: 'mango',
@@ -240,6 +247,8 @@ const KIND_ALIASES = {
   image: 'sprite', picture: 'sprite', cutout: 'sprite', drawing: 'sprite', illustration: 'sprite',
   gltf: 'model', glb: 'model', mesh: 'model',
   bubbles: 'bubble', balloon: 'bubble',
+  stag: 'deer', buck: 'deer', doe: 'deer', reindeer: 'deer', elk: 'deer', moose: 'deer', 'red deer': 'deer', 'true deer': 'deer', hart: 'deer',
+  goat: 'ibex', 'mountain goat': 'ibex', 'nubian ibex': 'ibex', 'wild goat': 'ibex', 'ibex goat': 'ibex',
 };
 
 const COLOR_WORDS = new Set([
@@ -292,6 +301,18 @@ export function parseCastAttrs(text) {
   if (ey) { actor.eyes = Number(ey[1]); rest = rest.replace(ey[0], ' '); }
   else if (/\b(?:big|huge|large) eyes\b/i.test(rest)) { actor.eyes = 1.8; rest = rest.replace(/\b(?:big|huge|large) eyes\b/i, ' '); }
   if (/\b(?:forelock|curly|curls|quiff|בלורית)\b/i.test(rest)) { actor.forelock = true; rest = rest.replace(/\b(?:forelock|curly|curls|quiff|בלורית)\b/i, ' '); }
+  // accessories: `helmet`, `steel helmet`, `helmet olive`, `cap`, `officer cap navy`, `moustache`,
+  // `badge "assets/insignia.svg"` (a decal on both flanks), `armband "assets/band.svg"` (a red band
+  // around the body carrying the image)
+  const helm = rest.match(/\b(?:steel |iron |army )?helmet(?:\s+(#[0-9a-f]{3,8}|[a-z]+))?/i);
+  if (helm) { actor.helmet = helm[1] && (COLOR_WORDS.has(helm[1].toLowerCase()) || helm[1].startsWith('#')) ? helm[1].toLowerCase() : true; rest = rest.replace(helm[0], ' '); }
+  const cap = rest.match(/\b(?:officer'?s? |officer |peaked |captain'?s? |captain |navy |military )?cap(?:\s+(#[0-9a-f]{3,8}|[a-z]+))?\b/i);
+  if (cap) { actor.cap = cap[1] && (COLOR_WORDS.has(cap[1].toLowerCase()) || cap[1].startsWith('#')) ? cap[1].toLowerCase() : true; rest = rest.replace(cap[0], ' '); }
+  if (/\b(?:mo?ustache|toothbrush mo?ustache|שפם)\b/i.test(rest)) { actor.moustache = true; rest = rest.replace(/\b(?:toothbrush )?(?:mo?ustache|שפם)\b/i, ' '); }
+  const badge = rest.match(/\b(?:badge|insignia|emblem|decal|patch)\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (badge) { actor.badge = badge[1].trim(); rest = rest.replace(badge[0], ' '); }
+  const band = rest.match(/\b(?:armband|band)\s*[:=]?\s*["“]([^"”]*)["”]/i);
+  if (band) { actor.armband = band[1].trim(); rest = rest.replace(band[0], ' '); }
   const q = takeQuote(rest);
   if (q.quote != null && actor.label == null) { actor.label = q.quote; rest = q.rest; }
   for (const key of ['size', 'speed', 'count', 'pitch', 'rate', 'volume']) {
@@ -520,9 +541,10 @@ export function parseActorAction(name, text, line) {
       }
       break;
     }
-    case 'carry': case 'drop': case 'swallow': case 'spit': case 'ride': case 'dismount': case 'eat': case 'split': case 'clean': {
+    case 'carry': case 'drop': case 'swallow': case 'spit': case 'ride': case 'dismount': case 'eat': case 'split': case 'clean': case 'charge': case 'knocked': case 'salute': case 'sneeze': {
       const t = parseTarget(tail); tail = t.rest;
-      if ((mv.verb === 'carry' || mv.verb === 'swallow' || mv.verb === 'ride' || mv.verb === 'eat') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
+      if ((mv.verb === 'carry' || mv.verb === 'swallow' || mv.verb === 'ride' || mv.verb === 'eat' || mv.verb === 'charge') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
+      if (mv.verb === 'knocked') { const d = takeDirection(tail); tail = d.rest; action.direction = d.dir || null; }
       action.target = t.target;
       break;
     }

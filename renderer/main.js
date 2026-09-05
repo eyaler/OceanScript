@@ -3,8 +3,8 @@
 // preview with a scrubber.
 import * as THREE from 'three';
 import { TimelineEvaluator } from './timeline.js';
-import { Ocean, resolveEnv, mixEnv } from './ocean.js';
-import { createActorRig } from './actors.js';
+import { Ocean, resolveEnv, mixEnv, rng } from './ocean.js';
+import { createActorRig, applyEffects } from './actors.js';
 import { isRtl } from './colors.js';
 
 const params = new URLSearchParams(location.search);
@@ -134,6 +134,8 @@ function loadTimeline(tl) {
       extra.aspect = im ? im.width / im.height : 1;
       if (!extra.texture) { console.warn(`sprite image missing for @${name}; using a fish`); c.kind = 'fish'; }
     }
+    if (c.badge) { extra.badgeTexture = assetCache.textures[c.badge] || null; if (!extra.badgeTexture) console.warn(`badge image missing for @${name}: ${c.badge}`); }
+    if (c.armband) { extra.armbandTexture = assetCache.textures[c.armband] || null; if (!extra.armbandTexture) console.warn(`armband image missing for @${name}: ${c.armband}`); }
     if (c.kind === 'model') {
       extra.gltf = assetCache.gltfs[c.model] || null;
       extra.three = { AnimationMixer: THREE.AnimationMixer, Box3: THREE.Box3, Vector3: THREE.Vector3 };
@@ -186,6 +188,7 @@ function seek(t) {
   camera.fov = ev.cameraFov(t);
   camera.updateProjectionMatrix();
   ocean.apply(p, t, camera, height);
+  applyFilmLook(p, t);
 
   // actors
   fxReset();
@@ -202,17 +205,25 @@ function seek(t) {
     if (Math.hypot(pos[0] - camera.position.x, pos[1] - camera.position.y, pos[2] - camera.position.z) < sc * 0.5 + 0.25) { rig.group.visible = false; continue; }
     rig.group.scale.setScalar(sc);
     // idle drift (not part of the track so cameras can follow smoothly)
-    const idle = rig.kind === 'school' ? 0.4 : 0.12;
+    const idle = rig.kind === 'school' ? 0.4 : (rig.idleBob ?? 0.12);
     const bob = [Math.sin(t * 0.7 + rig.seed) * idle * 0.5, Math.sin(t * 1.1 + rig.seed) * idle, Math.cos(t * 0.5 + rig.seed) * idle * 0.5];
     rig.group.position.set(pos[0] + bob[0] * sc, pos[1] + bob[1] * sc, pos[2] + bob[2] * sc);
     // keep above the seabed
     const fy = p.floorY + ocean.floorHeight(pos[0], pos[2]) + sc * 0.4;
     if (rig.group.position.y < fy && rig.kind !== 'crab' && rig.kind !== 'starfish') rig.group.position.y = fy;
+    // land animals stand on the bottom: near the floor their hooves are planted
+    // on it (the idle bob is not applied), higher up they swim
+    let grounded = false;
+    if (rig.standsOnFloor != null) {
+      const ground = p.floorY + ocean.floorHeight(pos[0], pos[2]) + sc * rig.standsOnFloor;
+      if (pos[1] < ground + sc * 0.6) { rig.group.position.set(pos[0], ground, pos[2]); grounded = true; }
+    }
     if ((rig.kind === 'crab' || rig.kind === 'starfish') && rig.group.position.y < fy - sc * 0.2) rig.group.position.y = fy - sc * 0.2;
     // orientation
     const yaw = Math.atan2(h[0], h[2]);
     let pitch = rig.yawOnly ? 0 : Math.asin(Math.max(-1, Math.min(1, h[1])));
-    pitch = Math.max(-0.7, Math.min(0.7, pitch));
+    const pitchLimit = rig.pitchLimit ?? 0.7;
+    pitch = Math.max(-pitchLimit, Math.min(pitchLimit, pitch));
     // banking from yaw rate
     const hPrev = ev.heading(name, t - 1 / 30);
     let dyaw = Math.atan2(h[0], h[2]) - Math.atan2(hPrev[0], hPrev[2]);
@@ -236,7 +247,9 @@ function seek(t) {
     const eb = ev.emotionBlend(name, t);
     state.emotionFrom = eb.from; state.emotionU = eb.u;
     if (rig.wantsDistance) state.dist = ev.distance(name, t);
+    state.grounded = grounded;
     rig.animate(t, state);
+    applyEffects(rig, t, state);
     // tear drops (cartoon: they grow at the eye and fall)
     if (rig.tears) for (const tr of rig.tears) tr.visible = false;
     const cryFx = state.effects.find((f) => f.type === 'cry');
@@ -338,6 +351,25 @@ function seek(t) {
           fxEmit(origin.x + Math.cos(a) * r, origin.y + (k * 0.7 - k * k * 0.2) * sc + Math.sin(age * 3 + i) * 0.06 * sc, origin.z + Math.sin(a) * r * 0.7 + 0.15 * sc, (0.012 + 0.014 * (i % 3)) * sc, col[0], col[1], col[2]);
         }
       }
+      if (fx.type === 'sneeze' && fx.u >= 0.6) {
+        // the burst: a cone of quick bubbles shot forward from the mouth
+        const bAge = fx.age - 0.6 * (fx.t1 - fx.t0);
+        const anchor = rig.mouthAnchor || { parent: rig.inner, pos: [0, -0.05, 0.5] };
+        anchor.parent.updateMatrixWorld(true);
+        const origin = new THREE.Vector3(...anchor.pos).applyMatrix4(anchor.parent.matrixWorld);
+        const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(rig.group.quaternion);
+        const side = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+        const upv = new THREE.Vector3().crossVectors(side, fwd).normalize();
+        const life = 1.3;
+        for (let i = 0; i < 28; i++) {
+          const k = (bAge - i * 0.012) / life;
+          if (k < 0 || k > 1) continue;
+          const a = i * 2.399, spread = (0.25 + 0.75 * ((i * 7) % 5) / 4) * k * sc;
+          const along = (0.4 + 0.6 * ((i * 3) % 4) / 3) * (1 - Math.pow(1 - k, 2)) * 2.2 * sc;
+          const pt = origin.clone().addScaledVector(fwd, along).addScaledVector(side, Math.cos(a) * spread).addScaledVector(upv, Math.sin(a) * spread * 0.7 + k * k * 0.9 * sc);
+          fxEmit(pt.x, pt.y, pt.z, (0.03 + 0.05 * ((i * 5) % 3) / 2) * sc * (1 - 0.4 * k), 1, 1, 1);
+        }
+      }
       if (fx.type === 'bubbles' || fx.type === 'cry' || fx.type === 'spout') {
         const n = fx.type === 'spout' ? 40 : fx.type === 'cry' ? 6 : 18;
         const local = fx.type === 'cry' ? (rig.eyePositions ? rig.eyePositions[1].clone() : new THREE.Vector3(0.14, 0.08, 0.36)) : fx.type === 'spout' ? (rig.blowhole || new THREE.Vector3(0, 0.3, 0.1)) : new THREE.Vector3(0, -0.05, 0.5);
@@ -432,6 +464,76 @@ function seek(t) {
   window.__seekProfile = { evalMs: __t1 - __t0, drawMs: performance.now() - __t1 };
   return clipReady;
 }
+// Old-film look (`look: sepia` / `noir`): a colour filter on the WebGL canvas,
+// and grain, scratches, dust and a vignette painted on an overlay canvas.  All of
+// it is a function of the frame index, so chunks and re-renders agree.
+const $film = document.getElementById('film');
+const filmCanvas = $film ? $film.querySelector('canvas') : null;
+let grainTile = null;
+function applyFilmLook(p, t) {
+  const fps = timeline?.meta?.fps || 24;
+  const frame = Math.round(t * fps);
+  const sepia = p.sepia || 0, mono = p.mono || 0, grain = p.grain || 0, vig = p.vignette || 0, flicker = p.flicker || 0, scratches = p.scratches || 0;
+  const tone = Math.max(sepia, mono);
+  const r = rng(frame * 7919 + 17);
+  const filt = [];
+  if (sepia > 0.01) filt.push(`sepia(${sepia.toFixed(3)})`);
+  if (mono > 0.01) filt.push(`grayscale(${mono.toFixed(3)})`);
+  if (tone > 0.01) filt.push(`contrast(${(1 + 0.14 * tone).toFixed(3)})`, `saturate(${(1 - 0.15 * tone).toFixed(3)})`);
+  const flick = flicker > 0.01 ? flicker * (0.09 * (r() - 0.5) + 0.03 * Math.sin(frame * 0.7)) : 0;
+  if (tone > 0.01 || flicker > 0.01) filt.push(`brightness(${(1 - 0.06 * tone + flick).toFixed(3)})`);
+  renderer.domElement.style.filter = filt.join(' ');
+  if (!$film || !filmCanvas) return;
+  const active = grain > 0.01 || vig > 0.01 || scratches > 0.01;
+  $film.style.opacity = active ? 1 : 0;
+  if (!active) return;
+  if (filmCanvas.width !== width || filmCanvas.height !== height) { filmCanvas.width = width; filmCanvas.height = height; }
+  const ctx = filmCanvas.getContext('2d');
+  ctx.clearRect(0, 0, width, height);
+  if (grain > 0.01) {
+    if (!grainTile) { grainTile = document.createElement('canvas'); grainTile.width = 160; grainTile.height = 160; }
+    const tc = grainTile.getContext('2d');
+    const img = tc.createImageData(160, 160);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const v = r() * 255; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+    tc.putImageData(img, 0, 0);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, 0.22 * grain);
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.translate(-Math.floor(r() * 160), -Math.floor(r() * 160));
+    ctx.fillStyle = ctx.createPattern(grainTile, 'repeat');
+    ctx.fillRect(0, 0, width + 160, height + 160);
+    ctx.restore();
+  }
+  if (scratches > 0.01) {
+    // a few hairline scratches that persist for a moment, and drifting dust
+    const slot = Math.floor(t * 2.5);
+    for (let i = 0; i < 4; i++) {
+      const rs = rng(slot * 131 + i * 977 + 3);
+      if (rs() > 0.35 * scratches) continue;
+      const x = rs() * width, len = height * (0.3 + rs() * 0.7), y0 = rs() * height * 0.5;
+      const bright = rs() > 0.4;
+      ctx.strokeStyle = bright ? `rgba(255,244,214,${(0.18 + 0.25 * rs()).toFixed(3)})` : `rgba(20,10,4,${(0.3 + 0.3 * rs()).toFixed(3)})`;
+      ctx.lineWidth = bright ? 1 : 1.5;
+      ctx.beginPath(); ctx.moveTo(x + Math.sin(frame * 0.9 + i) * 1.5, y0); ctx.lineTo(x + Math.sin(frame * 0.9 + i + 1) * 1.5, y0 + len); ctx.stroke();
+    }
+    const dust = Math.round(6 * scratches);
+    for (let i = 0; i < dust; i++) {
+      if (r() > 0.45) continue;
+      const x = r() * width, y = r() * height, rad = 1 + r() * 2.5;
+      ctx.fillStyle = `rgba(25,14,6,${(0.35 + 0.4 * r()).toFixed(3)})`;
+      ctx.beginPath(); ctx.ellipse(x, y, rad, rad * (0.5 + r()), r() * Math.PI, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  if (vig > 0.01) {
+    const g = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.35, width / 2, height / 2, Math.hypot(width, height) * 0.55);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, `rgba(12,6,0,${(0.78 * vig).toFixed(3)})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, width, height);
+  }
+}
+
 // Deterministic video frame selection: seek and wait for the frame to be decoded.
 function seekVideo(video, time) {
   return new Promise((resolve) => {

@@ -1,0 +1,1172 @@
+[
+  {
+    "t0": 0,
+    "slot": 7.96,
+    "duration": 7.51,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "ילדים, מי יודע מה קרה בעולם לפני הרבה-הרבה שנים, בשנת אלף תשע מאות ארבעים ואחת?",
+    "spoken": "יְלָדִים, מִי יוֹדֵעַ מָה קָרָה בָּעוֹלָם לִפְנֵי הַרְבֵּה-הַרְבֵּה שָׁנִים, בִּשְׁנַת אֶלֶף תְשַׁע מֵאוֹת אַרבָּעִים וְאַחַת?",
+    "clip": "out/.tts-cache/bd49b55415c533e8.mp3"
+  },
+  {
+    "t0": 7.96,
+    "slot": 2.4899999999999993,
+    "duration": 2.04,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "הגן נפתח?",
+    "spoken": "הַגַן נִפתַח?",
+    "clip": "out/.tts-cache/a729ae763ff46063.mp3"
+  },
+  {
+    "t0": 10.45,
+    "slot": 10.190000000000001,
+    "duration": 9.74,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "לא, דותן. הגן נפתח הרבה אחר כך. הייתה מלחמה גדולה מאוד, בכל העולם. מלחמת העולם השנייה.",
+    "spoken": "לֹא, דוֹתָן. הַגַן נִפתַח הַרְבֵּה אַחַר כָּךְ. הָיְתָה מִלְחָמָה גְדוֹלָה מְאוֹד, בְּכֹל הָעוֹלָם. מִלְחֶמֶת הָעוֹלָם הַשְׁנִיָה.",
+    "clip": "out/.tts-cache/94f11ee87df597c4.mp3"
+  },
+  {
+    "t0": 21.64,
+    "slot": 7.43,
+    "duration": 6.98,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "סבא שלי היה שם! סבא פישי! הוא היה חייל, עם קסדה!",
+    "spoken": "סַבָּא שֶׁלִי הָיָה שָׁם! סַבָּא פִישִׁי! הוּא הָיָה חַיָל, עִם קַסְדָה!",
+    "clip": "out/.tts-cache/2d126738b415a662.mp3"
+  },
+  {
+    "t0": 29.07,
+    "slot": 6.810000000000002,
+    "duration": 6.36,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "באמת, כספיון? אז אולי סבא פישי יבוא לספר לנו.",
+    "spoken": "בֶּאֱמֶת, קַסְפִּיוֹן? אָז אוּלַי סַבָּא פִישִׁי יָבוֹא לְסַפֵּר לָנוּ.",
+    "clip": "out/.tts-cache/9d83011c1af0da33.mp3"
+  },
+  {
+    "t0": 35.88,
+    "slot": 7.82,
+    "duration": 7.37,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "הוא תמיד מספר. על הקפטן, ועל הדודה, ועל הלילה שהם כמעט... כמעט...",
+    "spoken": "הוּא תָמִיד מְסַפֵּר. עַל הקֶפְּטֶן, וְעַל הַדוֹדָה, וְעַל הַלַילָה שֶׁהֵם כִּמְעַט... כִּמְעַט...",
+    "clip": "out/.tts-cache/f9b2181687e5f4d3.mp3"
+  },
+  {
+    "t0": 46.2,
+    "slot": 2.539999999999999,
+    "duration": 2.09,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "...כמעט תפסו את...",
+    "spoken": "...כִּמְעַט תָפסוּ אֶת...",
+    "clip": "out/.tts-cache/78278c638326ecbe.mp3"
+  },
+  {
+    "t0": 48.74,
+    "slot": 6.43,
+    "duration": 5.98,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "כספיון? את מי הם כמעט תפסו? כספיון!",
+    "spoken": "קַסְפִּיוֹן? אֶת מִי הֵם כִּמְעַט תָפסוּ? קַסְפִּיוֹן!",
+    "clip": "out/.tts-cache/364702d5b179df6d.mp3"
+  },
+  {
+    "t0": 57.370000000000005,
+    "slot": 3.789999999999999,
+    "duration": 3.34,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "הוא נרדם. באמצע מלחמת העולם.",
+    "spoken": "הוּא נִרדַם. בְּאֶמצַע מִלְחֶמֶת הָעוֹלָם.",
+    "clip": "out/.tts-cache/283d8809be81d302.mp3"
+  },
+  {
+    "t0": 65.16,
+    "slot": 3.739999999999995,
+    "duration": 3.29,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "טוראי זילברדג. דווח.",
+    "spoken": "טוּרַאי זִילְבֶּרְדָג. דוּוַּח.",
+    "clip": "out/.tts-cache/891fae6fc460df41.mp3"
+  },
+  {
+    "t0": 68.89999999999999,
+    "slot": 8.590000000000003,
+    "duration": 8.14,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "טוראי פישי זילברדג מדווח, קפטן דודו איל! הכל שקט. שקט מדי.",
+    "spoken": "טוּרַאי פִישִׁי זִילְבֶּרְדָג מְדַוֵּחַ, קֶפְּטֶן דוֹדוֹ אֱיָל! הַכֹּל שָׁקֵט. שֶׁקֶט מִדַי.",
+    "clip": "out/.tts-cache/0bf7a4c898741ea6.mp3"
+  },
+  {
+    "t0": 77.49,
+    "slot": 4.340000000000003,
+    "duration": 3.89,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "שקט, כי אף אחד לא זז. מתי זזים?",
+    "spoken": "שֶׁקֶט, כִּי אַף אֶחָד לֹא זָז. מָתַי זָזִים?",
+    "clip": "out/.tts-cache/6b6dcd5aed62940f.mp3"
+  },
+  {
+    "t0": 81.83,
+    "slot": 5.030000000000001,
+    "duration": 4.58,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "כשאני אומר, סוכנת. ואני עוד לא אמרתי.",
+    "spoken": "כְּשֶׁאֲנִי אוֹמֵר, סוֹכֶנֶת. וַאֲנִי עוֹד לֹא אָמַרתִי.",
+    "clip": "out/.tts-cache/016355139e265129.mp3"
+  },
+  {
+    "t0": 86.86,
+    "slot": 4.8700000000000045,
+    "duration": 4.42,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "שם הקוד שלי הוא קרמשניט, קפטן. לא \"סוכנת\".",
+    "spoken": "שֵׁם הַקוֹד שֶׁלִי הוּא קְרֶמְשְׁנִיט, קֶפְּטֶן. לֹא \"סוֹכֶנֶת\".",
+    "clip": "out/.tts-cache/68d1da99e4099ae1.mp3"
+  },
+  {
+    "t0": 91.73,
+    "slot": 6.450000000000003,
+    "duration": 6,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "קרמשניט. יופי. ומי קובע כאן, קרמשניט?",
+    "spoken": "קְרֶמְשְׁנִיט. יֹפִי. וְמִי קוֹבֵעַ כָּאן, קְרֶמְשְׁנִיט?",
+    "clip": "out/.tts-cache/387d47c740966e26.mp3"
+  },
+  {
+    "t0": 98.18,
+    "slot": 2.6099999999999994,
+    "duration": 2.16,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "אתה. לצערי.",
+    "spoken": "אַתָה. לְצַעֲרִי.",
+    "clip": "out/.tts-cache/d42117e63a457de9.mp3"
+  },
+  {
+    "t0": 100.79,
+    "slot": 8.179999999999993,
+    "duration": 7.73,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "דודה יעל... זאת אומרת, קרמשניט... למה את לא מקשיבה לו?",
+    "spoken": "דוֹדָה יָעֵל... זֹאת אוֹמֶרֶת, קְרֶמְשְׁנִיט... לָמָה אַת לֹא מַקְשִׁיבָה לוֹ?",
+    "clip": "out/.tts-cache/6444b74a687ab3f0.mp3"
+  },
+  {
+    "t0": 108.97,
+    "slot": 7.819999999999993,
+    "duration": 7.37,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "כי הוא איל, ואני יעל. ויעלים לא מקבלות פקודות, טוראי. יעלים מטפסות.",
+    "spoken": "כִּי הוּא אֱיָל, וַאֲנִי יָעֵל. וְיַעֲלִים לֹא מְקַבּלוֹת פְּקוּדוֹת, טוּרַאי. יַעֲלִים מְטַפּסוֹת.",
+    "clip": "out/.tts-cache/c34a44c37e2b09a0.mp3"
+  },
+  {
+    "t0": 116.78999999999999,
+    "slot": 11.079999999999998,
+    "duration": 10.63,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "תקשיבו, שניכם. בעוד רגע פישלר יעבור כאן, בדרך לבונקר שלו. שני כרישים לפניו, שניים אחריו.",
+    "spoken": "תַקשִׁיבוּ, שְׁנֵיכֶם. בְּעוֹד רֶגַע פִישְׁלֶר יַעֲבֹר כָּאן, בַּדֶרֶך לבּוּנְקֶר שֶׁלוֹ. שְׁנֵי כְּרִישִׁים לְפָנָיו, שְׁנַיִם אַחֲרָיו.",
+    "clip": "out/.tts-cache/d1c0c9837a055c6e.mp3"
+  },
+  {
+    "t0": 127.86999999999999,
+    "slot": 4.510000000000005,
+    "duration": 4.06,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "פישלר? פישלר בעצמו?",
+    "spoken": "פִישְׁלֶר? פִישְׁלֶר בְּעַצמוֹ?",
+    "clip": "out/.tts-cache/bdb8f40f1ffa8c71.mp3"
+  },
+  {
+    "t0": 132.38,
+    "slot": 6.710000000000008,
+    "duration": 6.26,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "בעצמו. השפם הכי קטן והפה הכי גדול באוקיינוס.",
+    "spoken": "בְּעַצמוֹ. הַשָׂפָם הֲכִי קָטָן וְהַפֶּה הֲכִי גָדוֹל בָּאוֹקיָנוּס.",
+    "clip": "out/.tts-cache/77ae0e1daac21498.mp3"
+  },
+  {
+    "t0": 139.09,
+    "slot": 3.1899999999999977,
+    "duration": 2.74,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "ומה התוכנית, קפטן?",
+    "spoken": "וְמָה הַתֹכנִית, קֶפְּטֶן?",
+    "clip": "out/.tts-cache/484d9566b0389ae2.mp3"
+  },
+  {
+    "t0": 142.28,
+    "slot": 12.039999999999992,
+    "duration": 11.59,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "הטוראי שוחה מתחתיו ומושך לו את הזנב. פישלר מסתובב. ואז את נוגחת מימין, ואני נוגח משמאל. והמלחמה נגמרת הלילה.",
+    "spoken": "הטוּרַאי שׂוֹחָה מִתַחתָיו וּמוֹשֵׁךְ לוֹ אֶת הַזָנָב. פִישְׁלֶר מִסְתוֹבֵב. וְאָז אַת נוֹגַחַת מִיָמִין, וַאֲנִי נוֹגֵחַ מִשְׂמֹאל. וְהַמִלחָמָה נִגמֶרֶת הַלַילָה.",
+    "clip": "out/.tts-cache/f2d4268a730c9703.mp3"
+  },
+  {
+    "t0": 155.32,
+    "slot": 3.1899999999999977,
+    "duration": 2.74,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "תוכנית לא רעה. בשביל איל.",
+    "spoken": "תֹכנִית לֹא רָעָה. בִּשְׁבִיל אֱיָל.",
+    "clip": "out/.tts-cache/b39273b432afa87c.mp3"
+  },
+  {
+    "t0": 158.51,
+    "slot": 4.6299999999999955,
+    "duration": 4.18,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "למשוך לו את הזנב. לפישלר. בעצמו.",
+    "spoken": "לִמְשֹׁך לוֹ אֶת הַזָנָב. לפִישְׁלֶר. בְּעַצמוֹ.",
+    "clip": "out/.tts-cache/f67769b0af26e201.mp3"
+  },
+  {
+    "t0": 170.14,
+    "slot": 2.469999999999999,
+    "duration": 2.02,
+    "speaker": "הכרישים",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -16,
+      "rate": -4
+    },
+    "text": "היי פישלר!",
+    "spoken": "הֵיי פִישְׁלֶר!",
+    "clip": "out/.tts-cache/c5f469fcc522ef7a.mp3"
+  },
+  {
+    "t0": 172.60999999999999,
+    "slot": 2.7299999999999898,
+    "duration": 2.28,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -18,
+      "rate": -6
+    },
+    "text": "שמעת משהו?",
+    "spoken": "שָׁמַעְתָּ מַשֶׁהוּ?",
+    "clip": "out/.tts-cache/3d4c9b8749aee4c8.mp3"
+  },
+  {
+    "t0": 175.33999999999997,
+    "slot": 2.539999999999992,
+    "duration": 2.09,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -14,
+      "rate": -3
+    },
+    "text": "רק את המים.",
+    "spoken": "רַק אֶת הַמַיִם.",
+    "clip": "out/.tts-cache/e664c073ce14b247.mp3"
+  },
+  {
+    "t0": 177.87999999999997,
+    "slot": 2.9000000000000057,
+    "duration": 2.45,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -18,
+      "rate": -6
+    },
+    "text": "מים לא נושמים.",
+    "spoken": "מַיִם לֹא נוֹשׁמִים.",
+    "clip": "out/.tts-cache/2a286ea86c5cc7f8.mp3"
+  },
+  {
+    "t0": 180.77999999999997,
+    "slot": 5.110000000000014,
+    "duration": 4.66,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "אם אתה מתעטש עכשיו, טוראי, אני אוכלת אותך בעצמי.",
+    "spoken": "אִם אַתָה מִתְעַטֵשׁ עַכשָׁו, טוּרַאי, אֲנִי אוֹכֶלֶת אוֹתְךָ בְּעַצמִי.",
+    "clip": "out/.tts-cache/0cc7d4de75d7071d.mp3"
+  },
+  {
+    "t0": 185.89,
+    "slot": 5.849999999999994,
+    "duration": 5.4,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "אני לא מתעטש. אף פעם. כמעט אף פעם.",
+    "spoken": "אֲנִי לֹא מִתְעַטֵשׁ. אַף פַּעַם. כִּמְעַט אַף פַּעַם.",
+    "clip": "out/.tts-cache/61b113342fc6e03e.mp3"
+  },
+  {
+    "t0": 191.73999999999998,
+    "slot": 5.349999999999994,
+    "duration": 4.9,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -14,
+      "rate": -3
+    },
+    "text": "בוא. המפקד מגיע. סנפירים למעלה!",
+    "spoken": "בּוֹא. הַמְפַקֵד מַגִיעַ. סְנַפִּירִים לְמַעלָה!",
+    "clip": "out/.tts-cache/4f507bdf5aad1895.mp3"
+  },
+  {
+    "t0": 197.08999999999997,
+    "slot": 2.469999999999999,
+    "duration": 2.02,
+    "speaker": "הכרישים",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -16,
+      "rate": -4
+    },
+    "text": "היי פישלר!",
+    "spoken": "הֵיי פִישְׁלֶר!",
+    "clip": "out/.tts-cache/c5f469fcc522ef7a.mp3"
+  },
+  {
+    "t0": 201.55999999999997,
+    "slot": 5.659999999999997,
+    "duration": 5.21,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "היי פישלר. מה זה בכלל, הצדעה, או שהם מייבשים את הסנפיר?",
+    "spoken": "הֵיי פִישְׁלֶר. מָה זֶה בִּכְלָל, הַצְדָעָה, אוֹ שֶׁהֵם מְיַבּשִׁים אֶת הַסְנַפִּיר?",
+    "clip": "out/.tts-cache/012b7006e458d3fb.mp3"
+  },
+  {
+    "t0": 207.21999999999997,
+    "slot": 5.150000000000006,
+    "duration": 4.7,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "קרמשניט. שקט. זאת פקודה.",
+    "spoken": "קְרֶמְשְׁנִיט. שֶׁקֶט. זֹאת פְּקוּדָה.",
+    "clip": "out/.tts-cache/48d4b0e98d2fd475.mp3"
+  },
+  {
+    "t0": 212.36999999999998,
+    "slot": 2.2299999999999898,
+    "duration": 1.78,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "זאת הצעה.",
+    "spoken": "זֹאת הַצָעָה.",
+    "clip": "out/.tts-cache/ac109aa84dd65a08.mp3"
+  },
+  {
+    "t0": 221.59999999999997,
+    "slot": 2.469999999999999,
+    "duration": 2.02,
+    "speaker": "הכרישים",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -16,
+      "rate": -4
+    },
+    "text": "היי פישלר!",
+    "spoken": "הֵיי פִישְׁלֶר!",
+    "clip": "out/.tts-cache/c5f469fcc522ef7a.mp3"
+  },
+  {
+    "t0": 224.06999999999996,
+    "slot": 6.349999999999994,
+    "duration": 5.9,
+    "speaker": "אדולף פישלר",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -2,
+      "rate": 12
+    },
+    "text": "כן, כן. היי לי. איפה הבונקר שלי? אני רוצה את הבונקר שלי!",
+    "spoken": "כֵּן, כֵּן. הֵיי לִי. אֵיפֹה הבּוּנְקֶר שֶׁלִי? אֲנִי רוֹצֶה אֶת הבּוּנְקֶר שֶׁלִי!",
+    "clip": "out/.tts-cache/8a30963eee35e56c.mp3"
+  },
+  {
+    "t0": 230.41999999999996,
+    "slot": 4.360000000000014,
+    "duration": 3.91,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -18,
+      "rate": -6
+    },
+    "text": "שם, המפקד. מאחורי הסלע.",
+    "spoken": "שָׁם, הַמְפַקֵד. מֵאֲחוֹרֵי הַסֶלַע.",
+    "clip": "out/.tts-cache/093fec75fd3a25e3.mp3"
+  },
+  {
+    "t0": 234.77999999999997,
+    "slot": 7.340000000000003,
+    "duration": 6.89,
+    "speaker": "אדולף פישלר",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -2,
+      "rate": 12
+    },
+    "text": "כרישים! מהיום, כל הדגים באוקיינוס מצדיעים לי! גם הצדפות!",
+    "spoken": "כְּרִישִׁים! מֵהַיוֹם, כֹּל הַדָגִים בָּאוֹקיָנוּס מַצְדִיעִים לִי! גַם הַצְדָפוֹת!",
+    "clip": "out/.tts-cache/0e9f99e9b4ab168d.mp3"
+  },
+  {
+    "t0": 242.11999999999998,
+    "slot": 3.759999999999991,
+    "duration": 3.31,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -14,
+      "rate": -3
+    },
+    "text": "גם הצדפות, המפקד!",
+    "spoken": "גַם הַצְדָפוֹת, הַמְפַקֵד!",
+    "clip": "out/.tts-cache/14bbf1b2fd410587.mp3"
+  },
+  {
+    "t0": 245.87999999999997,
+    "slot": 5.300000000000011,
+    "duration": 4.85,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "עכשיו. בספירה לשלוש. אחת...",
+    "spoken": "עַכשָׁו. בַּסְפִירָה לְשָׁלוֹשׁ. אַחַת...",
+    "clip": "out/.tts-cache/68fc902e833dbaf6.mp3"
+  },
+  {
+    "t0": 251.17999999999998,
+    "slot": 6.070000000000022,
+    "duration": 5.62,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "קפטן... יש לי... משהו באף...",
+    "spoken": "קֶפְּטֶן... יֵשׁ לִי... מַשֶׁהוּ בָּאַף...",
+    "clip": "out/.tts-cache/7807c8a01bc68615.mp3"
+  },
+  {
+    "t0": 257.25,
+    "slot": 2.180000000000007,
+    "duration": 1.73,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "לא עכשיו!",
+    "spoken": "לֹא עַכשָׁו!",
+    "clip": "out/.tts-cache/ce62550317b4a918.mp3"
+  },
+  {
+    "t0": 259.43,
+    "slot": 2.3899999999999864,
+    "duration": 1.94,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "שתיים...",
+    "spoken": "שְׁתַיִם...",
+    "clip": "out/.tts-cache/f0e9c18030e87f25.mp3"
+  },
+  {
+    "t0": 261.82,
+    "slot": 3.519999999999982,
+    "duration": 3.07,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "אפ... אפ...",
+    "spoken": "אַפּ... אַפּ...",
+    "clip": "out/.tts-cache/56799606599e3da6.mp3"
+  },
+  {
+    "t0": 265.34,
+    "slot": 8.230000000000018,
+    "duration": 7.78,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "תחזיק! תחשוב על משהו אחר! תחשוב על... על קרמשניט!",
+    "spoken": "תַחֲזִיק! תַחֲשֹׁב עַל מַשֶׁהוּ אַחֵר! תַחֲשֹׁב עַל... עַל קְרֶמְשְׁנִיט!",
+    "clip": "out/.tts-cache/84565e6a59066f75.mp3"
+  },
+  {
+    "t0": 277.37,
+    "slot": 3.7900000000000205,
+    "duration": 3.34,
+    "speaker": "אדולף פישלר",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -2,
+      "rate": 12
+    },
+    "text": "מי... מי התעטש?!",
+    "spoken": "מִי... מִי הִתְעַטֵשׁ?!",
+    "clip": "out/.tts-cache/691e32a64aebfe61.mp3"
+  },
+  {
+    "t0": 281.16,
+    "slot": 5.779999999999973,
+    "duration": 5.33,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -18,
+      "rate": -6
+    },
+    "text": "מרגלים, המפקד! מאחורי הסלע!",
+    "spoken": "מְרַגלִים, הַמְפַקֵד! מֵאֲחוֹרֵי הַסֶלַע!",
+    "clip": "out/.tts-cache/688acc435b35391c.mp3"
+  },
+  {
+    "t0": 286.94,
+    "slot": 8.269999999999982,
+    "duration": 7.82,
+    "speaker": "אדולף פישלר",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -2,
+      "rate": 12
+    },
+    "text": "תפסו אותם! ואת זה עם הקסדה תביאו לי חי! אני רוצה לשאול אותו למה הוא לא הצדיע!",
+    "spoken": "תָפסוּ אוֹתָם! וְאֶת זֶה עִם הַקַסְדָה תָּבִיאּוּ לִי חַי! אֲנִי רוֹצֶה לִשְׁאֹל אוֹתוֹ לָמָה הוּא לֹא הִצְדִיעַ!",
+    "clip": "out/.tts-cache/862611220e5eca93.mp3"
+  },
+  {
+    "t0": 295.21,
+    "slot": 4.4599999999999795,
+    "duration": 4.01,
+    "speaker": "אדולף פישלר",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -2,
+      "rate": 12
+    },
+    "text": "אני... אני אלך לבדוק את הבונקר.",
+    "spoken": "אֲנִי... אֲנִי אֵלְךָ לִבְדֹק אֶת הבּוּנְקֶר.",
+    "clip": "out/.tts-cache/329e986210486417.mp3"
+  },
+  {
+    "t0": 300.16999999999996,
+    "slot": 5.470000000000027,
+    "duration": 5.02,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "לרוץ! זאת אומרת, לשחות!",
+    "spoken": "לָרוּץ! זֹאת אוֹמֶרֶת, לִשְׂחוֹת!",
+    "clip": "out/.tts-cache/45c7f0d483d0a31b.mp3"
+  },
+  {
+    "t0": 310.64,
+    "slot": 4.649999999999977,
+    "duration": 4.2,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "קפטן! הוא ממש מאחוריי!",
+    "spoken": "קֶפְּטֶן! הוּא מַמָשׁ מֵאֲחוֹרַי!",
+    "clip": "out/.tts-cache/0e77c761be49f9d9.mp3"
+  },
+  {
+    "t0": 316.18999999999994,
+    "slot": 2.8000000000000114,
+    "duration": 2.35,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "זה בשביל ה\"סוכנת\".",
+    "spoken": "זֶה בִּשְׁבִיל הַ\"סוֹכֶנֶת\".",
+    "clip": "out/.tts-cache/5b886ef4700249f2.mp3"
+  },
+  {
+    "t0": 321.48999999999995,
+    "slot": 4.579999999999984,
+    "duration": 4.13,
+    "speaker": "כריש",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -14,
+      "rate": -3
+    },
+    "text": "עז! בואי הנה, עז!",
+    "spoken": "עֹז! בּוֹאִי הֵנָה, עֹז!",
+    "clip": "out/.tts-cache/a86736676ad557d4.mp3"
+  },
+  {
+    "t0": 326.9699999999999,
+    "slot": 3.6200000000000045,
+    "duration": 3.17,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "יעל. לא עז. יעל!",
+    "spoken": "יָעֵל. לֹא עַז. יָעֵל!",
+    "clip": "out/.tts-cache/328c66e6592635fd.mp3"
+  },
+  {
+    "t0": 332.5899999999999,
+    "slot": 4.100000000000023,
+    "duration": 3.65,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "קפטן... נגחת בשבילי?",
+    "spoken": "קֶפְּטֶן... נָגַחְתָּ בִּשְׁבִילִי?",
+    "clip": "out/.tts-cache/0c6d400fb565e301.mp3"
+  },
+  {
+    "t0": 336.68999999999994,
+    "slot": 3.930000000000007,
+    "duration": 3.48,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "נגחתי בשביל הדיוק. את יעל.",
+    "spoken": "נָגַחתִי בִּשְׁבִיל הַדִיוּק. אַת יָעֵל.",
+    "clip": "out/.tts-cache/b307d0230e107fd2.mp3"
+  },
+  {
+    "t0": 343.11999999999995,
+    "slot": 6.069999999999993,
+    "duration": 5.62,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "קפטן! הם חוזרים! שניהם!",
+    "spoken": "קֶפְּטֶן! הֵם חוֹזרִים! שְׁנֵיהֶם!",
+    "clip": "out/.tts-cache/b0b18bfaaf2f5e0e.mp3"
+  },
+  {
+    "t0": 349.18999999999994,
+    "slot": 5.149999999999977,
+    "duration": 4.7,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "קרמשניט. ביחד. על שלוש?",
+    "spoken": "קְרֶמְשְׁנִיט. בְּיַחַד. עַל שָׁלוֹשׁ?",
+    "clip": "out/.tts-cache/d331357a75175f6e.mp3"
+  },
+  {
+    "t0": 354.3399999999999,
+    "slot": 2.3000000000000114,
+    "duration": 1.85,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "על שתיים.",
+    "spoken": "עַל שְׁתַיִם.",
+    "clip": "out/.tts-cache/6de19d86a4262299.mp3"
+  },
+  {
+    "t0": 361.2419648030588,
+    "slot": 3.069999999999993,
+    "duration": 2.62,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "סליחה. על העיטוש.",
+    "spoken": "סְלִיחָה. עַל הָעִטוּשׁ.",
+    "clip": "out/.tts-cache/576d09f1d94cd396.mp3"
+  },
+  {
+    "t0": 364.3119648030588,
+    "slot": 6.069999999999993,
+    "duration": 5.62,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "אתה יודע מה, טוראי? זה היה העיטוש הכי אמיץ ששמעתי.",
+    "spoken": "אַתָה יוֹדֵעַ מָה, טוּרַאי? זֶה הָיָה הָעִטוּשׁ הֲכִי אַמִיץ שֶׁשָׁמַעתִי.",
+    "clip": "out/.tts-cache/f15c7d4754f8ef1b.mp3"
+  },
+  {
+    "t0": 370.3819648030588,
+    "slot": 3.8799999999999955,
+    "duration": 3.43,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "פישלר ברח. המבצע נכשל.",
+    "spoken": "פִישְׁלֶר בָּרַח. המִבְצָע נִכשַׁל.",
+    "clip": "out/.tts-cache/f3ec88aedec5199b.mp3"
+  },
+  {
+    "t0": 374.2619648030588,
+    "slot": 7.7900000000000205,
+    "duration": 7.34,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "המבצע נכשל, קפטן. אבל תסתכל עלינו: שלושה, בלי שריטה. ושני כרישים עם כאב ראש.",
+    "spoken": "המִבְצָע נִכשַׁל, קֶפְּטֶן. אֲבָל תִסתַכֵּל עָלֵינוּ: שְׁלוֹשָׁה, בְּלִי שְׂרִיטָה. וְשׁנֵי כְּרִישִׁים עִם כְּאֵב רֹאשׁ.",
+    "clip": "out/.tts-cache/035c00dd9f702200.mp3"
+  },
+  {
+    "t0": 382.0519648030588,
+    "slot": 5.079999999999984,
+    "duration": 4.63,
+    "speaker": "קפטן דודו איל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -12,
+      "rate": -7
+    },
+    "text": "בפעם הבאה, קרמשניט, את קובעת.",
+    "spoken": "בַּפַּעַם הַבָּאָה, קְרֶמְשְׁנִיט, אַת קוֹבַעַת.",
+    "clip": "out/.tts-cache/869982768a86653a.mp3"
+  },
+  {
+    "t0": 388.1319648030588,
+    "slot": 2.269999999999982,
+    "duration": 1.82,
+    "speaker": "דודה יעל",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -9,
+      "rate": 3
+    },
+    "text": "סוף סוף.",
+    "spoken": "סוֹף סוֹף.",
+    "clip": "out/.tts-cache/92a94326d69cba3b.mp3"
+  },
+  {
+    "t0": 390.4019648030588,
+    "slot": 4.100000000000023,
+    "duration": 3.65,
+    "speaker": "טוראי פישי",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -4,
+      "rate": -4
+    },
+    "text": "יש לי הרגשה שאני עומד להתעטש שוב.",
+    "spoken": "יֵשׁ לִי הַרְגָשָׁה שֶׁאֲנִי עוֹמֵד לְהִתעַטֵשׁ שׁוּב.",
+    "clip": "out/.tts-cache/03d65fd0d09c5741.mp3"
+  },
+  {
+    "t0": 402.9019648030588,
+    "slot": 3.5500000000000114,
+    "duration": 3.1,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "לבריאות, כספיון.",
+    "spoken": "לַבְּרִיאוּת, קַסְפִּיוֹן.",
+    "clip": "out/.tts-cache/38409e00124c99d0.mp3"
+  },
+  {
+    "t0": 406.4519648030588,
+    "slot": 8.899999999999977,
+    "duration": 8.45,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דותן! הכרישים! הם... אני... איפה הקסדה שלי?",
+    "spoken": "דוֹתָן! הַכְּרִישִׁים! הֵם... אֲנִי... אֵיפֹה הַקַסְדָה שֶׁלִי?",
+    "clip": "out/.tts-cache/d23783059c2cd4b9.mp3"
+  },
+  {
+    "t0": 415.35196480305876,
+    "slot": 4.839999999999975,
+    "duration": 4.39,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "נרדמת. באמצע מלחמת העולם.",
+    "spoken": "נִרְדַּמְתָּ. בְּאֶמצַע מִלְחֶמֶת הָעוֹלָם.",
+    "clip": "out/.tts-cache/7d1a629aa461ba07.mp3"
+  },
+  {
+    "t0": 420.19196480305874,
+    "slot": 6.829999999999984,
+    "duration": 6.38,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "חלמתי על סבא. הוא לא ניצח, דותן. הוא התעטש, ופישלר ברח.",
+    "spoken": "חָלַמתִי עַל סַבָּא. הוּא לֹא נִצֵחַ, דוֹתָן. הוּא הִתְעַטֵשׁ, ופִישְׁלֶר בָּרַח.",
+    "clip": "out/.tts-cache/f773828fb7cd1955.mp3"
+  },
+  {
+    "t0": 427.0219648030587,
+    "slot": 12.189999999999998,
+    "duration": 11.74,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אז מה? הוא היה שם. ולא ברח לבד, ולא הצדיע למי שצועק הכי חזק. בשביל להיות גיבור לא צריך לנצח, כספיון. צריך לא לוותר על החברים.",
+    "spoken": "אָז מָה? הוּא הָיָה שָׁם. וְלֹא בָּרַח לְבַד, וְלֹא הִצְדִיעַ לְמִי שֶׁצוֹעֵק הֲכִי חָזָק. בִּשְׁבִיל לִהְיוֹת גִבּוֹר לֹא צָרִיך לְנַצֵחַ, קַסְפִּיוֹן. צָרִיך לֹא לְוַתֵר עַל הַחֲבֵרִים.",
+    "clip": "out/.tts-cache/3496bfaa39d46a1c.mp3"
+  },
+  {
+    "t0": 439.2119648030587,
+    "slot": 2.680000000000007,
+    "duration": 2.23,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "ולהתעטש זה בסדר?",
+    "spoken": "וְלהִתעַטֵשׁ זֶה בְּסֵדֶר?",
+    "clip": "out/.tts-cache/c0b798f97d5de5b9.mp3"
+  },
+  {
+    "t0": 441.8919648030587,
+    "slot": 2.7799999999999727,
+    "duration": 2.33,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "לא באמצע מבצע.",
+    "spoken": "לֹא בְּאֶמצַע מִבְצָע.",
+    "clip": "out/.tts-cache/4ab8909fc487145e.mp3"
+  },
+  {
+    "t0": 444.6719648030587,
+    "slot": 6.019999999999982,
+    "duration": 5.57,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "וגם לא באמצע שיעור. ועכשיו, מי רוצה לשמוע איך המלחמה נגמרה?",
+    "spoken": "וְגַם לֹא בְּאֶמצַע שִׁעוּר. וְעַכשָׁו, מִי רוֹצֶה לִשְׁמֹעַ אֵיך הַמִלחָמָה נִגמְרָה?",
+    "clip": "out/.tts-cache/7990f83a8b093127.mp3"
+  },
+  {
+    "t0": 451.6919648030587,
+    "slot": 2.490000000000009,
+    "duration": 2.04,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "הרעים הפסידו?",
+    "spoken": "הָרָעִים הִפְסִידוּ?",
+    "clip": "out/.tts-cache/a60703fc7198da72.mp3"
+  },
+  {
+    "t0": 454.1819648030587,
+    "slot": 5.180000000000007,
+    "duration": 4.73,
+    "speaker": "הגננת",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -8,
+      "rate": -6
+    },
+    "text": "הרעים הפסידו. גם בלי לצדוע להם.",
+    "spoken": "הָרָעִים הִפְסִידוּ. גַם בְּלִי לִצְדֹעַ לָהֶם.",
+    "clip": "out/.tts-cache/2045926adc3494f0.mp3"
+  }
+]

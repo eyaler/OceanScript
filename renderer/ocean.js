@@ -52,7 +52,20 @@ export function resolveEnv(s = {}) {
   const skyOverride = typeof s.sky === 'string' && s.sky.startsWith('#') ? col(s.sky) : null;
   const land = floorType === 'land' || floorType === 'grass' || floorType === 'ground';
   if (land) floorY = 0.6;
+  // old-film looks: `look: sepia` (or `old film`, `dream`), `look: noir` (black and
+  // white); grain, vignette, flicker and scratches come with them and can be set
+  // separately (`grain: off`, `scratches: many`)
+  const look = String(s.look ?? s.film ?? 'normal').toLowerCase();
+  const sepiaLook = /sepia|old|vintage|dream|archive|newsreel|silent|194|193/.test(look);
+  const monoLook = !sepiaLook && /\bbw\b|b&w|mono|noir|gr[ae]y|black/.test(look);
+  const filmLook = sepiaLook || monoLook || /film/.test(look);
   return {
+    sepia: sepiaLook ? 1 : 0,
+    mono: monoLook ? 1 : 0,
+    grain: density(s.grain, filmLook ? 1 : 0),
+    vignette: density(s.vignette, filmLook ? 1 : 0),
+    flicker: density(s.flicker, filmLook ? 1 : 0),
+    scratches: density(s.scratches, filmLook ? 1 : 0),
     flat: flat ? 1 : 0,
     land: land ? 1 : 0,
     clouds: density(s.clouds, tKey === 'night' ? 0.3 : 0.8),

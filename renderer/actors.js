@@ -1102,6 +1102,336 @@ function buildMango(color) {
   return rig;
 }
 
+// ---- land animals on the seabed: deer and ibex ------------------------------------
+// A four-legged rig standing on the floor (hooves at y ~ -0.38 for a body length
+// of 1) that trots when it moves along the bottom and paddles when it swims.
+// Deer get antlers (stags), ibex get the long ridged horns (shorter on females).
+function tubeAlong(points, r0, r1, color, { ridges = 0 } = {}) {
+  const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p)));
+  const geo = new THREE.TubeGeometry(curve, 24, 1, 8, false);
+  const pos = geo.attributes.position, uv = geo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) {
+    const u = uv.getX(i);
+    const pt = curve.getPointAt(u), v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+    const r = (r0 + (r1 - r0) * u) * (1 + ridges * 0.18 * Math.sin(u * 46));
+    v.sub(pt).multiplyScalar(r).add(pt);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat(color, { roughness: 0.7 }));
+}
+function buildQuadruped(color, { kind = 'deer', gender = 'male' } = {}) {
+  const g = new THREE.Group();
+  const inner = new THREE.Group();
+  g.add(inner);
+  const belly = lighten(color, 0.35).getHexString();
+  const bodyMat = mat(color, { vertexColors: true, roughness: 0.75 });
+  const body = new THREE.Mesh(tintVertexBelly(new THREE.SphereGeometry(0.5, 24, 16), color, '#' + belly, -0.05), bodyMat);
+  body.scale.set(0.3, 0.32, 0.5);
+  body.position.set(0, 0.1, -0.03);
+  inner.add(body);
+  const plainMat = mat(color, { roughness: 0.75 });
+  const bellyMat = mat('#' + belly, { roughness: 0.8 });
+  const darkMat = mat(darken(color, 0.45), { roughness: 0.8 });
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.085, 0.26, 12), plainMat);
+  neck.position.set(0, 0.27, 0.33);
+  neck.rotation.x = -0.6;
+  inner.add(neck);
+  // head
+  const head = new THREE.Group();
+  head.position.set(0, 0.38, 0.42);
+  inner.add(head);
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.085, 18, 14), plainMat);
+  skull.scale.set(0.85, 0.9, 1.15);
+  head.add(skull);
+  const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.068, 0.15, 12), plainMat);
+  snout.rotation.x = Math.PI / 2;
+  snout.position.set(0, -0.03, 0.13);
+  head.add(snout);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), mat('#141010', { roughness: 0.35 }));
+  nose.position.set(0, -0.018, 0.205);
+  nose.scale.set(1.1, 0.8, 0.8);
+  head.add(nose);
+  const eyeMeshes = eyes(head, color, { z: 0.05, x: 0.064, y: 0.03, r: 0.027 }).eyes;
+  const mouthRig = makeMouth(head, { z: 0.18, y: -0.075, w: 0.04, h: 0.025, teethCount: 2, teethSize: 0.005 });
+  for (const sx of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), plainMat);
+    ear.scale.set(0.45, 1.25, 0.3);
+    ear.position.set(sx * 0.075, 0.085, -0.02);
+    ear.rotation.z = -sx * 0.6;
+    head.add(ear);
+    const innerEar = new THREE.Mesh(new THREE.SphereGeometry(0.027, 8, 6), bellyMat);
+    innerEar.scale.set(0.4, 1.1, 0.25);
+    innerEar.position.set(sx * 0.078, 0.09, -0.008);
+    innerEar.rotation.z = -sx * 0.6;
+    head.add(innerEar);
+  }
+  // antlers / horns
+  const hornColor = kind === 'ibex' ? '#5a4632' : '#6b4a2a';
+  if (kind === 'deer' && gender !== 'female') {
+    for (const sx of [-1, 1]) {
+      head.add(tubeAlong([[sx * 0.045, 0.07, -0.02], [sx * 0.11, 0.2, -0.07], [sx * 0.16, 0.34, -0.04], [sx * 0.15, 0.46, 0.05]], 0.016, 0.007, hornColor));
+      head.add(tubeAlong([[sx * 0.08, 0.15, -0.05], [sx * 0.06, 0.23, 0.04], [sx * 0.05, 0.28, 0.1]], 0.011, 0.005, hornColor));
+      head.add(tubeAlong([[sx * 0.14, 0.29, -0.05], [sx * 0.22, 0.37, -0.03], [sx * 0.27, 0.45, 0.0]], 0.011, 0.005, hornColor));
+      head.add(tubeAlong([[sx * 0.155, 0.41, 0.01], [sx * 0.2, 0.5, 0.06], [sx * 0.21, 0.56, 0.12]], 0.01, 0.004, hornColor));
+    }
+  } else if (kind === 'ibex') {
+    const f = gender === 'female';
+    for (const sx of [-1, 1]) {
+      const pts = f
+        ? [[sx * 0.045, 0.07, 0.0], [sx * 0.06, 0.17, -0.04], [sx * 0.075, 0.24, -0.11], [sx * 0.085, 0.26, -0.17]]
+        : [[sx * 0.045, 0.07, 0.0], [sx * 0.08, 0.24, -0.04], [sx * 0.12, 0.38, -0.17], [sx * 0.15, 0.42, -0.33], [sx * 0.165, 0.37, -0.46]];
+      head.add(tubeAlong(pts, f ? 0.02 : 0.032, 0.007, hornColor, { ridges: f ? 0.4 : 1 }));
+    }
+    if (!f) {
+      const beard = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.09, 8), darkMat);
+      beard.position.set(0, -0.13, 0.06);
+      beard.rotation.x = 0.35;
+      head.add(beard);
+    }
+  }
+  // tail
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.11, 8), plainMat);
+  tail.position.set(0, 0.2, -0.3);
+  tail.rotation.x = -2.4;
+  inner.add(tail);
+  // legs: shoulder/hip pivots inside the body, a knee, a dark hoof; hooves at y = -0.32
+  const legs = [];
+  const hoofMat = mat('#2a2020', { roughness: 0.5 });
+  const legMat = kind === 'ibex' ? darkMat : plainMat;
+  for (const [sx, z, front] of [[-1, 0.17, true], [1, 0.17, true], [-1, -0.2, false], [1, -0.2, false]]) {
+    const leg = new THREE.Group();
+    leg.position.set(sx * 0.1, 0.0, z);
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.028, 0.15, 8), plainMat);
+    upper.position.y = -0.07;
+    leg.add(upper);
+    const knee = new THREE.Group();
+    knee.position.y = -0.14;
+    leg.add(knee);
+    const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.021, 0.14, 8), legMat);
+    lower.position.y = -0.07;
+    knee.add(lower);
+    const hoof = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.026, 0.04, 8), hoofMat);
+    hoof.position.y = -0.16;
+    knee.add(hoof);
+    inner.add(leg);
+    legs.push({ group: leg, knee, sx, front, upper });
+  }
+  const rig = { group: g, inner, head, legs, eyeMeshes, mouth: mouthRig, kind, idleBob: 0.03, pitchLimit: 0.35, standsOnFloor: 0.34 };
+  rig.hat = { parent: head, pos: [0, 0.075, -0.01], r: 0.088 };
+  rig.nose = { parent: head, pos: [0, -0.045, 0.2], w: 0.055 };
+  rig.flank = { parent: inner, x: 0.15, y: 0.12, z: -0.04, size: 0.13 };
+  rig.band = { parent: legs[1].group, axis: 'y', y: -0.06, rx: 0.033, ry: 0.033, h: 0.05, decal: 0.045 };
+  rig.mouthAnchor = { parent: head, pos: [0, -0.065, 0.21] };
+  rig.saluteLimb = (k) => {
+    const l = legs[1];
+    l.group.rotation.x = -1.7 * k;
+    l.knee.rotation.x = -1.9 * k;
+    l.group.rotation.z = -0.5 * k;
+  };
+  rig.animate = (t, state) => {
+    const emo = animateCommon(rig, t, state);
+    const sp = state.speed;
+    const swimming = !state.grounded;
+    const gait = Math.min(1, sp / 2.2);
+    const freq = swimming ? 3.5 + Math.min(4, sp) : 6 + Math.min(7, sp * 1.6);
+    for (const l of legs) {
+      const phase = (l.sx > 0) === l.front ? 0 : Math.PI;   // diagonal pairs
+      const s = Math.sin(t * freq + phase + rig.seed);
+      if (swimming) {
+        // dog paddle: legs trail back and cycle gently
+        l.group.rotation.x = 0.9 + 0.35 * s * (0.4 + 0.6 * gait);
+        l.knee.rotation.x = 0.5 + 0.4 * Math.max(0, -s);
+      } else {
+        l.group.rotation.x = s * 0.6 * gait + (gait < 0.05 ? Math.sin(t * 0.8 + l.sx + (l.front ? 1 : 0)) * 0.03 : 0);
+        l.knee.rotation.x = Math.max(0, Math.sin(t * freq + phase + rig.seed + 0.8)) * 0.9 * gait;
+      }
+      l.group.rotation.z = 0;
+    }
+    // head bobs with the gait and lifts when swimming
+    head.rotation.set(0, 0, 0);
+    head.rotation.x = (swimming ? -0.25 : 0) + (gait > 0.05 ? Math.sin(t * freq + rig.seed) * 0.08 * gait : Math.sin(t * 0.9 + rig.seed) * 0.04);
+    head.rotation.y = state.emotion === 'curious' ? 0.2 * Math.sin(t * 1.3) : 0;
+    tail.rotation.z = Math.sin(t * 4 + rig.seed) * (0.2 + emo.wag * 0.2);
+    // an angry animal lowers its head and horns
+    if (state.emotion === 'angry') head.rotation.x += 0.35;
+    inner.rotation.x += swimming ? -0.15 : 0;
+  };
+  return rig;
+}
+
+// ---- accessories: helmets, caps, moustaches, badges and armbands --------------------
+// Each rig exposes anchors (rig.hat, rig.nose, rig.flank, rig.band); this dresses
+// them from the cast attributes.  Textures for badges arrive through `extra`.
+function addAccessories(rig, cast, extra = {}) {
+  const c = cast;
+  if (c.helmet && rig.hat) {
+    const { parent, pos, r } = rig.hat;
+    const color = typeof c.helmet === 'string' ? toHex(c.helmet, '#5c6358') : '#5c6358';
+    const steel = mat(color, { metalness: 0.55, roughness: 0.42 });
+    const grp = new THREE.Group();
+    grp.position.set(pos[0], pos[1] + r * 0.28, pos[2]);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(r, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.6), steel);
+    dome.scale.set(1.08, 0.9, 1.2);
+    grp.add(dome);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(r * 1.02, r * 0.1, 8, 32), steel);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = -r * 0.3;
+    rim.scale.set(1.08, 1.2, 1);
+    grp.add(rim);
+    const strap = new THREE.Mesh(new THREE.TorusGeometry(r * 0.95, r * 0.045, 6, 28, Math.PI), mat('#3a2a1a'));
+    strap.rotation.z = Math.PI;
+    strap.position.y = -r * 0.32;
+    strap.scale.set(1, 1.1, 1.15);
+    grp.add(strap);
+    parent.add(grp);
+  }
+  if (c.cap && rig.hat) {
+    const { parent, pos, r } = rig.hat;
+    const color = typeof c.cap === 'string' ? toHex(c.cap, '#1f2f5a') : '#1f2f5a';
+    const cloth = mat(color, { roughness: 0.85 });
+    const black = mat('#141414', { roughness: 0.4, metalness: 0.2 });
+    const grp = new THREE.Group();
+    grp.position.set(pos[0], pos[1] + r * 0.1, pos[2]);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.92, r * 0.9, r * 0.22, 24, 1, true), black);
+    band.material.side = THREE.DoubleSide;
+    band.position.y = r * 0.11;
+    grp.add(band);
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.0, r * 0.9, r * 0.42, 24), cloth);
+    crown.position.set(0, r * 0.42, -r * 0.05);
+    crown.rotation.x = -0.18;
+    grp.add(crown);
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.18, r * 1.18, r * 0.1, 28), cloth);
+    top.position.set(0, r * 0.66, -r * 0.1);
+    top.rotation.x = -0.18;
+    grp.add(top);
+    const visor = new THREE.Mesh(new THREE.CircleGeometry(r * 0.95, 20, 0, Math.PI), black);
+    visor.material.side = THREE.DoubleSide;
+    visor.rotation.x = Math.PI / 2 + 0.3;
+    visor.position.set(0, r * 0.02, r * 0.35);
+    visor.scale.set(1.05, 0.75, 1);
+    grp.add(visor);
+    const cockade = new THREE.Mesh(new THREE.SphereGeometry(r * 0.13, 10, 8), mat('#d9b44a', { metalness: 0.6, roughness: 0.35 }));
+    cockade.position.set(0, r * 0.32, r * 0.92);
+    grp.add(cockade);
+    parent.add(grp);
+  }
+  if (c.moustache && rig.nose) {
+    const { parent, pos, w } = rig.nose;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w * 0.55, w * 0.32, w * 0.14), mat('#141010', { roughness: 0.6 }));
+    m.position.set(pos[0], pos[1], pos[2]);
+    parent.add(m);
+    rig.moustache = m;
+  }
+  const decal = (tex, size) => {
+    const m = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.08, roughness: 0.7, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 });
+    const im = extra.badgeImage;
+    const aspect = tex?.image && tex.image.naturalWidth ? tex.image.naturalWidth / tex.image.naturalHeight : 1;
+    return new THREE.Mesh(new THREE.PlaneGeometry(size * aspect, size), m);
+  };
+  if (c.badge && rig.flank && extra.badgeTexture) {
+    const { parent, x, y, z, size } = rig.flank;
+    for (const sx of [-1, 1]) {
+      const p = decal(extra.badgeTexture, size);
+      p.position.set(sx * x * 1.03, y, z);
+      p.rotation.y = sx * Math.PI / 2;
+      parent.add(p);
+    }
+  }
+  if (c.armband && rig.band) {
+    const b = rig.band;
+    const ring = new THREE.CylinderGeometry(1, 1, b.h, 32, 1, true);
+    ring.scale(b.rx * 1.03, 1, b.ry * 1.03);
+    if (b.axis !== 'y') ring.rotateX(Math.PI / 2);
+    const mesh = new THREE.Mesh(ring, mat(b.color || '#c8102e', { roughness: 0.8, side: THREE.DoubleSide }));
+    if (b.axis === 'y') mesh.position.set(0, b.y, 0); else mesh.position.set(0, b.y ?? 0, b.z);
+    b.parent.add(mesh);
+    if (extra.armbandTexture) {
+      for (const sx of [-1, 1]) {
+        const p = decal(extra.armbandTexture, b.decal ?? b.h * 0.9);
+        if (b.axis === 'y') p.position.set(sx * b.rx * 1.06, b.y, 0); else p.position.set(sx * b.rx * 1.06, b.y ?? 0, b.z);
+        p.rotation.y = sx * Math.PI / 2;
+        b.parent.add(p);
+      }
+    }
+  }
+}
+
+// Anchors for the accessories on the built-in rigs (positions in rig space).
+function setAnchors(rig, cast) {
+  if (rig.hat) return;   // the rig placed its own
+  const inner = rig.inner;
+  switch (rig.kind) {
+    case 'fish': {
+      rig.hat = { parent: inner, pos: [0, 0.19, 0.17], r: 0.2 };
+      rig.nose = { parent: inner, pos: [0, -0.025, 0.475], w: 0.11 };
+      rig.flank = { parent: inner, x: 0.158, y: 0.02, z: 0.02, size: 0.16 };
+      rig.band = { parent: inner, axis: 'z', z: -0.08, rx: 0.157, ry: 0.245, h: 0.06, decal: 0.075 };
+      rig.mouthAnchor = { parent: inner, pos: [0, -0.07, 0.48] };
+      break;
+    }
+    case 'shark': {
+      const prof = sharkProfile();
+      rig.hat = { parent: inner, pos: [0, profileRadius(prof, 0.3) * 0.72, 0.3], r: 0.13 };
+      rig.nose = { parent: inner, pos: [0, -profileRadius(prof, 0.44) * 0.8, 0.44], w: 0.09 };
+      rig.flank = { parent: inner, x: profileRadius(prof, -0.08) * 0.985, y: 0.035, z: -0.08, size: 0.13 };
+      rig.band = { parent: inner, axis: 'z', z: -0.2, rx: profileRadius(prof, -0.2), ry: profileRadius(prof, -0.2) * 0.85, h: 0.07, decal: 0.08 };
+      rig.mouthAnchor = { parent: inner, pos: [0, -0.06, 0.42] };
+      break;
+    }
+    case 'whale': case 'dolphin': {
+      const prof = whaleProfile(rig.kind);
+      const r = profileRadius(prof, 0.25);
+      rig.hat = { parent: inner, pos: [0, r * 0.72, 0.25], r: r * 0.75 };
+      rig.nose = { parent: inner, pos: [0, -profileRadius(prof, 0.44) * 0.75, 0.44], w: rig.kind === 'dolphin' ? 0.1 : 0.2 };
+      rig.flank = { parent: inner, x: profileRadius(prof, -0.02) * 0.985, y: 0.03, z: -0.02, size: profileRadius(prof, 0) * 0.85 };
+      rig.band = { parent: inner, axis: 'z', z: -0.18, rx: profileRadius(prof, -0.18), ry: profileRadius(prof, -0.18) * 0.85, h: 0.07, decal: 0.09 };
+      rig.mouthAnchor = { parent: inner, pos: [0, -0.06, 0.45] };
+      break;
+    }
+    default: break;
+  }
+}
+
+// Effects applied after each rig's own animation (so they win over it): the
+// salute, the sneeze, the charge and being knocked back.
+export function applyEffects(rig, t, state) {
+  const inner = rig.inner;
+  if (!inner) return;
+  for (const fx of state.effects) {
+    const u = fx.u;
+    if (fx.type === 'salute') {
+      const k = u < 0.2 ? smoother(u / 0.2) : u > 0.82 ? smoother((1 - u) / 0.18) : 1;
+      if (rig.saluteLimb) rig.saluteLimb(k);
+      else if (rig.pecs?.length) {
+        const p = rig.pecs.find((q) => q.sx > 0) || rig.pecs[0];
+        p.mesh.rotation.z = -p.sx * (0.3 + 1.35 * k);
+        p.mesh.rotation.x = -0.8 * k;
+      }
+    }
+    if (fx.type === 'sneeze') {
+      const b = 0.6;
+      const head = rig.head || inner;
+      if (u < b) { const k = u / b; head.rotation.x -= 0.32 * k + 0.05 * Math.abs(Math.sin(k * Math.PI * 2.5)); }
+      else if (u < b + 0.12) { const k = (u - b) / 0.12; head.rotation.x += 0.6 * Math.sin(k * Math.PI); inner.position.z -= 0.14 * Math.sin(k * Math.PI); }
+      else { const k = (u - b - 0.12) / (1 - b - 0.12); head.rotation.x += 0.15 * (1 - k) * Math.sin(k * Math.PI * 3); }
+    }
+    if (fx.type === 'charge') {
+      const hit = fx.hit ?? 0.8;
+      const head = rig.head || inner;
+      const k = u < hit ? smoother(u / hit) : 1 - smoother((u - hit) / Math.max(1e-6, 1 - hit));
+      head.rotation.x += 0.55 * k;
+      if (u >= hit) inner.position.z -= 0.1 * Math.sin(Math.min(1, (u - hit) / Math.max(1e-6, 1 - hit)) * Math.PI);
+    }
+    if (fx.type === 'knocked') {
+      const k = smoother(Math.min(1, u * 1.2));
+      inner.rotation.x += TAU * k;
+      inner.rotation.z += 0.5 * Math.sin(u * Math.PI * 2) * (1 - u);
+      inner.position.y += 0.2 * Math.sin(u * Math.PI);
+    }
+  }
+}
+
 export function createActorRig(cast, seed, extra = {}) {
   const color = toHex(cast.color);
   const special = createSpecialRig(cast, seed, extra);
@@ -1123,6 +1453,7 @@ export function createActorRig(cast, seed, extra = {}) {
     case 'school': rig = buildSchool(color, Math.max(3, Math.round(cast.count || 12))); break;
     case 'bike': rig = buildBike(color); break;
     case 'mango': rig = buildMango(toHex(cast.color, '#f7b731')); break;
+    case 'deer': case 'ibex': rig = buildQuadruped(color, { kind: cast.kind, gender: cast.gender || 'male' }); break;
     default: rig = buildFish(color, { pattern: cast.pattern || null, accent: cast.accent ? toHex(cast.accent) : null, seed: Math.round(seed), eyeScale: cast.eyes || 1, forelock: !!cast.forelock }); break;
   }
   rig.seed = seed;
@@ -1130,6 +1461,8 @@ export function createActorRig(cast, seed, extra = {}) {
   rig.group.scale.setScalar(cast.size);
   rig.name = cast.name;
   rig.color = color;
+  setAnchors(rig, cast);
+  addAccessories(rig, cast, extra);
   return rig;
 }
 

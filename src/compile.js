@@ -25,6 +25,8 @@ export const KIND_DEFAULTS = {
   sprite:    { size: 1.5, speed: 3 },
   bike:      { size: 1.0, speed: 4 },
   mango:     { size: 0.4, speed: 2 },
+  deer:      { size: 1.6, speed: 3 },
+  ibex:      { size: 1.3, speed: 3 },
   model:     { size: 1.5, speed: 3 },
   narrator:  { size: 1,   speed: 1 },
 };
@@ -34,14 +36,16 @@ const KIND_COLORS = {
   turtle: '#4f8f3a', crab: '#e2542b', school: '#f5b73b', dolphin: '#7e9fc4', seahorse: '#f2c14e',
   starfish: '#ff7f50', ray: '#556677', eel: '#4c6b3a', squid: '#d88ca6',
   bird: '#f4f4f4', pelican: '#f6f2ea', bubble: '#dff6ff', sprite: '#ffffff', model: '#ffffff', bike: '#d63a2f', mango: '#f7b731',
+  deer: '#8b5a2b', ibex: '#b08c5a',
 };
 const CAMERA_SPEED = 6;
 // Built-in sound effects (procedurally generated, see assets/sfx) played with effects.
-const SFX_FOR_EFFECT = { cry: 'sfx/cry.wav', bubbles: 'sfx/bubbles.wav', spout: 'sfx/spout.wav', jump: 'sfx/splash.wav' };
+const SFX_FOR_EFFECT = { cry: 'sfx/cry.wav', bubbles: 'sfx/bubbles.wav', spout: 'sfx/spout.wav', jump: 'sfx/splash.wav', sneeze: 'sfx/sneeze.wav', charge: 'sfx/bonk.wav' };
 const OFFSCREEN = { left: 25, right: 25, up: 14, down: 14, top: 14, bottom: 14, above: 14, below: 14, forward: 30, front: 30, back: 30, backward: 30, away: 30 };
 
 const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const vscale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const vdist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const round = (n) => Math.round(n * 1000) / 1000;
 
@@ -139,6 +143,11 @@ export function compile(script, options = {}) {
       flip: !!entry.flip,
       accent: entry.accent ?? null,
       baleen: !!entry.baleen,
+      helmet: entry.helmet ?? null,
+      cap: entry.cap ?? null,
+      moustache: !!entry.moustache,
+      badge: entry.badge ?? null,
+      armband: entry.armband ?? null,
       billboard: entry.billboard ?? (entry.image ? true : false),
       index: castOrder.length,
       declared: line != null,
@@ -631,6 +640,79 @@ export function compile(script, options = {}) {
         advance(t0, st.duration ?? 1, st.nonBlocking);
         break;
       }
+      case 'sneeze': {
+        // build-up (head back, mouth opening in two "ah"s), the burst at 60 %
+        // (head snaps forward, a puff of bubbles), then recovery; with its sound
+        const tr = ensurePlaced(name, t0, st.line);
+        const dur = st.duration ?? 2.4;
+        tr.effects.push({ t0, t1: t0 + dur, type: 'sneeze' });
+        if (meta.sfx !== false) sounds.push({ t: t0, file: SFX_FOR_EFFECT.sneeze, volume: 0.9, offset: 0, builtin: true, duration: dur, actor: name });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
+      case 'salute': {
+        // the right fin (hoof, wing) rises to the brow and holds
+        const tr = ensurePlaced(name, t0, st.line);
+        const dur = st.duration ?? 1.6;
+        tr.effects.push({ t0, t1: t0 + dur, type: 'salute' });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
+      case 'sleep': {
+        const tr = ensurePlaced(name, t0, st.line);
+        tr.emotes.push({ t: t0, emotion: 'sleepy' });
+        tr.face.push({ t: t0 + (st.duration ?? 1.2), asleep: true });
+        advance(t0, st.duration ?? 1.2, st.nonBlocking);
+        break;
+      }
+      case 'wake': {
+        const tr = ensurePlaced(name, t0, st.line);
+        tr.face.push({ t: t0, asleep: false });
+        tr.emotes.push({ t: t0, emotion: 'surprised' });
+        tr.effects.push({ t0, t1: t0 + 0.6, type: 'gasp' });
+        advance(t0, st.duration ?? 0.8, st.nonBlocking);
+        break;
+      }
+      case 'charge': {
+        // `@eyal charges @shark`: a head-down lunge that stops just short of the
+        // target, a bonk, and the target is knocked back and tumbles.
+        const tr = ensurePlaced(name, t0, st.line);
+        const victim = st.target.actor;
+        const vt = ensurePlaced(victim, t0, st.line);
+        const from = estPos(name), to = estPos(victim);
+        const dist = vdist(from, to);
+        const stop = sizeOf(victim) * 0.45 + size * 0.45;
+        const dur = st.duration ?? Math.max(0.5, Math.min(2.5, dist / (speedOf(name) * 2.2)));
+        tr.segments.push({ type: 'to', t0, t1: t0 + dur, target: { actor: victim, offset: [0, 0, 0], stopDistance: stop }, ease: 'in' });
+        tr.effects.push({ t0, t1: t0 + dur + 0.4, type: 'charge', hit: dur / (dur + 0.4) });
+        const dir = dist > 1e-3 ? vscale(vsub(to, from), 1 / dist) : [1, 0, 0];
+        const push = st.distance ?? (sizeOf(victim) * 0.8 + 1.5);
+        const dest = vadd(to, vscale(dir, push));
+        dest[1] = Math.max(dest[1], to[1] - 0.5);
+        const hit = t0 + dur;
+        vt.segments.push({ type: 'to', t0: hit, t1: hit + 1.2, target: { pos: dest }, ease: 'out' });
+        vt.effects.push({ t0: hit, t1: hit + 1.4, type: 'knocked', dir });
+        vt.emotes.push({ t: hit, emotion: 'surprised' });
+        if (meta.sfx !== false) sounds.push({ t: hit - 0.05, file: SFX_FOR_EFFECT.charge, volume: 0.8, offset: 0, builtin: true, actor: name });
+        est[name] = vadd(to, vscale(dir, -stop));
+        est[victim] = dest;
+        advance(t0, dur + 0.4, st.nonBlocking);
+        break;
+      }
+      case 'knocked': {
+        // `@shark is knocked back` (or `... left 3`): tumbles and drifts
+        const tr = ensurePlaced(name, t0, st.line);
+        const from = estPos(name);
+        const dir = st.direction ? DIRECTIONS[st.direction] : [-1, 0.1, 0];
+        const dest = vadd(from, vscale(dir, st.amount ?? st.distance ?? 2));
+        const dur = st.duration ?? 1.4;
+        tr.segments.push({ type: 'to', t0, t1: t0 + dur * 0.85, target: { pos: dest }, ease: 'out' });
+        tr.effects.push({ t0, t1: t0 + dur, type: 'knocked', dir });
+        tr.emotes.push({ t: t0, emotion: 'surprised' });
+        est[name] = dest;
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
       default:
         warn(st.line, `verb "${st.verb}" is not supported yet; ignored`);
     }
@@ -797,7 +879,7 @@ export function compile(script, options = {}) {
   meta.frames = Math.ceil(meta.duration * meta.fps);
   for (const m of music) if (m.t1 == null) m.t1 = meta.duration;
   if (meta.music && music.length === 0) music.push({ t0: 0, t1: meta.duration, file: meta.music, volume: meta.musicVolume, offset: 0, loop: true, fadeOut: 2 });
-  for (const name of castOrder) { if (cast[name].image) assets.add(cast[name].image); if (cast[name].model) assets.add(cast[name].model); }
+  for (const name of castOrder) { for (const k of ['image', 'model', 'badge', 'armband']) if (cast[name][k]) assets.add(cast[name][k]); }
   if (meta.font) assets.add(meta.font);
 
   return { meta, cast, actors, camera, env, subtitles, overlays, markers, music, sounds, assets: [...assets], warnings };
