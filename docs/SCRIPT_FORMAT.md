@@ -171,10 +171,14 @@ spoken as `הַגַנֶנֶט`), and this is how to catch them without listening
 every line.
 
 A `he-tts:` line under a `he:` line replaces the spoken text of that one line
-(phonetic respelling, or a fully pointed sentence).  `nikud: auto` in the
-front matter points every Hebrew line with Dicta's Nakdan service instead
-(off by default: it over-points easy words).  The text actually spoken is
-written to `<out>.voice.json` for checking.
+(phonetic respelling, or a fully pointed sentence).  Every Hebrew line is
+otherwise pointed in full before synthesis: first the glossary and the gender
+agreement, then Dicta's Nakdan for every word still unpointed, softened for
+the neural voices (a dagesh only where it changes the sound, בּ כּ פּ and וּ; a
+bare conjunction ו read as וְ; qamats qatan as holam).  Dicta reads by context
+and is right most of the time; when it is not (הַיָשָׁן for הַיָשֵׁן, שֵׂעָר for
+שֶׁיַעַר) a glossary entry wins.  `nikud: off` disables the automatic pointing.
+The text actually spoken is written to `<out>.voice.json` for checking.
 
 **Engines.** `edge` (free, Microsoft neural voices: he-IL-Avri/Hila, many
 English voices) is the default.  `elevenlabs` is used automatically when

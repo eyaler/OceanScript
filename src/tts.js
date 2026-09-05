@@ -61,6 +61,40 @@ export async function addNikud(text, cacheDir) {
   return pointed;
 }
 
+// Full pointing for the words nobody pointed yet: Dicta's contextual reading
+// per word, merged with the author's / glossary's / agreement's own pointing,
+// and softened for the neural voices: a dagesh stays only where it changes the
+// sound (בּ כּ פּ, and וּ as the vowel u); a bare conjunction ו is read וְ;
+// qamats qatan becomes holam; meteg and rafe go.  Dicta's occasional wrong
+// reading (הַיָשָׁן for הַיָשֵׁן) is fixed with a glossary entry, which wins.
+export function softenNikud(word) {
+  let w = word.replace(/([א-ת])([\u05B0-\u05BB\u05C7]*)\u05BC/g, (m, l, v) => ('בכפו'.includes(l) ? m : l + v));
+  w = w.replace(/\u05C7/g, '\u05B9').replace(/[\u05BD\u05BF]/g, '');
+  // a conjunction ו is read וְ (colloquial "ve-"), and the בכפ after it keeps its hard sound
+  w = w.replace(/^ו\u05BC?(?=[א-ת])/, 'ו\u05B0').replace(/^ו\u05B0([בכפ])(?![\u05B0-\u05BB]*\u05BC)/, (m, l) => 'ו\u05B0' + l + '\u05BC');
+  return w;
+}
+export async function addNikudMerged(text, cacheDir) {
+  if (!/[\u05D0-\u05EA]/.test(text)) return text;
+  const bare = stripNikud(text);
+  const toks = await nakdanMorph(bare, cacheDir);
+  if (!toks) return text;
+  const dicta = toks.filter((t) => !t.sep).map((t) => (t.options && t.options[0]) ? t.options[0][0].replace(/\|/g, '') : t.word);
+  const parts = text.match(/[\u05D0-\u05EA\u0591-\u05C7]+|[^\u05D0-\u05EA\u0591-\u05C7]+/g) || [];
+  let wi = 0, out = '';
+  for (const part of parts) {
+    if (!/[\u05D0-\u05EA]/.test(part)) { out += part; continue; }
+    const d = dicta[wi++];
+    if (/[\u05B0-\u05C7]/.test(part)) out += part;                        // someone already pointed it
+    else {
+      // Dicta may answer in defective spelling (שֵׂעָר for שיער): accept when only matres lectionis differ
+      const same = (a, b) => stripNikud(a) === b || stripNikud(a).replace(/[יו]/g, '') === b.replace(/[יו]/g, '');
+      out += d && same(d, part) ? softenNikud(d) : part;
+    }
+  }
+  return out;
+}
+
 // Pronunciation glossary: `- word: pointed` entries from a `# Pronunciation`
 // section.  Every occurrence of the bare word is replaced by the pointed form,
 // also when it carries Hebrew prefix letters (ו, ה, ב, כ, ל, מ, ש), so the
@@ -325,7 +359,9 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
   const clips = [];
   const spoken = timeline.subtitles.filter((s) => s.spoken && s.text);
   let made = 0;
-  const wantNikud = timeline.meta.nikud === true && lang.split('-')[0] === 'he';
+  const he = lang.split('-')[0] === 'he';
+  const nk = timeline.meta.nikud;
+  const wantNikud = he && nk !== false && nk !== 'off' && nk !== 'none';   // Hebrew is pointed by default
   const scriptGlossary = (timeline.meta.pronunciation || {})[lang] || (timeline.meta.pronunciation || {})[lang.split('-')[0]] || {};
   const glossaryAll = lang.split('-')[0] === 'he' ? { ...HEBREW_DEFAULT_GLOSSARY, ...scriptGlossary } : scriptGlossary;
   for (const sub of spoken) {
@@ -334,12 +370,12 @@ export async function synthesizeAll(timeline, { engine = 'auto', cacheDir, log =
     const pinnedSpoken = timeline.meta.pinnedSpoken?.[lang]?.[sub.key];
     if (pinnedSpoken) spokenText = pinnedSpoken;   // verified pointing from the pinned timing file
     else {
-      if (wantNikud) spokenText = await addNikud(spokenText, cacheDir);
       const glossary = resolveGlossary(glossaryAll, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender });
       spokenText = applyGlossary(spokenText, glossary);
-      if (lang.split('-')[0] === 'he' && timeline.meta.agreement !== false && sub.kind === 'dialog') {
+      if (he && timeline.meta.agreement !== false && sub.kind === 'dialog') {
         spokenText = await agreeGender(spokenText, { speakerGender: sub.speakerGender, addresseeGender: sub.addresseeGender }, cacheDir, (m) => log(`line ${sub.line}: ${m}`));
       }
+      if (wantNikud) spokenText = await addNikudMerged(spokenText, cacheDir);
     }
     sub.spokenText = spokenText;
     const key = createHash('sha1').update(JSON.stringify([engine, lang, v, spokenText])).digest('hex').slice(0, 16);

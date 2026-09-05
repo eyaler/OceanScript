@@ -126,7 +126,7 @@ function loadTimeline(tl) {
   let seed = 1;
   for (const name of Object.keys(tl.actors)) {
     const c = tl.cast[name];
-    if (c.kind === 'narrator') continue;
+    if (c.kind === 'narrator' || c.kind === 'voice') continue;
     const extra = {};
     if (c.kind === 'sprite') {
       extra.texture = assetCache.textures[c.image] || null;

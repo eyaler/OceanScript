@@ -69,7 +69,7 @@ export function compile(script, options = {}) {
     sourceLang: String(script.meta.lang ?? script.meta.language ?? 'en').toLowerCase(),
     burnSubtitles: options.burnSubtitles ?? (script.meta.subtitles === 'burn' || script.meta.burn_subtitles === true),
     tts: options.tts ?? script.meta.tts ?? 'auto',
-    nikud: script.meta.nikud === true || script.meta.nikud === 'auto' || script.meta.nikud === 'on',
+    nikud: script.meta.nikud === false || /^(off|none|no|false)$/i.test(String(script.meta.nikud ?? '')) ? false : 'auto',   // Hebrew is pointed by default
     lipsync: script.meta.lipsync !== false && script.meta.lipsync !== 'off' && script.meta.lip_sync !== false,
     pronunciation: script.pronunciation || {},
     subtitleSpeakers: script.meta.subtitle_speakers ?? script.meta.subtitleSpeakers ?? false,
@@ -152,7 +152,7 @@ export function compile(script, options = {}) {
   const est = {}; // estimated current position per actor (for default durations)
   function actorTracks(name, line) {
     if (name === 'camera') return camera;
-    if (cast[name]?.kind === 'narrator') { warn(line, `"@${name}" is a voice-only narrator and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] }; }
+    if (cast[name]?.kind === 'narrator' || cast[name]?.kind === 'voice') { warn(line, `"@${name}" is voice-only and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] }; }
     if (!cast[name]) {
       warn(line, `actor "@${name}" was not declared in the cast; assuming a fish`);
       addActor({ name, kind: 'fish' });
@@ -302,7 +302,7 @@ export function compile(script, options = {}) {
           addresseeGender: addressee ? cast[addressee].gender : null,
           spoken: true,
         });
-        if (actorName) {
+        if (actorName && cast[actorName].kind !== 'voice') {   // a voice-only character has no body to place
           const tr = ensurePlaced(actorName, t0, st.line);
           tr.effects.push({ t0, t1, type: 'talk', line: st.line });
           if (st.to && cast[st.to]) tr.looks.push({ t: t0, target: { actor: st.to } });
@@ -790,7 +790,7 @@ export function compile(script, options = {}) {
   camera.segments.sort((a, b) => a.t0 - b.t0);
   camera.looks.sort((a, b) => a.t0 - b.t0);
   // Declared but never used actors: keep them out of the scene.
-  for (const name of castOrder) if (!actors[name] && cast[name].kind !== 'narrator') warn(script.cast.find((c) => c.name === name)?.line ?? 0, `actor "@${name}" is declared but never used`);
+  for (const name of castOrder) if (!actors[name] && cast[name].kind !== 'narrator' && cast[name].kind !== 'voice') warn(script.cast.find((c) => c.name === name)?.line ?? 0, `actor "@${name}" is declared but never used`);
 
   const duration = Number(options.duration ?? script.meta.duration ?? (maxEnd + meta.tail));
   meta.duration = Math.max(0.5, duration);
