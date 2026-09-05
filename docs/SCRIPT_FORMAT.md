@@ -365,7 +365,7 @@ actor's colour.  Right-to-left text is detected automatically.
 | `- image "assets/page.svg" for 4s` | full-frame illustration/photo card (`fit`, `cover` or `stretch`); a `he: ...` line under it is a localised caption |
 | `- clip "assets/footage.mp4" for 5s from 12s` | live footage: the video (transcoded to WebM for the browser) plays full-frame from the given offset, with its own sound (`volume N`) |
 | `- credits "line | line | line" for 8s` | scrolling credits; translatable with a `he:` line |
-| `- music "assets/theme.wav" volume 0.3` ... `- music stop 2s` | scene music: loops from here until the next `music` line or `stop` (with a fade-out); `from 10s` starts inside the file.  Music is automatically ducked under the voices.  `examples/music/` ships public-domain recordings (see its CREDITS.md) |
+| `- music "assets/theme.wav" volume 0.3` ... `- music stop 2s` | scene music: loops from here until the next `music` line or `stop` (with a fade-out); `from 10s` starts inside the file.  Music is automatically ducked under the voices.  `music/` ships public-domain recordings (see its CREDITS.md) |
 | `- sound "assets/splash.wav" volume 0.8` | a sound effect at this moment (`&` is implied: it never blocks unless given a duration) |
 | `- cut` | the next settings change is instant instead of cross-fading |
 | `- marker "name"` | marker on the preview scrubber |
