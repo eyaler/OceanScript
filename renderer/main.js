@@ -497,12 +497,16 @@ function applyFilmLook(p, t) {
     const d = img.data;
     for (let i = 0; i < d.length; i += 4) { const v = r() * 255; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
     tc.putImageData(img, 0, 0);
+    // grain at two-pixel granularity (per-pixel noise is invisible at 1080p and
+    // makes the video several times larger to encode)
     ctx.save();
-    ctx.globalAlpha = Math.min(1, 0.13 * grain);
+    ctx.globalAlpha = Math.min(1, 0.11 * grain);
     ctx.globalCompositeOperation = 'overlay';
-    ctx.translate(-Math.floor(r() * 160), -Math.floor(r() * 160));
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(-Math.floor(r() * 160) * 2, -Math.floor(r() * 160) * 2);
+    ctx.scale(2, 2);
     ctx.fillStyle = ctx.createPattern(grainTile, 'repeat');
-    ctx.fillRect(0, 0, width + 160, height + 160);
+    ctx.fillRect(0, 0, width / 2 + 160, height / 2 + 160);
     ctx.restore();
   }
   if (scratches > 0.01) {

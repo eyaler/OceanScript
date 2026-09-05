@@ -160,6 +160,14 @@ jobs:
           for f in $(ls out/chunks/*.mp4 | sort); do echo "file '$PWD/$f'"; done > out/list.txt
           T0=$(date +%s)
           ffmpeg -y -f concat -safe 0 -i out/list.txt -c copy out/$NAME.${{ inputs.lang }}.video.mp4
+          # GitHub release assets must stay under 2 GiB: a film-grain look can push a
+          # crf-18 render past it, so re-encode a little harder when it does
+          V=out/$NAME.${{ inputs.lang }}.video.mp4
+          if [ "$(stat -c %s "$V")" -gt 1800000000 ]; then
+            echo "video is $(stat -c %s "$V") bytes; re-encoding at crf 24 to fit the release limit"
+            ffmpeg -y -i "$V" -c:v libx264 -preset medium -crf 24 -pix_fmt yuv420p -movflags +faststart out/reencoded.mp4 && mv out/reencoded.mp4 "$V"
+            ls -la "$V"
+          fi
           T1=$(date +%s)
           TF=$(ls out/*.timing.json 2>/dev/null | head -1)
           node bin/oceanscript.js mux "${{ inputs.script }}" --video out/$NAME.${{ inputs.lang }}.video.mp4 --lang "${{ inputs.lang }}" ${TF:+--timing-file $TF} -o out/$NAME.${{ inputs.lang }}.${{ inputs.height }}p.mp4
