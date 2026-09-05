@@ -479,9 +479,9 @@ function applyFilmLook(p, t) {
   const filt = [];
   if (sepia > 0.01) filt.push(`sepia(${sepia.toFixed(3)})`);
   if (mono > 0.01) filt.push(`grayscale(${mono.toFixed(3)})`);
-  if (tone > 0.01) filt.push(`contrast(${(1 + 0.14 * tone).toFixed(3)})`, `saturate(${(1 - 0.15 * tone).toFixed(3)})`);
+  if (tone > 0.01) filt.push(`contrast(${(1 + 0.08 * tone).toFixed(3)})`, `saturate(${(1 - 0.15 * tone).toFixed(3)})`);
   const flick = flicker > 0.01 ? flicker * (0.09 * (r() - 0.5) + 0.03 * Math.sin(frame * 0.7)) : 0;
-  if (tone > 0.01 || flicker > 0.01) filt.push(`brightness(${(1 - 0.06 * tone + flick).toFixed(3)})`);
+  if (tone > 0.01 || flicker > 0.01) filt.push(`brightness(${(1 + 0.05 * tone + flick).toFixed(3)})`);
   renderer.domElement.style.filter = filt.join(' ');
   if (!$film || !filmCanvas) return;
   const active = grain > 0.01 || vig > 0.01 || scratches > 0.01;
@@ -498,7 +498,7 @@ function applyFilmLook(p, t) {
     for (let i = 0; i < d.length; i += 4) { const v = r() * 255; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
     tc.putImageData(img, 0, 0);
     ctx.save();
-    ctx.globalAlpha = Math.min(1, 0.22 * grain);
+    ctx.globalAlpha = Math.min(1, 0.13 * grain);
     ctx.globalCompositeOperation = 'overlay';
     ctx.translate(-Math.floor(r() * 160), -Math.floor(r() * 160));
     ctx.fillStyle = ctx.createPattern(grainTile, 'repeat');
@@ -528,7 +528,7 @@ function applyFilmLook(p, t) {
   if (vig > 0.01) {
     const g = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.35, width / 2, height / 2, Math.hypot(width, height) * 0.55);
     g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(1, `rgba(12,6,0,${(0.78 * vig).toFixed(3)})`);
+    g.addColorStop(1, `rgba(12,6,0,${(0.55 * vig).toFixed(3)})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, width, height);
   }
