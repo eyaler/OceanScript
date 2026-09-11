@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { TimelineEvaluator } from './timeline.js';
 import { Ocean, resolveEnv, mixEnv, rng } from './ocean.js';
-import { createActorRig, applyEffects } from './actors.js';
+import { createActorRig, applyEffects, buildGarment } from './actors.js';
 import { isRtl } from './colors.js';
 
 const params = new URLSearchParams(location.search);
@@ -142,6 +142,13 @@ function loadTimeline(tl) {
       if (!extra.gltf) { console.warn(`model missing for @${name}; using a fish`); c.kind = 'fish'; }
     }
     const rig = createActorRig(c, (seed++) * 17.3, extra);
+    // every garment the actor ever wears, switched on and off per frame
+    rig.wardrobe = {};
+    for (const w of c.wardrobeItems || []) {
+      const g = buildGarment(rig, w.item, w.color);
+      if (g) { g.visible = false; rig.wardrobe[w.key] = g; }
+      else console.warn(`@${name} cannot wear ${w.item} (no anchor on a ${c.kind})`);
+    }
     rigs[name] = rig;
     scene.add(rig.group);
   }
@@ -250,6 +257,10 @@ function seek(t) {
     state.grounded = grounded;
     rig.animate(t, state);
     applyEffects(rig, t, state);
+    if (rig.wardrobe) {
+      const worn = ev.wardrobe(name, t);
+      for (const [key, g] of Object.entries(rig.wardrobe)) { const [item, color] = key.split('|'); g.visible = worn[item] != null && (worn[item] || '') === color; }
+    }
     // tear drops (cartoon: they grow at the eye and fall)
     if (rig.tears) for (const tr of rig.tears) tr.visible = false;
     const cryFx = state.effects.find((f) => f.type === 'cry');
@@ -349,6 +360,23 @@ function seek(t) {
           const a = i * 2.399 + fx.side, r = (0.1 + k * 1.4) * sc;
           const col = i % 3 === 0 ? [1, 0.72, 0.2] : i % 3 === 1 ? [0.95, 0.55, 0.12] : [1, 0.82, 0.4];
           fxEmit(origin.x + Math.cos(a) * r, origin.y + (k * 0.7 - k * k * 0.2) * sc + Math.sin(age * 3 + i) * 0.06 * sc, origin.z + Math.sin(a) * r * 0.7 + 0.15 * sc, (0.012 + 0.014 * (i % 3)) * sc, col[0], col[1], col[2]);
+        }
+      }
+      if (fx.type === 'shower') {
+        // water falling from above the head, and soap foam clinging to the body
+        rig.group.updateMatrixWorld(true);
+        const c = rig.group.position;
+        const life = 0.9;
+        for (let i = 0; i < 30; i++) {
+          const k = ((fx.age + i * 0.31) % life) / life;
+          const a = i * 2.399, r = (0.1 + 0.35 * ((i * 7) % 5) / 4) * sc;
+          fxEmit(c.x + Math.cos(a) * r, c.y + sc * (1.3 - k * 1.5), c.z + Math.sin(a) * r * 0.6, 0.022 * sc, 0.8, 0.92, 1);
+        }
+        const fade = Math.min(1, fx.age / 0.8, (fx.t1 - fx.t0 - fx.age) / 0.8);
+        if (fade > 0) for (let i = 0; i < 26; i++) {
+          const a = i * 2.399 + fx.age * 0.3, b = ((i * 13) % 7) / 7 * Math.PI - Math.PI / 2;
+          const wob = Math.sin(fx.age * 3 + i) * 0.03 * sc;
+          fxEmit(c.x + Math.cos(a) * Math.cos(b) * 0.36 * sc + wob, c.y + Math.sin(b) * 0.3 * sc + 0.05 * sc, c.z + Math.sin(a) * Math.cos(b) * 0.5 * sc, (0.09 + 0.07 * ((i * 5) % 3) / 2) * sc * fade, 1, 1, 1);
         }
       }
       if (fx.type === 'sneeze' && fx.u >= 0.6) {
@@ -608,6 +636,7 @@ async function main() {
     window.__load = (tl) => { loadTimeline(tl); return true; };
     // subtitles are muxed as a soft track unless burn-in was requested
     window.__seek = async (t) => { await seek(t); return window.__seekProfile || true; };
+    window.__probe = (name, t) => { ev.beginFrame(); const r = rigs[name]; return { rig: r ? r.group.position.toArray() : null, ev: ev.pos(name, t), vis: ev.visible(name, t), cam: camera.position.toArray(), evCam: ev.cameraPos(t) }; };
     window.__debug = (hide) => {
       const names = String(hide).split(',').filter(Boolean);
       for (const n of names) { if (ocean[n]) ocean[n].visible = false; }

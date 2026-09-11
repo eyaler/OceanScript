@@ -40,7 +40,7 @@ const KIND_COLORS = {
 };
 const CAMERA_SPEED = 6;
 // Built-in sound effects (procedurally generated, see assets/sfx) played with effects.
-const SFX_FOR_EFFECT = { cry: 'sfx/cry.wav', bubbles: 'sfx/bubbles.wav', spout: 'sfx/spout.wav', jump: 'sfx/splash.wav', sneeze: 'sfx/sneeze.wav', charge: 'sfx/bonk.wav' };
+const SFX_FOR_EFFECT = { cry: 'sfx/cry.wav', bubbles: 'sfx/bubbles.wav', spout: 'sfx/spout.wav', jump: 'sfx/splash.wav', sneeze: 'sfx/sneeze.wav', charge: 'sfx/bonk.wav', shower: 'sfx/shower.wav' };
 const OFFSCREEN = { left: 25, right: 25, up: 14, down: 14, top: 14, bottom: 14, above: 14, below: 14, forward: 30, front: 30, back: 30, backward: 30, away: 30 };
 
 const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -148,6 +148,8 @@ export function compile(script, options = {}) {
       moustache: !!entry.moustache,
       badge: entry.badge ?? null,
       armband: entry.armband ?? null,
+      wardrobe: (entry.wardrobe || []).map((w) => ({ item: w.item, color: w.color || null })),   // worn from the start
+      wardrobeItems: [],   // every item|colour the actor ever wears (the renderer builds these)
       billboard: entry.billboard ?? (entry.image ? true : false),
       index: castOrder.length,
       declared: line != null,
@@ -159,15 +161,22 @@ export function compile(script, options = {}) {
 
   const actors = {};
   const est = {}; // estimated current position per actor (for default durations)
+  function registerGarment(name, item, color) {
+    const c = cast[name];
+    if (!c) return;
+    const key = item + '|' + (color || '');
+    if (!c.wardrobeItems.some((w) => w.key === key)) c.wardrobeItems.push({ key, item, color: color || null });
+  }
+  for (const name of castOrder) for (const w of cast[name].wardrobe) registerGarment(name, w.item, w.color);
   function actorTracks(name, line) {
     if (name === 'camera') return camera;
-    if (cast[name]?.kind === 'narrator' || cast[name]?.kind === 'voice') { warn(line, `"@${name}" is voice-only and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] }; }
+    if (cast[name]?.kind === 'narrator' || cast[name]?.kind === 'voice') { warn(line, `"@${name}" is voice-only and cannot act`); return { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [], wardrobe: [] }; }
     if (!cast[name]) {
       warn(line, `actor "@${name}" was not declared in the cast; assuming a fish`);
       addActor({ name, kind: 'fish' });
     }
     if (!actors[name]) {
-      actors[name] = { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [] };
+      actors[name] = { segments: [], visibility: [], emotes: [], looks: [], effects: [], scales: [], face: [], wardrobe: [] };
     }
     return actors[name];
   }
@@ -447,7 +456,11 @@ export function compile(script, options = {}) {
         const dest = target.pos ?? resolveTargetPos({ actor: target.actor, offset: target.offset }, name);
         const dur = st.duration ?? Math.max(0.6, vdist(from, dest) / speedOf(name));
         tr.segments.push({ type: 'to', t0, t1: t0 + dur, target, ease });
-        est[name] = dest;
+        // `swims near @x` stops short of x: estimate where it actually ends
+        if (target.stopDistance) {
+          const dd = vdist(from, dest);
+          est[name] = dd > target.stopDistance ? vadd(dest, vscale(vsub(from, dest), target.stopDistance / dd)) : from;
+        } else est[name] = dest;
         advance(t0, dur, st.nonBlocking);
         break;
       }
@@ -640,6 +653,31 @@ export function compile(script, options = {}) {
         advance(t0, st.duration ?? 1, st.nonBlocking);
         break;
       }
+      case 'wear': case 'undress': {
+        // `@caspion puts on a white shirt, red bowtie and kippa` / `takes off pyjamas`:
+        // the garments switch half-way through a quick twirl
+        const tr = ensurePlaced(name, t0, st.line);
+        const dur = st.duration ?? 1.4;
+        const at = t0 + dur * 0.5;
+        if (st.verb === 'undress' && st.all) tr.wardrobe.push({ t: at, all: false });
+        for (const w of st.items || []) {
+          tr.wardrobe.push({ t: at, item: w.item, color: w.color || null, on: st.verb === 'wear' });
+          if (st.verb === 'wear') registerGarment(name, w.item, w.color);
+        }
+        tr.effects.push({ t0, t1: t0 + dur, type: 'spin', count: 1, strength: 1 });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
+      case 'shower': {
+        // foam around the body, water from above, and the sound of a shower
+        const tr = ensurePlaced(name, t0, st.line);
+        const dur = st.duration ?? 4;
+        tr.effects.push({ t0, t1: t0 + dur, type: 'shower' });
+        for (const e of tr.effects) if (e.type === 'messy' && e.t0 <= t0 && e.t1 > t0) e.t1 = t0 + 1;
+        if (meta.sfx !== false) sounds.push({ t: t0, file: SFX_FOR_EFFECT.shower, volume: 0.6, offset: 0, builtin: true, duration: dur, actor: name });
+        advance(t0, dur, st.nonBlocking);
+        break;
+      }
       case 'sneeze': {
         // build-up (head back, mouth opening in two "ah"s), the burst at 60 %
         // (head snaps forward, a puff of bubbles), then recovery; with its sound
@@ -756,7 +794,7 @@ export function compile(script, options = {}) {
         let spread = 0;
         for (const a of ps) for (const b of ps) spread = Math.max(spread, vdist(a, b));
         let n;
-        if (ps.length >= 2) {
+        if (ps.length >= 2 && Math.hypot(ps[1][0] - ps[0][0], ps[1][2] - ps[0][2]) > 0.3) {
           const d = [ps[1][0] - ps[0][0], 0, ps[1][2] - ps[0][2]];
           const l = Math.hypot(d[0], d[2]) || 1;
           n = [-d[2] / l, 0, d[0] / l];
@@ -865,6 +903,7 @@ export function compile(script, options = {}) {
     tr.visibility.sort((a, b) => a.t - b.t);
     tr.looks.sort((a, b) => a.t - b.t);
     tr.emotes.sort((a, b) => a.t - b.t);
+    if (tr.wardrobe) tr.wardrobe.sort((a, b) => a.t - b.t);
     tr.effects.sort((a, b) => a.t0 - b.t0);
     tr.scales.sort((a, b) => a.t0 - b.t0);
     (tr.face || []).sort((a, b) => a.t - b.t);

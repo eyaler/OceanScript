@@ -2,6 +2,7 @@
 // slot is the longest voice clip among all available languages plus padding.
 // The resulting per-line durations are shared by every language (and every
 // chunk of a parallel render), so the frames stay identical across languages.
+import path from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { loadTimeline } from './load.js';
 import { synthesizeAll } from './tts.js';
@@ -54,7 +55,16 @@ export async function prepareTimeline(file, opts = {}, log = console.error) {
   // every render, and the exact pointed text each line was verified with, so a
   // runner without the morphology service still says the same thing.
   const pinned = file.replace(/\.md$/i, '.timing.json');
-  if (!opts.timingFile && existsSync(pinned)) opts = { ...opts, timingFile: pinned };
+  const scriptName = path.basename(file, path.extname(file));
+  // a timing file is only trusted for the script it was written for (older
+  // files carry no name: then only when the file names match), so a stale
+  // `<out>.timing.json` left by another script's render never shifts this one
+  const belongsHere = (f) => {
+    if (!f || !existsSync(f)) return false;
+    try { const j = JSON.parse(readFileSync(f, 'utf8')); return j.script ? j.script === scriptName : path.basename(f, '.timing.json') === scriptName; } catch { return false; }
+  };
+  if (existsSync(pinned) && !belongsHere(opts.timingFile)) opts = { ...opts, timingFile: pinned };
+  else if (opts.timingFile && existsSync(opts.timingFile) && !belongsHere(opts.timingFile)) { log(`timing: ignoring ${opts.timingFile} (written for another script)`); opts = { ...opts, timingFile: null }; }
   if (opts.timingFile && existsSync(opts.timingFile)) {
     const j = JSON.parse(readFileSync(opts.timingFile, 'utf8'));
     lineDurations = j.lineDurations; spoken = j.spoken || null;
@@ -64,7 +74,7 @@ export async function prepareTimeline(file, opts = {}, log = console.error) {
     lineDurations = res.lineDurations; spoken = res.spoken;
     if (res.engine === 'none') { log('timing: audio requested but no TTS engine is available; using text timing'); return timeline; }
     log(`timing: audio, ${Object.keys(lineDurations).length} spoken lines sized by the longest clip across ${res.languages.join(', ')}`);
-    if (opts.timingFile) writeFileSync(opts.timingFile, JSON.stringify({ languages: res.languages, lineDurations, spoken }, null, 2));
+    if (opts.timingFile) writeFileSync(opts.timingFile, JSON.stringify({ script: scriptName, languages: res.languages, lineDurations, spoken }, null, 2));
   }
   timeline = loadTimeline(file, { ...opts, lineDurations });
   timeline.meta.lineDurations = lineDurations;

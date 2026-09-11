@@ -231,6 +231,14 @@ A `# Cast` heading starts the cast list.  Each list item declares an actor:
   sides).  They sit on anchors every built-in creature defines, so a helmeted
   fish, a capped deer and a shark with insignia all work:
   `- fishi: fish, silver, steel helmet`, `- shark1: shark, gray, badge "assets/ss.svg", armband "assets/armband.svg"`.
+* **clothes**: `pyjamas` (striped, with buttons), `nightcap` (with a pompom),
+  `shirt` (with a collar), `dress` (with a frill), `bowtie`, `tie`, `kippa`,
+  `necklace` (pearls), `scarf`, each with an optional colour (`white shirt`,
+  `bowtie gold`, `kippa navy`).  Listed in the cast they are worn from the start;
+  during the film `@caspion puts on a white shirt, red bowtie and blue kippa`
+  and `@caspion takes off pyjamas and nightcap` (or `takes off everything`)
+  change them with a quick twirl.  They fit every built-in creature (fish,
+  sharks, whales, dolphins, deer, ibex) on the same anchors as the accessories.
 * **gender**: `male` or `female` (guessed from names like *mother* otherwise).
   Deer stags carry antlers, does do not; a female ibex has short horns.
   It drives gender-dependent pronunciation (below) and default voices.
@@ -329,6 +337,8 @@ Targets can be a position `(x, y, z)`, an actor `@name`, an actor plus offset
 | ride / dismount | `@caspion rides @bike` (the same attachment seen from the rider: it sits on the saddle and faces where the bike goes; then `@bike moves right 4`, `@bike circles @gan`, `@bike wiggles` for a wobble) ... `@caspion dismounts` |
 | split / eat / clean | `@mango splits` (the halves drift apart), `@caspion eats @mango over 5s` (chews the half on its side in four bites; pulp floats off and the face stays smeared with juice until `@caspion cleans` or about 25 s pass); `eats` a creature means `swallows` |
 | swallow / spit | `@whale swallows @caspion` (attaches and hides), `@whale spits out @caspion` (reappears, tossed towards the camera) |
+| wear / undress | `@caspion puts on a white shirt, red bowtie and blue kippa` (`wears`, `dresses in`, `changes into`; `over 2s`), `@caspion takes off pyjamas and nightcap`, `takes off everything`: the garments switch half-way through a twirl (see *clothes* in the cast) |
+| shower | `@caspion showers` (`for 6s`, `takes a bath`, `scrubs up`): water falls from above the head, soap foam clings to the body, with a built-in shower sound; also cleans a juice-smeared face |
 | sneeze | `@fishi sneezes` (`for 3s`): the head tips back through two "ah"s with the mouth opening, then snaps forward at 60 % with a burst of bubbles from the mouth and a built-in sneeze sound, eyes shut; then a sniff.  Every creature can sneeze |
 | salute | `@shark salutes` (`for 3s`): the right fin (a deer's or ibex's right foreleg, a whale's flipper) rises to the brow and holds |
 | charge / knocked | `@eyal charges @shark1` (`rams`, `butts`, `head-butts`): a head-down lunge that stops just short of the target, a bonk, and the target is knocked back and tumbles; `@shark is knocked back` (`left 3`, `reels`, `staggers`) tumbles an actor on its own |

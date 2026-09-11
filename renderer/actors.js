@@ -1223,6 +1223,9 @@ function buildQuadruped(color, { kind = 'deer', gender = 'male' } = {}) {
   rig.flank = { parent: inner, x: 0.15, y: 0.12, z: -0.04, size: 0.13 };
   rig.band = { parent: legs[1].group, axis: 'y', y: -0.06, rx: 0.033, ry: 0.033, h: 0.05, decal: 0.045 };
   rig.mouthAnchor = { parent: head, pos: [0, -0.065, 0.21] };
+  rig.shell = { parent: inner, center: [0, 0.1, -0.03], radii: [0.15, 0.16, 0.25] };
+  rig.chin = { parent: inner, pos: [0, 0.16, 0.36], w: 0.08 };
+  rig.neck = { parent: inner, pos: [0, 0.2, 0.3], rx: 0.09, ry: 0.09 };
   rig.saluteLimb = (k) => {
     const l = legs[1];
     l.group.rotation.x = -1.7 * k;
@@ -1357,6 +1360,149 @@ function addAccessories(rig, cast, extra = {}) {
   }
 }
 
+// ---- clothes ---------------------------------------------------------------------
+// Garments are built once per (item, colour) on the rig's anchors and switched on
+// and off per frame from the timeline (`@caspion puts on a white shirt`).
+// rig.shell: the body as an ellipsoid { parent, center, radii } that shirts and
+// pyjamas wrap as a band; rig.chin: where a bowtie or tie hangs; rig.hat: the
+// crown of the head (kippa, nightcap); rig.neck: the front opening (necklace).
+const GARMENT_COLORS = { pyjamas: '#9fc7ff', nightcap: '#9fc7ff', shirt: '#ffffff', bowtie: '#c8102e', tie: '#22406f', kippa: '#2f5fbf', necklace: '#fff6e0', dress: '#e75480', scarf: '#c8102e' };
+function bandShell(shell, { thetaStart = 0.34, thetaLength = 0.44, scale = 1.05, material }) {
+  // a band of the ellipsoid around the body, open at the head and the tail
+  const geo = new THREE.SphereGeometry(1, 32, 16, 0, Math.PI * 2, Math.PI * thetaStart, Math.PI * thetaLength);
+  geo.rotateX(Math.PI / 2);   // pole -> -z (tail end) so the band opens at both ends of the body
+  const m = new THREE.Mesh(geo, material);
+  m.scale.set(shell.radii[0] * scale, shell.radii[1] * scale, shell.radii[2] * scale);
+  m.position.set(...shell.center);
+  return m;
+}
+export function buildGarment(rig, item, color) {
+  const col = color ? toHex(color, GARMENT_COLORS[item]) : GARMENT_COLORS[item] || '#ffffff';
+  const g = new THREE.Group();
+  const shell = rig.shell, hat = rig.hat, chin = rig.chin || rig.nose, neck = rig.neck;
+  switch (item) {
+    case 'pyjamas': {
+      if (!shell) return null;
+      const tex = patternTexture('bands', col, lighten(col, 0.7).getStyle(), 3);
+      const m = bandShell(shell, { thetaStart: 0.37, thetaLength: 0.5, scale: 1.06, material: new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, side: THREE.DoubleSide }) });
+      m.rotation.z = Math.PI / 2;   // stripes run along the body
+      g.add(m);
+      // three buttons down the belly
+      for (let i = 0; i < 3; i++) {
+        const b = new THREE.Mesh(new THREE.SphereGeometry(shell.radii[1] * 0.07, 8, 6), mat('#f4f4f4', { roughness: 0.4 }));
+        b.position.set(shell.center[0], shell.center[1] - shell.radii[1] * 1.06, shell.center[2] + shell.radii[2] * (0.22 - i * 0.2));
+        g.add(b);
+      }
+      shell.parent.add(g);
+      break;
+    }
+    case 'shirt': case 'dress': {
+      if (!shell) return null;
+      const material = mat(col, { roughness: 0.85, side: THREE.DoubleSide });
+      g.add(bandShell(shell, { thetaStart: 0.42, thetaLength: item === 'dress' ? 0.46 : 0.4, scale: 1.05, material }));
+      // collar at the front opening
+      const zf = shell.radii[2] * 1.05 * Math.cos(Math.PI * 0.42);
+      const rf = Math.sin(Math.PI * 0.42) * 1.05;
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(1, 0.07, 8, 32), mat(item === 'dress' ? lighten(col, 0.5).getHexString().replace(/^/, '#') : '#ffffff', { roughness: 0.8 }));
+      collar.scale.set(shell.radii[0] * rf, shell.radii[1] * rf, 1);
+      collar.position.set(shell.center[0], shell.center[1], shell.center[2] + zf);
+      g.add(collar);
+      if (item === 'dress') {
+        // a frill at the back edge
+        const zb = shell.radii[2] * 1.05 * Math.cos(Math.PI * 0.86), rb = Math.sin(Math.PI * 0.86) * 1.25;
+        const frill = new THREE.Mesh(new THREE.TorusGeometry(1, 0.09, 8, 32), material);
+        frill.scale.set(shell.radii[0] * rb, shell.radii[1] * rb, 1);
+        frill.position.set(shell.center[0], shell.center[1], shell.center[2] + zb);
+        g.add(frill);
+      }
+      shell.parent.add(g);
+      break;
+    }
+    case 'bowtie': {
+      if (!chin) return null;
+      const w = (chin.w || 0.1) * 1.3;
+      const m = mat(col, { roughness: 0.6 });
+      for (const sx of [-1, 1]) {
+        const wing = new THREE.Mesh(new THREE.SphereGeometry(w * 0.5, 10, 8), m);
+        wing.scale.set(1, 0.55, 0.35);
+        wing.position.set(sx * w * 0.5, 0, 0);
+        g.add(wing);
+      }
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(w * 0.2, 8, 6), mat(darken(col, 0.25), { roughness: 0.6 }));
+      g.add(knot);
+      g.position.set(...chin.pos);
+      chin.parent.add(g);
+      break;
+    }
+    case 'tie': {
+      if (!chin) return null;
+      const w = (chin.w || 0.1);
+      const tie = new THREE.Mesh(new THREE.BoxGeometry(w * 0.45, w * 0.12, w * 2.2), mat(col, { roughness: 0.7 }));
+      tie.position.set(chin.pos[0], chin.pos[1] - w * 0.15, chin.pos[2] - w * 1.0);
+      tie.rotation.x = -0.35;
+      g.add(tie);
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(w * 0.22, 8, 6), mat(darken(col, 0.25)));
+      knot.position.set(...chin.pos);
+      g.add(knot);
+      chin.parent.add(g);
+      break;
+    }
+    case 'kippa': {
+      if (!hat) return null;
+      const r = hat.r * 0.62;
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), mat(col, { roughness: 0.85, side: THREE.DoubleSide }));
+      dome.position.set(hat.pos[0], hat.pos[1] - r * 0.15, hat.pos[2] - hat.r * 0.15);
+      dome.scale.set(1.15, 0.8, 1.15);
+      g.add(dome);
+      hat.parent.add(g);
+      break;
+    }
+    case 'nightcap': {
+      if (!hat) return null;
+      const r = hat.r;
+      const capMat = mat(col, { roughness: 0.9, side: THREE.DoubleSide });
+      const brim = new THREE.Mesh(new THREE.TorusGeometry(r * 0.78, r * 0.13, 8, 28), mat(lighten(col, 0.6).getHexString().replace(/^/, '#'), { roughness: 0.9 }));
+      brim.rotation.x = Math.PI / 2;
+      brim.position.set(hat.pos[0], hat.pos[1] + r * 0.05, hat.pos[2] - r * 0.1);
+      brim.scale.set(1.1, 1, 1);
+      g.add(brim);
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(r * 0.8, r * 1.9, 16), capMat);
+      cone.position.set(hat.pos[0], hat.pos[1] + r * 0.75, hat.pos[2] - r * 0.55);
+      cone.rotation.x = 0.85;   // flops back
+      g.add(cone);
+      const pom = new THREE.Mesh(new THREE.SphereGeometry(r * 0.22, 10, 8), mat('#ffffff', { roughness: 0.95 }));
+      pom.position.set(hat.pos[0], hat.pos[1] + r * 1.35, hat.pos[2] - r * 1.35);
+      g.add(pom);
+      hat.parent.add(g);
+      break;
+    }
+    case 'necklace': {
+      if (!neck) return null;
+      const pearl = mat(col, { roughness: 0.25, metalness: 0.1 });
+      const n = 16;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const p = new THREE.Mesh(new THREE.SphereGeometry(neck.rx * 0.11, 8, 6), pearl);
+        p.position.set(neck.pos[0] + Math.cos(a) * neck.rx, neck.pos[1] + Math.sin(a) * neck.ry, neck.pos[2] + (Math.sin(a) < 0 ? -0.02 : 0));
+        g.add(p);
+      }
+      neck.parent.add(g);
+      break;
+    }
+    case 'scarf': {
+      if (!neck) return null;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.16, 8, 28), mat(col, { roughness: 0.95 }));
+      ring.scale.set(neck.rx * 1.05, neck.ry * 1.05, 1);
+      ring.position.set(...neck.pos);
+      g.add(ring);
+      neck.parent.add(g);
+      break;
+    }
+    default: return null;
+  }
+  return g;
+}
+
 // Anchors for the accessories on the built-in rigs (positions in rig space).
 function setAnchors(rig, cast) {
   if (rig.hat) return;   // the rig placed its own
@@ -1368,6 +1514,9 @@ function setAnchors(rig, cast) {
       rig.flank = { parent: inner, x: 0.158, y: 0.02, z: 0.02, size: 0.16 };
       rig.band = { parent: inner, axis: 'z', z: -0.08, rx: 0.157, ry: 0.245, h: 0.06, decal: 0.075 };
       rig.mouthAnchor = { parent: inner, pos: [0, -0.07, 0.48] };
+      rig.shell = { parent: inner, center: [0, 0, 0], radii: [0.16, 0.25, 0.5] };
+      rig.chin = { parent: inner, pos: [0, -0.175, 0.36], w: 0.15 };
+      rig.neck = { parent: inner, pos: [0, 0, 0.15], rx: 0.163, ry: 0.255 };
       break;
     }
     case 'shark': {
@@ -1377,6 +1526,9 @@ function setAnchors(rig, cast) {
       rig.flank = { parent: inner, x: profileRadius(prof, -0.08) * 0.985, y: 0.035, z: -0.08, size: 0.13 };
       rig.band = { parent: inner, axis: 'z', z: -0.2, rx: profileRadius(prof, -0.2), ry: profileRadius(prof, -0.2) * 0.85, h: 0.07, decal: 0.08 };
       rig.mouthAnchor = { parent: inner, pos: [0, -0.06, 0.42] };
+      rig.shell = { parent: inner, center: [0, 0, 0], radii: [0.165, 0.14, 0.5] };
+      rig.chin = { parent: inner, pos: [0, -profileRadius(prof, 0.28) * 0.9, 0.28], w: 0.09 };
+      rig.neck = { parent: inner, pos: [0, 0, 0.22], rx: profileRadius(prof, 0.22), ry: profileRadius(prof, 0.22) * 0.85 };
       break;
     }
     case 'whale': case 'dolphin': {
@@ -1387,6 +1539,9 @@ function setAnchors(rig, cast) {
       rig.flank = { parent: inner, x: profileRadius(prof, -0.02) * 0.985, y: 0.03, z: -0.02, size: profileRadius(prof, 0) * 0.85 };
       rig.band = { parent: inner, axis: 'z', z: -0.18, rx: profileRadius(prof, -0.18), ry: profileRadius(prof, -0.18) * 0.85, h: 0.07, decal: 0.09 };
       rig.mouthAnchor = { parent: inner, pos: [0, -0.06, 0.45] };
+      rig.shell = { parent: inner, center: [0, 0, 0], radii: [profileRadius(prof, 0) * 1.0, profileRadius(prof, 0) * 0.85, 0.5] };
+      rig.chin = { parent: inner, pos: [0, -profileRadius(prof, 0.3) * 0.9, 0.3], w: rig.kind === 'dolphin' ? 0.1 : 0.2 };
+      rig.neck = { parent: inner, pos: [0, 0, 0.25], rx: profileRadius(prof, 0.25), ry: profileRadius(prof, 0.25) * 0.85 };
       break;
     }
     default: break;

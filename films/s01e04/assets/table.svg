@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220">
+  <rect x="20" y="120" width="360" height="22" rx="6" fill="#f6f1e6" stroke="#c9b99a" stroke-width="3"/>
+  <rect x="30" y="142" width="340" height="40" fill="#fffaf0" stroke="#c9b99a" stroke-width="3"/>
+  <rect x="50" y="182" width="16" height="34" fill="#8b6a3e"/><rect x="334" y="182" width="16" height="34" fill="#8b6a3e"/>
+  <!-- candles -->
+  <rect x="70" y="60" width="8" height="60" fill="#fff5d6" stroke="#c9b99a" stroke-width="2"/><ellipse cx="74" cy="52" rx="5" ry="9" fill="#ffb84a"/>
+  <rect x="96" y="60" width="8" height="60" fill="#fff5d6" stroke="#c9b99a" stroke-width="2"/><ellipse cx="100" cy="52" rx="5" ry="9" fill="#ffb84a"/>
+  <!-- round challah -->
+  <circle cx="200" cy="104" r="34" fill="#d99a4a" stroke="#9c6a2a" stroke-width="3"/>
+  <path d="M175 90 Q200 120 225 90 M172 104 Q200 130 228 104" fill="none" stroke="#9c6a2a" stroke-width="3"/>
+  <!-- apples -->
+  <circle cx="140" cy="106" r="16" fill="#e0393e" stroke="#8c1c22" stroke-width="2"/><path d="M140 90 q3 -8 8 -9" stroke="#3d6b2a" stroke-width="3" fill="none"/>
+  <circle cx="262" cy="106" r="16" fill="#e0393e" stroke="#8c1c22" stroke-width="2"/><path d="M262 90 q3 -8 8 -9" stroke="#3d6b2a" stroke-width="3" fill="none"/>
+  <!-- honey jar -->
+  <rect x="296" y="82" width="34" height="38" rx="6" fill="#f2b331" stroke="#a36b10" stroke-width="3"/><rect x="298" y="76" width="30" height="10" rx="3" fill="#8b5a2b"/>
+  <!-- pomegranate -->
+  <circle cx="352" cy="108" r="14" fill="#b3202e" stroke="#6e0f18" stroke-width="2"/><path d="M346 94 l6 -6 l6 6" stroke="#6e0f18" stroke-width="3" fill="none"/>
+  <!-- cups -->
+  <path d="M110 118 l4 -18 h16 l4 18 z" fill="#c9d3dc" stroke="#7b8791" stroke-width="2"/>
+  <path d="M232 118 l4 -18 h16 l4 18 z" fill="#c9d3dc" stroke="#7b8791" stroke-width="2"/>
+</svg>

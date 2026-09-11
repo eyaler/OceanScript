@@ -1,0 +1,662 @@
+[
+  {
+    "t0": 1,
+    "slot": 10.27,
+    "duration": 9.82,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "כספיון! בעוד שעה ראש השנה. סבתא באה, דותן בא, והשולחן כמעט מוכן. עכשיו מקלחת, ובגדי חג!",
+    "spoken": "קַסְפִּיוֹן! בְּעוֹד שָׁעָה רֹאשׁ הַשָׁנָה. סַבְתָא בָּאָה, דוֹתָן בָּא, וְהַשׁוּלחָן כִּמְעַט מוּכָן. עַכשָׁו מִקְלַחַת, וְבִּגדֵי חַג!",
+    "clip": "out/.tts-cache/8db4caae8b2fd403.mp3"
+  },
+  {
+    "t0": 11.27,
+    "slot": 9.690000000000001,
+    "duration": 9.24,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אבל אמא, הפיג'מה שלי נוחה. ובגדי חג מגרדים. ומקלחת זה... רטוב.",
+    "spoken": "אֲבָל אִמָא, הַפִּיגָ'מָה שלי נוחה. ובגדי חג מְגָרְדִים. ומִקְלַחַת זה... רָטוֹב.",
+    "clip": "out/.tts-cache/511b66c2a93a9bca.mp3"
+  },
+  {
+    "t0": 20.96,
+    "slot": 7.509999999999998,
+    "duration": 7.06,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "רטוב? כספיון, אנחנו דגים. אנחנו חיים במים.",
+    "spoken": "רָטוֹב? קַסְפִּיוֹן, אֲנַחנוּ דָגִים. אֲנַחנוּ חַיִים בְּמַיִם.",
+    "clip": "out/.tts-cache/9c47e2b8f702204c.mp3"
+  },
+  {
+    "t0": 28.47,
+    "slot": 6.57,
+    "duration": 6.12,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "בדיוק! אני כבר רטוב! אז בשביל מה מקלחת?",
+    "spoken": "בְּדִיוּק! אֲנִי כְּבָר רָטוֹב! אָז בִּשְׁבִיל מָה מִקְלַחַת?",
+    "clip": "out/.tts-cache/8a4f1fb91b0738f0.mp3"
+  },
+  {
+    "t0": 35.04,
+    "slot": 4.719999999999999,
+    "duration": 4.27,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "בשביל שתהיה נקי, לא רק רטוב. יש הבדל.",
+    "spoken": "בִּשְׁבִיל שֶׁתִהיֶה נָקִי, לֹא רַק רָטוֹב. יֵשׁ הֶבְדֵל.",
+    "clip": "out/.tts-cache/9ccd4f86ca36c04b.mp3"
+  },
+  {
+    "t0": 42.76,
+    "slot": 10.030000000000001,
+    "duration": 9.58,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "כספיון, בגדי החג החדשים שלך מחכים על הכיסא. חולצה לבנה, פפיון אדום, וכיפה כחולה. חדשים לגמרי.",
+    "spoken": "קַסְפִּיוֹן, בִּגְדֵי הַחַג הַחֲדָשִׁים שֶׁלְּךָ מְחַכִּים עַל הַכִּסֵא. חוּלצָה לְבָנָה, פַּפְּיוֹן אָדֹם, וכִּיפָּה כְּחוּלָה. חֲדָשִׁים לְגַמרֵי.",
+    "clip": "out/.tts-cache/ce507e21664d9fbb.mp3"
+  },
+  {
+    "t0": 52.79,
+    "slot": 7.479999999999997,
+    "duration": 7.03,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "פפיון? פפיון זה לדגים גדולים. ואני דג קטן. עם פיג'מה.",
+    "spoken": "פַּפְּיוֹן? פַּפְּיוֹן זֶה לְדָגִים גְדוֹלִים. וַאֲנִי דָג קָטָן. עִם פִּיגָ'מָה.",
+    "clip": "out/.tts-cache/d3c3f1a4a8bcc6de.mp3"
+  },
+  {
+    "t0": 60.269999999999996,
+    "slot": 8.179999999999993,
+    "duration": 7.73,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "ראש השנה הוא לכולם, גם לדגים קטנים. שנה חדשה, בגדים חדשים.",
+    "spoken": "רֹאשׁ הַשָׁנָה הוּא לְכוּלָם, גַם לְדָגִים קְטַנִים. שָׁנָה חֲדָשָׁה, בְּגָדִים חֲדָשִׁים.",
+    "clip": "out/.tts-cache/ae7b45bffabcd889.mp3"
+  },
+  {
+    "t0": 69.94999999999999,
+    "slot": 5.780000000000001,
+    "duration": 5.33,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אני נשאר בפיג'מה. זה גם החג שלי, ובחג שלי לובשים פיג'מה.",
+    "spoken": "אֲנִי נִשׁאָר בַּפִּיגָ'מָה. זה גם החג שלי, ובחג שלי לובשים פִּיגָ'מָה.",
+    "clip": "out/.tts-cache/62bb5cafd92db598.mp3"
+  },
+  {
+    "t0": 77.72999999999999,
+    "slot": 5.299999999999997,
+    "duration": 4.85,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "כספיון, תפוח בדבש אוכלים רק מי שנקי. זה חוק.",
+    "spoken": "קַסְפִּיוֹן, תַפּוּחַ בִּדְבַשׁ אוֹכלִים רַק מִי שנָקִי. זֶה חֹק.",
+    "clip": "out/.tts-cache/1d2d65669e981f83.mp3"
+  },
+  {
+    "t0": 83.02999999999999,
+    "slot": 3.6200000000000045,
+    "duration": 3.17,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "זה לא חוק. את המצאת את זה עכשיו.",
+    "spoken": "זֶה לֹא חֹק. אַת המָצָאתְּ אֶת זֶה עַכשָׁו.",
+    "clip": "out/.tts-cache/e622c754b3790c13.mp3"
+  },
+  {
+    "t0": 86.64999999999999,
+    "slot": 3.1599999999999966,
+    "duration": 2.71,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "נכון. אבל עדיין.",
+    "spoken": "נָכוֹן. אֲבָל עֲדַיִן.",
+    "clip": "out/.tts-cache/b822fe3dcd17fa9e.mp3"
+  },
+  {
+    "t0": 89.80999999999999,
+    "slot": 2.9000000000000057,
+    "duration": 2.45,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "אתה מבין את הילד הזה?",
+    "spoken": "אַתָה מֵבִין אֶת הַיֶלֶד הַזֶה?",
+    "clip": "out/.tts-cache/532c017190504a20.mp3"
+  },
+  {
+    "t0": 92.71,
+    "slot": 4.310000000000002,
+    "duration": 3.86,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "אני הייתי בדיוק אותו דבר. עד גיל שבע.",
+    "spoken": "אֲנִי הָיִיתִי בְּדִיוּק אוֹתוֹ דָבָר. עַד גִיל שֶׁבַע.",
+    "clip": "out/.tts-cache/096021f344dac4ef.mp3"
+  },
+  {
+    "t0": 97.02,
+    "slot": 2.510000000000005,
+    "duration": 2.06,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "הוא בן חמש.",
+    "spoken": "הוּא בֶּן חָמֵשׁ.",
+    "clip": "out/.tts-cache/8f4d7f21734e2cdf.mp3"
+  },
+  {
+    "t0": 99.53,
+    "slot": 3.3100000000000023,
+    "duration": 2.86,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "אז יש לנו עוד שנתיים.",
+    "spoken": "אָז יֵשׁ לָנוּ עוֹד שְׁנָתַיִם.",
+    "clip": "out/.tts-cache/2fbf2fbdbdfd0e5b.mp3"
+  },
+  {
+    "t0": 107.84,
+    "slot": 4.650000000000006,
+    "duration": 4.2,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "שנה טובה! שנה טובה לכולם!",
+    "spoken": "שָׁנָה טוֹבָה! שָׁנָה טוֹבָה לְכוּלָם!",
+    "clip": "out/.tts-cache/9d946d31cce5e98b.mp3"
+  },
+  {
+    "t0": 112.49000000000001,
+    "slot": 10.099999999999994,
+    "duration": 9.65,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "דותן! איזה יופי אתה! חולצה לבנה, פפיון זהב, כיפה. ואפילו הבלורית מסורקת.",
+    "spoken": "דוֹתָן! אֵיזֶה יֹפִי אַתָה! חוּלצָה לְבָנָה, פַּפְּיוֹן זָהָב, כִּיפָּה. וַאֲפִלוּ הַבְּלוֹרִית מְסֹרֶקֶת.",
+    "clip": "out/.tts-cache/2d04b3d3c49b830a.mp3"
+  },
+  {
+    "t0": 123.59,
+    "slot": 6.3799999999999955,
+    "duration": 5.93,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אמא שלי סירקה. שלוש פעמים. פעם אחת זה לא נתפס.",
+    "spoken": "אִמָא שֶׁלִי סֵרקָה. שָׁלוֹשׁ פְּעָמִים. פַּעַם אַחַת זֶה לֹא נִתפַּס.",
+    "clip": "out/.tts-cache/aeccdda24af470ab.mp3"
+  },
+  {
+    "t0": 129.97,
+    "slot": 6.550000000000011,
+    "duration": 6.1,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "כספיון? למה אתה בפיג'מה? יש ארוחת חג!",
+    "spoken": "קַסְפִּיוֹן? לָמָה אַתָה בַּפִּיגָ'מָה? יש ארוחת חג!",
+    "clip": "out/.tts-cache/65ec1031f7466f07.mp3"
+  },
+  {
+    "t0": 136.52,
+    "slot": 9.280000000000001,
+    "duration": 8.83,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "כי... כי פיג'מה זה נוח. ובגדי חג מגרדים. ופפיון זה לדגים גדולים.",
+    "spoken": "כִּי... כִּי פִּיגָ'מָה זה נוח. ובגדי חג מְגָרְדִים. ופַּפְּיוֹן זה לדגים גדולים.",
+    "clip": "out/.tts-cache/7f478711c8794e2c.mp3"
+  },
+  {
+    "t0": 145.8,
+    "slot": 12.430000000000007,
+    "duration": 11.98,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "מגרד קצת. אבל תראה אותי! אני נראה כמו דג של חג. אמא שלי אומרת שבראש השנה מתחילים הכל מחדש. שנה חדשה, חולצה חדשה.",
+    "spoken": "מְגָרֵד קְצָת. אֲבָל תִראֶה אוֹתִי! אֲנִי נִרְאֶה כְּמוֹ דָג שֶׁל חַג. אִמָא שֶׁלִי אוֹמֶרֶת שֶׁבְּרֹאשׁ הַשָׁנָה מַתְחִילִים הַכֹּל מֵחָדָשׁ. שָׁנָה חֲדָשָׁה, חוּלצָה חֲדָשָׁה.",
+    "clip": "out/.tts-cache/8661c57104964f76.mp3"
+  },
+  {
+    "t0": 158.23000000000002,
+    "slot": 2.6599999999999966,
+    "duration": 2.21,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "...וגם דג חדש?",
+    "spoken": "...וְגַם דָג חָדָשׁ?",
+    "clip": "out/.tts-cache/59a63b05041af406.mp3"
+  },
+  {
+    "t0": 160.89000000000001,
+    "slot": 3.069999999999993,
+    "duration": 2.62,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "אותו דג. רק נקי.",
+    "spoken": "אוֹתוֹ דָג. רַק נָקִי.",
+    "clip": "out/.tts-cache/42b24b8ad8522d97.mp3"
+  },
+  {
+    "t0": 164.86,
+    "slot": 5.030000000000001,
+    "duration": 4.58,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "רגע! רגע, אל תתחילו בלעדיי!",
+    "spoken": "רֶגַע! רֶגַע, אַל תַתחִילוּ בִּלְעָדַי!",
+    "clip": "out/.tts-cache/bb35e9aa21621dbe.mp3"
+  },
+  {
+    "t0": 171.89000000000001,
+    "slot": 2.490000000000009,
+    "duration": 2.04,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "לאן הוא רץ?",
+    "spoken": "לְאָן הוּא רָץ?",
+    "clip": "out/.tts-cache/b8ab961bc840056e.mp3"
+  },
+  {
+    "t0": 174.38000000000002,
+    "slot": 3.759999999999991,
+    "duration": 3.31,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "למקלחת. יש נסים בראש השנה.",
+    "spoken": "למִקְלַחַת. יֵשׁ נִסִים בְּרֹאשׁ הַשָׁנָה.",
+    "clip": "out/.tts-cache/befbac1d706d69f8.mp3"
+  },
+  {
+    "t0": 183.44000000000003,
+    "slot": 10.310000000000002,
+    "duration": 9.86,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "מים! מים! אנחנו כבר במים, אבל אלה מים אחרים! שנה טובה, שנה טובה!",
+    "spoken": "מַיִם! מַיִם! אֲנַחנוּ כְּבָר בַּמַיִם, אֲבָל אֵלֶה מַיִם אֲחֵרִים! שָׁנָה טוֹבָה, שָׁנָה טוֹבָה!",
+    "clip": "out/.tts-cache/0504c4e38eff5f2c.mp3"
+  },
+  {
+    "t0": 195.75000000000003,
+    "slot": 5.0800000000000125,
+    "duration": 4.63,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "נקי. לא רק רטוב. אמא צדקה, אבל אל תגידו לה.",
+    "spoken": "נָקִי. לֹא רַק רָטוֹב. אִמָא צָדקָה, אֲבָל אַל תַגִידוּ לָה.",
+    "clip": "out/.tts-cache/7bd84a74bf84669f.mp3"
+  },
+  {
+    "t0": 204.33000000000004,
+    "slot": 6.810000000000002,
+    "duration": 6.36,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "וואו. זה... זה אני? עם פפיון?",
+    "spoken": "וָאוּ. זֶה... זֶה אֲנִי? עִם פַּפְּיוֹן?",
+    "clip": "out/.tts-cache/906d882265fef3a5.mp3"
+  },
+  {
+    "t0": 212.14000000000004,
+    "slot": 2.9199999999999875,
+    "duration": 2.47,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "זה אני. דג של חג.",
+    "spoken": "זֶה אֲנִי. דָג שֶׁל חַג.",
+    "clip": "out/.tts-cache/62b33b97a4ad592b.mp3"
+  },
+  {
+    "t0": 221.46000000000004,
+    "slot": 7.819999999999993,
+    "duration": 7.37,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "כספיון! חולצה, פפיון, כיפה... ואפילו נקי!",
+    "spoken": "קַסְפִּיוֹן! חוּלצָה, פַּפְּיוֹן, כִּיפָּה... וַאֲפִלוּ נָקִי!",
+    "clip": "out/.tts-cache/92e79fdfc19aeae5.mp3"
+  },
+  {
+    "t0": 229.28000000000003,
+    "slot": 4.960000000000008,
+    "duration": 4.51,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "ובזמן. שנה חדשה, כספיון חדש.",
+    "spoken": "וְבַּזמַן. שָׁנָה חֲדָשָׁה, קַסְפִּיוֹן חָדָשׁ.",
+    "clip": "out/.tts-cache/2f2a74c9558448d8.mp3"
+  },
+  {
+    "t0": 234.24000000000004,
+    "slot": 3.1599999999999966,
+    "duration": 2.71,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אותו כספיון. רק נקי.",
+    "spoken": "אוֹתוֹ קַסְפִּיוֹן. רַק נָקִי.",
+    "clip": "out/.tts-cache/4cf54d593b7afde2.mp3"
+  },
+  {
+    "t0": 237.40000000000003,
+    "slot": 4.150000000000006,
+    "duration": 3.7,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "והפפיון? מגרד?",
+    "spoken": "והפַּפְּיוֹן? מְגָרֵד?",
+    "clip": "out/.tts-cache/b6005f81ce6d82f5.mp3"
+  },
+  {
+    "t0": 241.55000000000004,
+    "slot": 3.8100000000000023,
+    "duration": 3.36,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "נורא. אבל אני נראה כמו דג של חג.",
+    "spoken": "נוֹרָא. אֲבָל אֲנִי נִרְאֶה כְּמוֹ דָג שֶׁל חַג.",
+    "clip": "out/.tts-cache/cb2810f854911eb3.mp3"
+  },
+  {
+    "t0": 245.36000000000004,
+    "slot": 11.249999999999972,
+    "duration": 10.8,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "ועכשיו, לפני שסבתא מגיעה ואוכלת את כל הדבש: כוסית. דותן, אתה האורח. תברך.",
+    "spoken": "וְעַכשָׁו, לִפְנֵי שסַבְתָא מַגִיעָה וְאוֹכֶלֶת אֶת כֹּל הַדְבַשׁ: כּוֹסִית. דוֹתָן, אַתָה הָאוֹרֵחַ. תְבָרֵך.",
+    "clip": "out/.tts-cache/6d6bda5ce53addae.mp3"
+  },
+  {
+    "t0": 258.61,
+    "slot": 7.4599999999999795,
+    "duration": 7.01,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "שנה טובה ומתוקה לכולם! ושנהיה לראש של דג, ולא לזנב של דג!",
+    "spoken": "שָׁנָה טוֹבָה ומְתוּקָה לְכוּלָם! וְשֶׁנִהיֶה לְרֹאשׁ שֶׁל דָג, וְלֹא לְזָנָב שֶׁל דָג!",
+    "clip": "out/.tts-cache/55bba56b4edd834b.mp3"
+  },
+  {
+    "t0": 266.07,
+    "slot": 2.269999999999982,
+    "duration": 1.82,
+    "speaker": "כולם",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 4,
+      "rate": 0
+    },
+    "text": "לחיים!",
+    "spoken": "לְחַיִים!",
+    "clip": "out/.tts-cache/a21d5575a1e1c600.mp3"
+  },
+  {
+    "t0": 268.34,
+    "slot": 3.3500000000000227,
+    "duration": 2.9,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "דותן, מה זה ראש של דג?",
+    "spoken": "דוֹתָן, מָה זֶה רֹאשׁ שֶׁל דָג?",
+    "clip": "out/.tts-cache/65e63697d08dd68a.mp3"
+  },
+  {
+    "t0": 271.69,
+    "slot": 3.9499999999999886,
+    "duration": 3.5,
+    "speaker": "דותן",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": 18,
+      "rate": 2
+    },
+    "text": "זה מי שהולך ראשון. גם למקלחת.",
+    "spoken": "זֶה מִי שֶׁהוֹלֵך רִאשׁוֹן. גַם למִקְלַחַת.",
+    "clip": "out/.tts-cache/5c54666bb54d8b07.mp3"
+  },
+  {
+    "t0": 276.64,
+    "slot": 4.189999999999998,
+    "duration": 3.74,
+    "speaker": "כספיון",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": 8,
+      "rate": 0
+    },
+    "text": "אז בשנה הבאה אני ראשון. אבל בפיג'מה.",
+    "spoken": "אָז בַּשָׁנָה הַבָּאָה אֲנִי רִאשׁוֹן. אֲבָל בַּפִּיגָ'מָה.",
+    "clip": "out/.tts-cache/0c3a858c547b2380.mp3"
+  },
+  {
+    "t0": 280.83,
+    "slot": 3.430000000000007,
+    "duration": 2.98,
+    "speaker": "אמא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-HilaNeural",
+      "pitch": -4,
+      "rate": -3
+    },
+    "text": "עוד שנתיים, אמרת?",
+    "spoken": "עוֹד שְׁנָתַיִם, אָמַרְתָּ?",
+    "clip": "out/.tts-cache/68cd9ea93ec9b332.mp3"
+  },
+  {
+    "t0": 284.26,
+    "slot": 2.6100000000000136,
+    "duration": 2.16,
+    "speaker": "אבא",
+    "kind": "dialog",
+    "voice": {
+      "voice": "he-IL-AvriNeural",
+      "pitch": -8,
+      "rate": -5
+    },
+    "text": "אולי שלוש.",
+    "spoken": "אוּלַי שָׁלוֹשׁ.",
+    "clip": "out/.tts-cache/c33957d2f2b9aa1b.mp3"
+  }
+]

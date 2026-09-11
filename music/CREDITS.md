@@ -17,6 +17,12 @@ Richard Wagner, for *הדגים פשטו עם שחר* (s01e03):
 - `magic-fire.ogg`: Wotan's Farewell and Magic Fire Music (Die Walküre) — Philadelphia Symphony Orchestra, Leopold Stokowski (Victrola, 1921). Source: https://archive.org/details/78_walkre-wotans-farewell-and-magic-fire-music_philadelphia-symphony-orchestra-leopo_gbia0520123b
 - `lohengrin-act3.ogg`: Lohengrin, Prelude to Act 3 — Boston Symphony Orchestra, Dr. Karl Muck (Victrola, 1917). Source: https://archive.org/details/78_lohengrin-prelude-act-3_boston-symphony-orchestra-wagner-dr-karl-muck_gbia0199527a
 
+For *בגדי החג החדשים של כספיון* (s01e04):
+
+- `kandel-bulgar.ogg`: "Yekatarinsklaver Bulgar" — Kandel's Jewish Orchestra (1921). Source: https://archive.org/details/78_yekatarinsklaver-bulgar_kandels-jewish-orchestra_gbia0554377a
+- `ziser-bulgar.ogg`: "Der Ziser Bulgar" — Naftule Brandwein (Emerson, 1922). Source: https://archive.org/details/78_der-ziser-bulgar_naftule-brandwine_gbia0465162a
+- `hatikva.ogg`: "Hatikva" (Imber) — Alma Gluck, soprano; Efrem Zimbalist, violin (Victor, 1918). Source: https://archive.org/details/78_hatikva-zionist-hymn-hatikvoh_alma-gluck-and-efrem-zimbalist-imber_gbia0051200a
+
 All files are cleaned from the 78 rpm transfers with ffmpeg (`adeclick`,
 `afftdn` noise reduction, a steep 3 kHz low-pass, loudness normalised to
 -23 LUFS): acoustic-era records carry little above 3 kHz, and the surface

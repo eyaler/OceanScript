@@ -131,6 +131,9 @@ function words(text) {
 // Each entry: [regex on the lower-cased action text, canonical verb]
 // The regex is anchored to the start of the action text (after `@name`).
 const ACTOR_VERBS = [
+  [/^(?:wears?|puts? on|dresses? (?:in|up in)|gets? dressed in|changes? into|is wearing|slips? (?:on|into))\b/, 'wear'],
+  [/^(?:takes? off|removes?|undresses|strips? off|gets? out of|gets? undressed|slips? off)\b/, 'undress'],
+  [/^(?:showers?|takes? a shower|has a shower|bathes?|takes? a bath|washes? (?:up|off|itself|himself|herself)|scrubs?(?: up)?|soaps? up)\b/, 'shower'],
   [/^(?:is|gets?) (?:knocked|hit|struck|thrown)(?: back| away| over)?\b|^(?:reels?|staggers?|tumbles? (?:back|away|over)|is thrown|flies back)\b/, 'knocked'],
   [/^(?:feels?|is|becomes?|gets?|looks?|seems?|acts?)\s+(?:very\s+|a bit\s+|so\s+|really\s+)?(happy|sad|scared|afraid|excited|sleepy|tired|angry|calm|curious|surprised|neutral|proud|lonely|crying)\b/, 'emote'],
   [/^(?:appears?|is|starts?|begins?|spawns?|pops? up)\b/, 'place'],
@@ -251,6 +254,38 @@ const KIND_ALIASES = {
   goat: 'ibex', 'mountain goat': 'ibex', 'nubian ibex': 'ibex', 'wild goat': 'ibex', 'ibex goat': 'ibex',
 };
 
+// Clothes: `@caspion puts on a white shirt, red bowtie and kippa`, or in the cast
+// (`- caspion: fish, silver, pyjamas, nightcap`).  Each item has an optional colour.
+const WARDROBE_ITEMS = {
+  pyjamas: 'pyjamas', pajamas: 'pyjamas', pyjama: 'pyjamas', pajama: 'pyjamas', pijama: 'pyjamas', pijamas: 'pyjamas', pjs: 'pyjamas', 'פיגמה': 'pyjamas', "פיג'מה": 'pyjamas',
+  nightcap: 'nightcap', 'night cap': 'nightcap', 'sleeping cap': 'nightcap', 'sleep cap': 'nightcap',
+  shirt: 'shirt', blouse: 'shirt', 'dress shirt': 'shirt',
+  bowtie: 'bowtie', 'bow tie': 'bowtie', 'bow-tie': 'bowtie', 'פפיון': 'bowtie',
+  tie: 'tie', necktie: 'tie',
+  kippa: 'kippa', kippah: 'kippa', kipa: 'kippa', yarmulke: 'kippa', skullcap: 'kippa', 'כיפה': 'kippa',
+  necklace: 'necklace', pearls: 'necklace', 'pearl necklace': 'necklace',
+  dress: 'dress', gown: 'dress', skirt: 'dress',
+  scarf: 'scarf',
+};
+const WARDROBE_RE = new RegExp('(?:\\b|^)(' + Object.keys(WARDROBE_ITEMS).sort((a, b) => b.length - a.length).map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?:\\b|(?=\\s|,|$))', 'giu');
+// Parses "a white shirt, red bowtie and a kippa" into [{item, color}]
+export function parseWardrobe(text) {
+  const items = [];
+  const chunks = text.split(/,|\band\b|\+|&|\bwith\b/i);
+  for (const chunk of chunks) {
+    const m = chunk.match(WARDROBE_RE);
+    if (!m) continue;
+    const item = WARDROBE_ITEMS[m[0].toLowerCase()];
+    let color = null;
+    const hex = chunk.match(/#[0-9a-f]{3,8}\b/i);
+    if (hex) color = hex[0];
+    else for (const w of chunk.toLowerCase().replace(WARDROBE_RE, ' ').split(/\s+/)) if (COLOR_WORDS.has(w)) { color = w; break; }
+    items.push({ item, color });
+  }
+  return items;
+}
+export function hasWardrobeWord(text) { WARDROBE_RE.lastIndex = 0; return WARDROBE_RE.test(text); }
+
 const COLOR_WORDS = new Set([
   'silver', 'gold', 'golden', 'blue', 'red', 'green', 'yellow', 'orange', 'pink', 'purple',
   'violet', 'white', 'black', 'grey', 'gray', 'brown', 'teal', 'cyan', 'turquoise', 'navy',
@@ -301,6 +336,16 @@ export function parseCastAttrs(text) {
   if (ey) { actor.eyes = Number(ey[1]); rest = rest.replace(ey[0], ' '); }
   else if (/\b(?:big|huge|large) eyes\b/i.test(rest)) { actor.eyes = 1.8; rest = rest.replace(/\b(?:big|huge|large) eyes\b/i, ' '); }
   if (/\b(?:forelock|curly|curls|quiff|בלורית)\b/i.test(rest)) { actor.forelock = true; rest = rest.replace(/\b(?:forelock|curly|curls|quiff|בלורית)\b/i, ' '); }
+  // clothes worn from the start: `pyjamas`, `white shirt`, `bowtie red`, `kippa`
+  {
+    const worn = [];
+    for (const part of rest.split(/[,;]+/)) {
+      if (!hasWardrobeWord(part)) continue;
+      const w = parseWardrobe(part);
+      if (w.length) { worn.push(...w); rest = rest.replace(part, ' '); }
+    }
+    if (worn.length) actor.wardrobe = worn;
+  }
   // accessories: `helmet`, `steel helmet`, `helmet olive`, `cap`, `officer cap navy`, `moustache`,
   // `badge "assets/insignia.svg"` (a decal on both flanks), `armband "assets/band.svg"` (a red band
   // around the body carrying the image)
@@ -541,7 +586,14 @@ export function parseActorAction(name, text, line) {
       }
       break;
     }
-    case 'carry': case 'drop': case 'swallow': case 'spit': case 'ride': case 'dismount': case 'eat': case 'split': case 'clean': case 'charge': case 'knocked': case 'salute': case 'sneeze': {
+    case 'wear': case 'undress': {
+      action.items = parseWardrobe(tail);
+      if (mv.verb === 'undress' && (!action.items.length || /\b(?:everything|all|clothes|the clothes|his clothes|her clothes)\b/i.test(tail))) action.all = true;
+      if (mv.verb === 'wear' && !action.items.length) throw new ParseError('wear needs a garment: pyjamas, nightcap, shirt, bowtie, tie, kippa, necklace, dress, scarf', line, raw);
+      tail = '';
+      break;
+    }
+    case 'carry': case 'drop': case 'swallow': case 'spit': case 'ride': case 'dismount': case 'eat': case 'split': case 'clean': case 'charge': case 'knocked': case 'salute': case 'sneeze': case 'shower': {
       const t = parseTarget(tail); tail = t.rest;
       if ((mv.verb === 'carry' || mv.verb === 'swallow' || mv.verb === 'ride' || mv.verb === 'eat' || mv.verb === 'charge') && (!t.target || !t.target.actor)) throw new ParseError(`${mv.verb} needs an \`@actor\``, line, raw);
       if (mv.verb === 'knocked') { const d = takeDirection(tail); tail = d.rest; action.direction = d.dir || null; }

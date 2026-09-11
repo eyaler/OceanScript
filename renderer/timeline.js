@@ -278,6 +278,24 @@ export class TimelineEvaluator {
     return e.emotion;
   }
 
+  // Clothes worn at t: { item: color } from the cast's initial wardrobe and the
+  // wear / undress events so far
+  wardrobe(name, t) {
+    const key = `w|${name}|${t.toFixed(3)}`;
+    return this._memo(key, () => {
+      const c = this.tl.cast[name];
+      const worn = {};
+      for (const w of c?.wardrobe || []) worn[w.item] = w.color || '';
+      const tr = this.tracks(name);
+      for (const e of tr?.wardrobe || []) {
+        if (e.t > t + 1e-9) break;
+        if (e.all === false) { for (const k of Object.keys(worn)) delete worn[k]; continue; }
+        if (e.on) worn[e.item] = e.color || ''; else delete worn[e.item];
+      }
+      return worn;
+    });
+  }
+
   // The emotion a moment ago and how far the change has progressed (0..1 over
   // 0.6 s), so rigs can blend between the two instead of snapping
   emotionBlend(name, t) {
